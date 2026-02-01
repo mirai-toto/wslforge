@@ -6,6 +6,7 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
     init_logger(args.verbose);
+    ensure_windows()?;
 
     let cfg = config::load_yaml(&args.config)?;
     log::debug!("📋 Loaded config from {}", args.config.display());
@@ -17,6 +18,13 @@ fn main() -> anyhow::Result<()> {
         manager.create_instance(&cfg)?;
     }
 
+    Ok(())
+}
+
+fn ensure_windows() -> anyhow::Result<()> {
+    if !cfg!(target_os = "windows") {
+        anyhow::bail!("wslforge is Windows-only (target_os=windows required)");
+    }
     Ok(())
 }
 
