@@ -1,6 +1,7 @@
 use crate::config::{AppConfig, ImageSource};
 use crate::wsl::validation;
 use log::{debug, info};
+use owo_colors::OwoColorize;
 use std::process::Command;
 
 pub struct WslManager;
@@ -73,8 +74,8 @@ fn is_windows_feature_enabled(feature_name: &str) -> anyhow::Result<bool> {
         let stdout = String::from_utf8_lossy(&output.stdout);
         anyhow::bail!(
             "dism.exe failed for feature '{feature_name}' with status {}\n{}",
-            output.status,
-            stdout.trim(),
+            format!("{}", output.status).red(),
+            stdout.trim().yellow(),
         );
     }
 
