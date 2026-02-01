@@ -1,7 +1,6 @@
 # Rust
 /target
 **/*.rs.bk
-Cargo.lock
 
 # Config files with secrets
 config.yaml
@@ -25,4 +24,3 @@ Thumbs.db
 dist/
 build/
 tmp/
-

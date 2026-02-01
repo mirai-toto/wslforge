@@ -8,8 +8,7 @@ fn main() -> anyhow::Result<()> {
     init_logger(args.verbose);
 
     let cfg = config::load_yaml(&args.config)?;
-    log::debug!("📋 Loaded config: {:#?}", cfg);
-
+    log::debug!("📋 Loaded config from {}", args.config.display());
     let manager = WslManager::new();
 
     if args.dry_run {

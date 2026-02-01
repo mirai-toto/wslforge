@@ -23,7 +23,7 @@ fn default_distro() -> String {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ImageSource {
     Distro {
         #[serde(default = "default_distro")]
@@ -43,6 +43,7 @@ impl Default for ImageSource {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct AppConfig {
     #[serde(default = "default_hostname")]
     pub hostname: String,
