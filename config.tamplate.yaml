@@ -1,0 +1,25 @@
+# --- Basic instance settings ---
+hostname: UbuntuWSL
+username: wsluser
+password: root   # optional, omit to disable password setup
+
+# --- Network (all optional) ---
+http_proxy: null
+https_proxy: null
+no_proxy: null
+
+# --- Paths ---
+install_dir: "%userprofile%/VMs"
+cloud_init: "cloud-init.yaml"
+
+# --- Image source (choose ONE type) ---
+
+# Option A: Install from official WSL distro
+image:
+  type: distro
+  name: Ubuntu
+
+# Option B: Install from local rootfs file
+# image:
+#   type: file
+#   path: "C:/Users/Hamza/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"

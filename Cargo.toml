@@ -1,0 +1,20 @@
+[package]
+name = "wslforge"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hamza Ince"]
+description = "WSL instance manager using YAML configuration"
+license = "MIT"
+repository = "https://github.com/mirai-toto/wslforge"
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+url = { version = "2", features = ["serde"] }
+serde_yaml = "0.9"
+log = "0.4"
+env_logger = "0.11"
+
+[dev-dependencies]
+tempfile = "3"
