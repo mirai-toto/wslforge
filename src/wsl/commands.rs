@@ -6,9 +6,17 @@ pub fn create_instance(cfg: &AppConfig) -> anyhow::Result<()> {
     match &cfg.image {
         ImageSource::File { path } => {
             let install_dir = cfg.install_dir.join(&cfg.hostname);
+            info!(
+                "📦 Creating WSL instance '{}' from rootfs file {}",
+                cfg.hostname,
+                path.display()
+            );
             import_rootfs(&cfg.hostname, &install_dir, path)
         }
-        ImageSource::Distro { name } => install_distro(name),
+        ImageSource::Distro { name } => {
+            info!("🐧 Installing WSL distro '{}'", name);
+            install_distro(name)
+        }
     }
 }
 
@@ -59,6 +67,8 @@ fn import_rootfs(
 }
 
 fn install_distro(distro_name: &str) -> anyhow::Result<()> {
+    // TODO: WSL `--install -d` uses the distro name as the instance name.
+    // If we need custom instance names, consider install + export + import flow.
     info!("🔍 Checking if WSL instance '{}' exists...", distro_name);
     let exists = Command::new("wsl.exe")
         .args(["-d", distro_name, "--", "echo", "Already exists."])
