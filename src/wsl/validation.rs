@@ -4,9 +4,31 @@ use std::process::Command;
 use encoding_rs::UTF_16LE;
 
 pub fn validate_all(cfg: &AppConfig) -> anyhow::Result<()> {
+    validate_wsl_installed()?;
+    update_wsl_version()?;
     validate_windows_features(&["Microsoft-Windows-Subsystem-Linux"])?;
     validate_image_source(cfg)?;
     Ok(())
+}
+
+pub fn validate_wsl_installed() -> anyhow::Result<()> {
+    let output = Command::new("wsl.exe").arg("--status").output()?;
+    if output.status.success() {
+        info!("✅ WSL is installed");
+        Ok(())
+    } else {
+        anyhow::bail!("⛔ WSL is not installed.")
+    }
+}
+
+pub fn update_wsl_version() -> anyhow::Result<()> {
+    let output = Command::new("wsl.exe").arg("--update").output()?;
+    if output.status.success() {
+        info!("✅ WSL update completed");
+        Ok(())
+    } else {
+        anyhow::bail!("⛔ Failed to update WSL.")
+    }
 }
 
 pub fn validate_image_source(cfg: &AppConfig) -> anyhow::Result<()> {

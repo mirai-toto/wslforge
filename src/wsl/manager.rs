@@ -1,5 +1,5 @@
 use crate::config::{AppConfig, ImageSource};
-use crate::wsl::validation;
+use crate::wsl::{commands, validation};
 use log::{debug, info};
 
 pub struct WslManager;
@@ -10,19 +10,14 @@ impl WslManager {
     }
 
     pub fn create_instance(&self, cfg: &AppConfig, dry_run: bool) -> anyhow::Result<()> {
+        validation::validate_all(cfg)?;
+        self.print_plan(cfg);
         if dry_run {
             info!("🧪 Dry run: WSL instance would be created");
         } else {
             info!("🚀 Creating WSL instance");
+            commands::create_instance(cfg)?;
         }
-        validation::validate_all(cfg)?;
-        self.print_plan(cfg);
-        if dry_run {
-            info!("🧩 Instance creation not implemented yet (mock)");
-            return Ok(());
-        }
-
-        info!("🧩 Instance creation not implemented yet (mock)");
         Ok(())
     }
 

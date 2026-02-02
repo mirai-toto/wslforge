@@ -1,5 +1,5 @@
 # --- Basic instance settings ---
-hostname: Ubuntu-instance
+hostname: Ubuntuinstance
 username: wsluser
 password: root   # optional, omit to disable password setup
 
