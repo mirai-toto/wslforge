@@ -1,7 +1,13 @@
 use crate::config::{AppConfig, ImageSource};
-use log::warn;
+use log::{info, warn, debug};
 use std::process::Command;
 use encoding_rs::UTF_16LE;
+
+pub fn validate_all(cfg: &AppConfig) -> anyhow::Result<()> {
+    validate_windows_features(&["Microsoft-Windows-Subsystem-Linux"])?;
+    validate_image_source(cfg)?;
+    Ok(())
+}
 
 pub fn validate_image_source(cfg: &AppConfig) -> anyhow::Result<()> {
     match &cfg.image {
@@ -25,6 +31,16 @@ pub fn validate_image_source(cfg: &AppConfig) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
+    for feature_name in feature_names {
+        match is_windows_feature_enabled(feature_name)? {
+            true => info!("✅ {feature_name} is enabled"),
+            false => warn!("⚠️  {feature_name} is not enabled"),
+        }
+    }
+    Ok(())
+}
+
 fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
     let name = path
         .file_name()
@@ -34,9 +50,11 @@ fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
     name.ends_with(".tar") || name.ends_with(".tar.gz") || name.ends_with(".tgz")
 }
 
-#[cfg(target_os = "windows")]
-fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
+//
+// OS interaction helpers
+//
 
+fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
     let output = Command::new("wsl.exe")
         .args(["--list", "--online"])
         .output()?;
@@ -45,17 +63,40 @@ fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
         anyhow::bail!("wsl.exe --list --online failed with status {}", output.status);
     }
 
-    // Decode Windows UTF-16LE output safely
     let (text, _, _) = UTF_16LE.decode(&output.stdout);
 
-    Ok(text
+    let ids: Vec<String> = text
         .lines()
-        .skip(4)
-        .filter_map(|line| line.split_whitespace().next())
-        .any(|id| id.eq_ignore_ascii_case(name)))
+        .map(str::trim)
+        .skip_while(|l| !l.starts_with("NAME"))
+        .skip(1)
+        .filter(|l| !l.is_empty())
+        .filter_map(|l| l.split_whitespace().next().map(str::to_string))
+        .collect();
+
+    debug!("Available WSL online distros: {:?}", ids);
+    Ok(ids.iter().any(|id| id.eq_ignore_ascii_case(name)))
 }
 
-#[cfg(not(target_os = "windows"))]
-fn is_valid_wsl_distro_name(_name: &str) -> anyhow::Result<bool> {
-    anyhow::bail!("WSL distro validation is only supported on Windows")
+fn is_windows_feature_enabled(feature_name: &str) -> anyhow::Result<bool> {
+    let output = Command::new("dism.exe")
+        .args([
+            "/English",
+            "/online",
+            "/Get-FeatureInfo",
+            &format!("/featureName:{feature_name}"),
+        ])
+        .output()?;
+
+    if !output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        anyhow::bail!(
+            "dism.exe failed for feature '{feature_name}' with status {}\n{}",
+            format!("{}", output.status),
+            stdout.trim(),
+        );
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    Ok(stdout.lines().any(|line| line.trim() == "State : Enabled"))
 }
