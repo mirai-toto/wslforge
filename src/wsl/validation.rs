@@ -1,6 +1,7 @@
 use crate::config::{AppConfig, ImageSource};
 use log::warn;
 use std::process::Command;
+use encoding_rs::UTF_16LE;
 
 pub fn validate_image_source(cfg: &AppConfig) -> anyhow::Result<()> {
     match &cfg.image {
@@ -35,31 +36,23 @@ fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
 
 #[cfg(target_os = "windows")]
 fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
+
     let output = Command::new("wsl.exe")
         .args(["--list", "--online"])
         .output()?;
 
     if !output.status.success() {
-        anyhow::bail!(
-            "wsl.exe --list --online failed with status {}",
-            output.status
-        );
+        anyhow::bail!("wsl.exe --list --online failed with status {}", output.status);
     }
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let needle = name.trim().to_lowercase();
+    // Decode Windows UTF-16LE output safely
+    let (text, _, _) = UTF_16LE.decode(&output.stdout);
 
-    for line in stdout.lines().skip(1) {
-        let candidate = line.trim();
-        if candidate.is_empty() {
-            continue;
-        }
-        if candidate.to_lowercase() == needle {
-            return Ok(true);
-        }
-    }
-
-    Ok(false)
+    Ok(text
+        .lines()
+        .skip(4)
+        .filter_map(|line| line.split_whitespace().next())
+        .any(|id| id.eq_ignore_ascii_case(name)))
 }
 
 #[cfg(not(target_os = "windows"))]
