@@ -15,7 +15,7 @@ pub fn create_instance(cfg: &AppConfig) -> anyhow::Result<()> {
         }
         ImageSource::Distro { name } => {
             info!("🐧 Installing WSL distro '{}'", name);
-            install_distro(name)
+            install_distro(name, &cfg.hostname)
         }
     }
 }
@@ -66,25 +66,29 @@ fn import_rootfs(
     Ok(())
 }
 
-fn install_distro(distro_name: &str) -> anyhow::Result<()> {
-    // TODO: WSL `--install -d` uses the distro name as the instance name.
-    // If we need custom instance names, consider install + export + import flow.
-    info!("🔍 Checking if WSL instance '{}' exists...", distro_name);
+fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> {
+    info!(
+        "🔍 Checking if WSL instance '{}' exists...",
+        instance_name
+    );
     let exists = Command::new("wsl.exe")
-        .args(["-d", distro_name, "--", "echo", "Already exists."])
+        .args(["-d", instance_name, "--", "echo", "Already exists."])
         .status()
         .map(|s| s.success())
         .unwrap_or(false);
 
     if exists {
-        info!("ℹ️ WSL instance '{}' already exists.", distro_name);
+        info!("ℹ️ WSL instance '{}' already exists.", instance_name);
         return Ok(());
     }
 
-    info!("🚧 Instance not found. Installing '{}'...", distro_name);
+    info!(
+        "🚧 Instance not found. Installing '{}' as '{}'...",
+        distro_name, instance_name
+    );
 
     let mut cmd = Command::new("wsl.exe");
-    cmd.args(["--install", "-d", distro_name]);
+    cmd.args(["--install", "-d", distro_name, "--name", instance_name]);
 
     let output = cmd.output()?;
     if !output.status.success() {
@@ -98,6 +102,6 @@ fn install_distro(distro_name: &str) -> anyhow::Result<()> {
         );
     }
 
-    info!("✅ WSL instance '{}' installed successfully.", distro_name);
+    info!("✅ WSL instance '{}' installed successfully.", instance_name);
     Ok(())
 }

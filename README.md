@@ -1,64 +1,178 @@
 # wslforge
 
-WSL instance manager driven by a YAML configuration file.
+✨ A clean, declarative way to create WSL instances from a single YAML config, with a focus on clarity and repeatability.
 
-Status: early/in-development. Many operations are still mock.
+> Status: early/in-development. Some operations are still mock.
 
-## Features
+---
 
-- Parse a YAML config to describe a WSL instance.
-- Dry-run mode to preview planned actions.
-- Basic logging with verbosity flags.
+## ✅ Requirements
 
-## Install
+WSL must be enabled on Windows before you can create instances. Run this once in an elevated PowerShell:
 
-```sh
-cargo build --release
+```powershell
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
 ```
 
-## Usage
+Optional: install the latest PowerShell via winget if you prefer a newer shell experience:
+
+```powershell
+winget install --id Microsoft.PowerShell --source winget
+```
+
+---
+
+## ⚡ Quickstart
+
+Create a config from the template and run the CLI. This is the fastest way to get a working instance:
 
 ```sh
+cp config.template.yaml config.yaml
 ./target/release/wslforge --config config.yaml
 ```
 
-Dry run:
+Want to preview what will happen without making changes? Use dry-run:
 
 ```sh
 ./target/release/wslforge --config config.yaml --dry-run
 ```
 
-Verbosity:
+Need more details for troubleshooting? Increase verbosity:
 
 ```sh
 ./target/release/wslforge -v
 ./target/release/wslforge -vv
 ```
 
-## Configuration
+---
 
-Copy the template and edit as needed:
+## 🧩 Configuration
 
-```sh
-cp config.template.yaml config.yaml
+The configuration is intentionally small. Most fields are optional, and you can grow into advanced options as needed.
+
+Core fields:
+
+| Field | Description | Example | Mandatory |
+| --- | --- | --- | --- |
+| `hostname` | WSL instance name | `Ubuntuinstance` | ✅ |
+| `username` | Default user | `wsluser` | ✅ |
+| `password` | Optional password setup | `root` | ➖ |
+| `install_dir` | Target install directory | `%userprofile%/VMs` | ✅ |
+| `http_proxy` | HTTP proxy URL | `http://proxy.local:8080` | ➖ |
+| `https_proxy` | HTTPS proxy URL | `https://proxy.local:8443` | ➖ |
+| `no_proxy` | Comma-separated proxy bypass list | `localhost,127.0.0.1` | ➖ |
+
+Related sections:
+
+- [🐧 Image source section](#image-sources)
+- [☁️ Cloud init section](#cloud-init)
+
+Example `config.yaml` with a file-based cloud-init and an official distro:
+
+```yaml
+hostname: Ubuntuinstance
+username: wsluser
+# password: root
+
+http_proxy: null
+https_proxy: null
+no_proxy: null
+
+install_dir: "%userprofile%/VMs"
+
+cloud_init:
+  type: file
+  path: "cloud-init.yaml"
+
+image:
+  type: distro
+  name: Ubuntu
 ```
 
-Fields (summary):
+### Cloud init
 
-- `hostname`: WSL hostname
-- `username`: default user
-- `password`: optional; omit to disable password setup
-- `http_proxy`, `https_proxy`, `no_proxy`: optional proxy settings
-- `install_dir`: target install directory
-- `cloud_init`: cloud-init file path
-- `image`: source for the distro (official or local file)
+Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline.
 
-## Development
+Cloud-init types:
 
-```sh
-cargo run -- --config config.yaml --dry-run -vv
+| Type | Description | Example |
+| --- | --- | --- |
+| `file` | Load user-data from a file | `path: "cloud-init.yaml"` |
+| `inline` | Inline YAML user-data | `content: \| ...` |
+
+File-based user-data (recommended for larger configs):
+
+```yaml
+cloud_init:
+  type: file
+  path: "cloud-init.yaml"
 ```
 
-## License
+Inline user-data (handy for small, self-contained configs):
 
-MIT
+```yaml
+cloud_init:
+  type: inline
+  content: |
+    #cloud-config
+    packages:
+      - curl
+```
+
+### Image Sources
+
+Pick where the root filesystem comes from: an official WSL distro or a local rootfs archive.
+
+Image types:
+
+| Type | Description | Example |
+| --- | --- | --- |
+| `distro` | Install from official WSL distro | `name: Ubuntu` |
+| `file` | Import from local rootfs archive | `path: "%USERPROFILE%/Downloads/..."` |
+
+Official WSL distro (simple and quick):
+
+```yaml
+image:
+  type: distro
+  name: Ubuntu
+```
+
+Local rootfs archive (for custom or prebuilt images):
+
+```yaml
+image:
+  type: file
+  path: "%USERPROFILE%/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"
+```
+
+---
+
+## 📄 License
+
+MIT — see [LICENSE](https://github.com/mirai-toto/wslforge/blob/main/LICENSE).
+
+---
+
+## 🤝 Support
+
+Open an issue at [GitHub Issues](https://github.com/mirai-toto/wslforge/issues) with your logs and config details if possible.
+
+---
+
+## 🔗 Useful Links
+
+- [Cloud-init WSL datasource](https://cloudinit.readthedocs.io/en/latest/topics/datasources/wsl.html) for user-data behavior and file locations
+- [WSL documentation](https://learn.microsoft.com/windows/wsl/) for setup, commands, and troubleshooting
+
+---
+
+## 👤 Credits
+
+Made by [mirai-toto](https://github.com/mirai-toto). Thanks for checking it out!
+
+---
+
+## 🙏 Acknowledgements
+
+Thanks to the maintainers of WSL, cloud-init, Docker, k3s, Helm, and wsl-vpnkit.

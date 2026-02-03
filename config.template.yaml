@@ -10,7 +10,18 @@ no_proxy: null
 
 # --- Paths ---
 install_dir: "%userprofile%/VMs"
-cloud_init: "cloud-init.yaml"
+# Cloud-init user-data source (optional)
+# cloud_init:
+#   type: file
+#   path: "cloud-init.yaml"
+
+# Inline cloud-init example
+# cloud_init:
+#   type: inline
+#   content: |
+#     #cloud-config
+#     packages:
+#       - curl
 
 # --- Image source (choose ONE type) ---
 
