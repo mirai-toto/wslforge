@@ -1,7 +1,10 @@
 name: release
 
 on:
-  push:
+  workflow_run:
+    workflows: ["ci"]
+    types:
+      - completed
     branches:
       - main
 
@@ -10,13 +13,7 @@ permissions:
 
 jobs:
   build:
-    needs:
-      - rust-ci
-      - markdownlint
-      - commitlint
-      - typos
-      - security-audit
-      - codeql
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -40,6 +37,7 @@ jobs:
   release:
     needs:
       - build
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
