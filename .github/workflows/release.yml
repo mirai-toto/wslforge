@@ -9,7 +9,14 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  build:
+    needs:
+      - rust-ci
+      - markdownlint
+      - commitlint
+      - typos
+      - security-audit
+      - codeql
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -24,17 +31,33 @@ jobs:
       - name: Build
         run: cargo build --release
 
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wslforge-windows
+          path: target/release/wslforge.exe
+
+  release:
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wslforge-windows
+          path: target/release
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install semantic-release
-        run: |
-          npm install -g semantic-release ^
-            @semantic-release/commit-analyzer ^
-            @semantic-release/release-notes-generator ^
-            @semantic-release/github
+        run: npm install -g semantic-release @semantic-release/commit-analyzer @semantic-release/release-notes-generator @semantic-release/github
 
       - name: Release
         env:
