@@ -25,7 +25,6 @@ fn import_rootfs(
     install_dir: &std::path::Path,
     rootfs_tar: &std::path::Path,
 ) -> anyhow::Result<()> {
-
     info!("🔍 Checking if WSL instance '{}' exists...", hostname);
     let exists = Command::new("wsl.exe")
         .args(["-d", hostname, "--", "echo", "Already exists."])
@@ -67,10 +66,7 @@ fn import_rootfs(
 }
 
 fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> {
-    info!(
-        "🔍 Checking if WSL instance '{}' exists...",
-        instance_name
-    );
+    info!("🔍 Checking if WSL instance '{}' exists...", instance_name);
     let exists = Command::new("wsl.exe")
         .args(["-d", instance_name, "--", "echo", "Already exists."])
         .status()
@@ -102,6 +98,9 @@ fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> 
         );
     }
 
-    info!("✅ WSL instance '{}' installed successfully.", instance_name);
+    info!(
+        "✅ WSL instance '{}' installed successfully.",
+        instance_name
+    );
     Ok(())
 }

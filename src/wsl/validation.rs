@@ -1,7 +1,7 @@
 use crate::config::{AppConfig, ImageSource};
-use log::{info, warn, debug};
-use std::process::Command;
 use encoding_rs::UTF_16LE;
+use log::{debug, info, warn};
+use std::process::Command;
 
 pub fn validate_all(cfg: &AppConfig) -> anyhow::Result<()> {
     validate_wsl_installed()?;
@@ -82,7 +82,10 @@ fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
         .output()?;
 
     if !output.status.success() {
-        anyhow::bail!("wsl.exe --list --online failed with status {}", output.status);
+        anyhow::bail!(
+            "wsl.exe --list --online failed with status {}",
+            output.status
+        );
     }
 
     let (text, _, _) = UTF_16LE.decode(&output.stdout);
@@ -114,7 +117,7 @@ fn is_windows_feature_enabled(feature_name: &str) -> anyhow::Result<bool> {
         let stdout = String::from_utf8_lossy(&output.stdout);
         anyhow::bail!(
             "dism.exe failed for feature '{feature_name}' with status {}\n{}",
-            format!("{}", output.status),
+            output.status,
             stdout.trim(),
         );
     }

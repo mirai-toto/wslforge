@@ -37,9 +37,8 @@ pub fn prepare_cloud_init(cfg: &AppConfig) -> anyhow::Result<()> {
 }
 
 fn expand_env_vars(raw: &str) -> anyhow::Result<String> {
-    let percent_expanded = expand_str::expand_string_with_env(raw).map_err(|e| {
-        anyhow::anyhow!("environment variable expansion failed: {e}")
-    })?;
+    let percent_expanded = expand_str::expand_string_with_env(raw)
+        .map_err(|e| anyhow::anyhow!("environment variable expansion failed: {e}"))?;
     let expanded = shellexpand::env(&percent_expanded).map_err(|e| {
         anyhow::anyhow!(
             "environment variable '{}' is not set (from '{}')",
