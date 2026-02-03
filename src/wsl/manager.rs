@@ -45,3 +45,9 @@ impl WslManager {
         }
     }
 }
+
+impl Default for WslManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
