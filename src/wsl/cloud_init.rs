@@ -1,5 +1,6 @@
 use crate::config::{AppConfig, CloudInitSource};
 use log::info;
+use minijinja::Environment;
 use std::path::PathBuf;
 
 pub fn prepare_cloud_init(cfg: &AppConfig) -> anyhow::Result<()> {
@@ -26,14 +27,31 @@ pub fn prepare_cloud_init(cfg: &AppConfig) -> anyhow::Result<()> {
                 );
             }
             info!("☁️ Cloud-init source: {}", expanded_path.display());
-            std::fs::copy(expanded_path, &target_file)?;
+            let raw = std::fs::read_to_string(expanded_path)?;
+            let rendered = render_cloud_init(&raw, cfg)?;
+            std::fs::write(&target_file, rendered)?;
         }
         CloudInitSource::Inline { content } => {
             info!("☁️ Cloud-init source: inline content");
-            std::fs::write(&target_file, content)?;
+            let rendered = render_cloud_init(content, cfg)?;
+            std::fs::write(&target_file, rendered)?;
         }
     }
     Ok(())
+}
+
+fn render_cloud_init(raw: &str, cfg: &AppConfig) -> anyhow::Result<String> {
+    let mut env = Environment::new();
+    env.add_template("cloud-init.user-data", raw)
+        .map_err(|e| anyhow::anyhow!("cloud-init template parse error: {e}"))?;
+
+    let template = env
+        .get_template("cloud-init.user-data")
+        .map_err(|e| anyhow::anyhow!("cloud-init template load error: {e}"))?;
+
+    template
+        .render(minijinja::context! { cfg => cfg, vars => &cfg.vars })
+        .map_err(|e| anyhow::anyhow!("cloud-init template render error: {e}"))
 }
 
 fn expand_env_vars(raw: &str) -> anyhow::Result<String> {

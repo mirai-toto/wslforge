@@ -1,0 +1,70 @@
+#cloud-config
+## template: jinja
+hostname: {{ cfg.hostname }}
+manage_etc_hosts: true
+
+apt:
+  http_proxy: "{{ cfg.http_proxy | default('') }}"
+  https_proxy: "{{ cfg.https_proxy | default('') }}"
+
+users:
+  - name: {{ cfg.username }}
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    lock_passwd: false
+    passwd: "{{ vars.user_password_hash | default('') }}"
+
+package_update: true
+package_upgrade: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg2
+  - software-properties-common
+  - python3
+  - python3-pip
+  - openjdk-21-jdk
+  - npm
+
+write_files:
+  - path: /etc/profile.d/proxy.sh
+    permissions: '0644'
+    content: |
+      export http_proxy="{{ cfg.http_proxy | default('') }}"
+      export https_proxy="{{ cfg.https_proxy | default('') }}"
+      export no_proxy="{{ cfg.no_proxy | default('') }}"
+  - path: /etc/apt/apt.conf.d/95proxies
+    permissions: '0644'
+    content: |
+      Acquire::http::Proxy "{{ cfg.http_proxy | default('') }}";
+      Acquire::https::Proxy "{{ cfg.https_proxy | default('') }}";
+  - path: /usr/lib/binfmt.d/WSLInterop.conf
+    permissions: '0644'
+    content: |
+      :WSLInterop:M::MZ::/init:PF
+  - path: /etc/wsl.conf
+    permissions: '0644'
+    content: |
+      [boot]
+      systemd=true
+      [automount]
+      options = "metadata"
+      [interop]
+      appendWindowsPath = true
+      [user]
+      default={{ cfg.username }}
+
+runcmd:
+  - git config --system http.proxy "{{ cfg.http_proxy | default('') }}"
+  - git config --system https.proxy "{{ cfg.https_proxy | default('') }}"
+  - curl -fsSL https://get.docker.com | sh
+  - usermod -aG docker {{ cfg.username }}
+  - systemctl enable docker
+  - systemctl start docker
+  - apt install -y docker-compose-plugin
+  - curl -sfL https://get.k3s.io | sh -
+  - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+final_message: "✅ cloud-init finished on {{ cfg.hostname }}"

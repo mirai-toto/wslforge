@@ -1,6 +1,6 @@
 use crate::config::{AppConfig, ImageSource};
 use log::info;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub fn create_instance(cfg: &AppConfig) -> anyhow::Result<()> {
     match &cfg.image {
@@ -25,14 +25,7 @@ fn import_rootfs(
     install_dir: &std::path::Path,
     rootfs_tar: &std::path::Path,
 ) -> anyhow::Result<()> {
-    info!("🔍 Checking if WSL instance '{}' exists...", hostname);
-    let exists = Command::new("wsl.exe")
-        .args(["-d", hostname, "--", "echo", "Already exists."])
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false);
-
-    if exists {
+    if wsl_instance_exists(hostname) {
         info!("ℹ️ WSL instance '{}' already exists.", hostname);
         return Ok(());
     }
@@ -66,14 +59,7 @@ fn import_rootfs(
 }
 
 fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> {
-    info!("🔍 Checking if WSL instance '{}' exists...", instance_name);
-    let exists = Command::new("wsl.exe")
-        .args(["-d", instance_name, "--", "echo", "Already exists."])
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false);
-
-    if exists {
+    if wsl_instance_exists(instance_name) {
         info!("ℹ️ WSL instance '{}' already exists.", instance_name);
         return Ok(());
     }
@@ -86,16 +72,12 @@ fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> 
     let mut cmd = Command::new("wsl.exe");
     cmd.args(["--install", "-d", distro_name, "--name", instance_name]);
 
-    let output = cmd.output()?;
-    if !output.status.success() {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!(
-            "wsl.exe --install failed with status {}\n{}\n{}",
-            output.status,
-            stdout.trim(),
-            stderr.trim()
-        );
+    let status = cmd
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .status()?;
+    if !status.success() {
+        anyhow::bail!("wsl.exe --install failed with status {}", status);
     }
 
     info!(
@@ -103,4 +85,18 @@ fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> 
         instance_name
     );
     Ok(())
+}
+
+fn wsl_instance_exists(instance_name: &str) -> bool {
+    info!(
+        "🔍 Checking if WSL instance '{}' exists...",
+        instance_name
+    );
+    Command::new("wsl.exe")
+        .args(["-d", instance_name, "--", "echo", "Already exists."])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .map(|s| s.success())
+        .unwrap_or(false)
 }
