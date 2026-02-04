@@ -88,10 +88,7 @@ fn install_distro(distro_name: &str, instance_name: &str) -> anyhow::Result<()> 
 }
 
 fn wsl_instance_exists(instance_name: &str) -> bool {
-    info!(
-        "🔍 Checking if WSL instance '{}' exists...",
-        instance_name
-    );
+    info!("🔍 Checking if WSL instance '{}' exists...", instance_name);
     Command::new("wsl.exe")
         .args(["-d", instance_name, "--", "echo", "Already exists."])
         .stdout(Stdio::null())
