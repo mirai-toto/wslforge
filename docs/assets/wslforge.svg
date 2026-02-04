@@ -1,0 +1,50 @@
+<svg viewBox="0 0 496 380" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded container -->
+  <rect x="10" y="10" width="476" height="360" rx="36" fill="#ffffff"/>
+
+  <!-- Anvil (flat) -->
+  <path d="M160 120
+           H40
+           C60 150 90 165 145 180
+           H170
+           L190 190
+           V270
+           L150 295
+           V325
+           H185
+           C210 310 235 305 250 305
+           C265 305 290 310 315 325
+           H350
+           V295
+           L305 270
+           C300 250 300 230 305 210
+           C315 185 350 165 390 150
+           C430 135 470 135 470 135
+           V110
+           H160 Z"
+        fill="#111111"/>
+
+  <!-- Terminal window (simplified) -->
+  <rect x="75" y="35" width="150" height="80" rx="16" fill="#0d0f0d"/>
+
+  <!-- Prompt -->
+  <path d="M105 75 L125 85 L105 95"
+        stroke="#00ff88"
+        stroke-width="5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"/>
+  <rect x="135" y="88" width="26" height="6" rx="3" fill="#00ff88"/>
+
+  <!-- Spark cluster (flat modern) -->
+  <g fill="#ffb300">
+    <!-- Big spark -->
+    <path d="M375 55 L380 72 L395 77 L380 82 L375 100 L370 82 L355 77 L370 72 Z"/>
+
+    <!-- Small upper -->
+    <path d="M355 60 L358 68 L366 71 L358 74 L355 82 L352 74 L344 71 L352 68 Z"/>
+
+    <!-- Small lower -->
+    <path d="M350 90 L353 98 L361 101 L353 104 L350 112 L347 104 L339 101 L347 98 Z"/>
+  </g>
+</svg>

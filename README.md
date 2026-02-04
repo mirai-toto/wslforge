@@ -1,11 +1,18 @@
-# wslforge
+# ⚒️ wslforge
+
+## 🔎 Overview
+
+A minimal tool to declaratively create and manage WSL instances.
+
+<!-- markdownlint-disable-next-line MD033 -->
+<img src="./docs/assets/wslforge.svg" width="100px" align="left" alt="wslforge logo">
+
+### WSL instance manager
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Release builds](https://github.com/mirai-toto/wslforge/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/mirai-toto/wslforge/actions/workflows/release.yml)
 [![Latest Release](https://img.shields.io/github/v/release/mirai-toto/wslforge)](https://github.com/mirai-toto/wslforge/releases)
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/)
-
----
 
 ✨ A clean, declarative way to create WSL instances from a single YAML config, with a focus on clarity and repeatability.
 
