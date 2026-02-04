@@ -3,9 +3,8 @@
 // - Nothing writes this config back to disk.
 // - `skip_serializing_if` on `Option<T>` makes `None` act like "missing" in templates, so
 //   `| default('...')` works as expected.
-// - `vars` is extra user-defined template data: `{{ vars.some_key }}`.
+// - `password` is optional; we hash it when rendering cloud-init templates.
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
 use std::path::PathBuf;
 use url::Url;
 
@@ -82,11 +81,6 @@ pub struct AppConfig {
     pub install_dir: PathBuf,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cloud_init: Option<CloudInitSource>,
-
-    // TODO: Remove `vars` once we stop relying on ad-hoc template inputs and instead compute
-    // needed values (e.g. password hash) in code and pass them explicitly to the template.
-    #[serde(default)]
-    pub vars: BTreeMap<String, serde_yaml::Value>,
 
     #[serde(default)]
     pub image: ImageSource,

@@ -20,6 +20,7 @@ encoding_rs = "0.8"
 shellexpand = "3"
 expand_str = "0.1"
 minijinja = "1"
+sha-crypt = { version = "0.5", features = ["rand"] }
 
 [dev-dependencies]
 tempfile = "3"

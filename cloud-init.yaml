@@ -13,7 +13,7 @@ users:
     shell: /bin/bash
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     lock_passwd: false
-    passwd: "{{ vars.user_password_hash | default('') }}"
+    passwd: "{{ password_hash | default('') }}"
 
 package_update: true
 package_upgrade: true

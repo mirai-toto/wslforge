@@ -56,7 +56,7 @@ Core fields:
 | --- | --- | --- | --- |
 | `hostname` | WSL instance name | `Ubuntuinstance` | ✅ |
 | `username` | Default user | `wsluser` | ✅ |
-| `password` | Optional password setup | `root` | ➖ |
+| `password` | Optional password (hashed for cloud-init) | `root` | ➖ |
 | `install_dir` | Target install directory | `%userprofile%/VMs` | ✅ |
 | `http_proxy` | HTTP proxy URL | `http://proxy.local:8080` | ➖ |
 | `https_proxy` | HTTPS proxy URL | `https://proxy.local:8443` | ➖ |

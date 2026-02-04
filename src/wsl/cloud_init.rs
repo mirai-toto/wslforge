@@ -1,6 +1,7 @@
 use crate::config::{AppConfig, CloudInitSource};
 use log::info;
 use minijinja::Environment;
+use sha_crypt::{sha512_simple, Sha512Params, ROUNDS_DEFAULT};
 use std::path::PathBuf;
 
 pub fn prepare_cloud_init(cfg: &AppConfig) -> anyhow::Result<()> {
@@ -49,9 +50,21 @@ fn render_cloud_init(raw: &str, cfg: &AppConfig) -> anyhow::Result<String> {
         .get_template("cloud-init.user-data")
         .map_err(|e| anyhow::anyhow!("cloud-init template load error: {e}"))?;
 
+    let password_hash = match cfg.password.as_deref() {
+        Some(password) => Some(hash_password_sha512(password)?),
+        None => None,
+    };
+
     template
-        .render(minijinja::context! { cfg => cfg, vars => &cfg.vars })
+        .render(minijinja::context! { cfg => cfg, password_hash => password_hash })
         .map_err(|e| anyhow::anyhow!("cloud-init template render error: {e}"))
+}
+
+fn hash_password_sha512(password: &str) -> anyhow::Result<String> {
+    let params = Sha512Params::new(ROUNDS_DEFAULT)
+        .map_err(|e| anyhow::anyhow!("invalid sha512-crypt params: {e}"))?;
+    sha512_simple(password, &params)
+        .map_err(|e| anyhow::anyhow!("password hashing failed: {e}"))
 }
 
 fn expand_env_vars(raw: &str) -> anyhow::Result<String> {
