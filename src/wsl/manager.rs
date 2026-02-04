@@ -1,4 +1,5 @@
 use crate::config::{AppConfig, ImageSource};
+use crate::wsl::env::expand_env_vars;
 use crate::wsl::{cloud_init, commands, validation};
 use log::{debug, info};
 
@@ -25,8 +26,13 @@ impl WslManager {
     fn print_plan(&self, cfg: &AppConfig) {
         debug!("🏷️ Hostname: {}", cfg.hostname);
         debug!("👤 User: {}", cfg.username);
-        debug!("📦 Install dir: {:?}", cfg.install_dir);
-        debug!("☁️ Cloud-init: {:?}", cfg.cloud_init);
+        let expanded_install_dir = expand_env_vars(&cfg.install_dir.to_string_lossy())
+            .unwrap_or_else(|_| cfg.install_dir.to_string_lossy().into_owned());
+        debug!("📦 Install dir: {}", expanded_install_dir);
+        match &cfg.cloud_init {
+            Some(source) => debug!("☁️ Cloud-init: {}", source),
+            None => debug!("☁️ Cloud-init: not configured"),
+        }
 
         match &cfg.image {
             ImageSource::Distro { name } => {

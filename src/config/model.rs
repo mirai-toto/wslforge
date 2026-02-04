@@ -5,6 +5,7 @@
 //   `| default('...')` works as expected.
 // - `password` is optional; we hash it when rendering cloud-init templates.
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::path::PathBuf;
 use url::Url;
 
@@ -50,6 +51,15 @@ pub enum CloudInitSource {
     Inline {
         content: String,
     },
+}
+
+impl fmt::Display for CloudInitSource {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CloudInitSource::File { path } => write!(f, "file: {}", path.display()),
+            CloudInitSource::Inline { .. } => write!(f, "inline"),
+        }
+    }
 }
 
 impl Default for ImageSource {
