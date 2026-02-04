@@ -98,10 +98,7 @@ fn write_debug_copy(rendered: &str, cfg: &AppConfig) {
     };
 
     if let Err(err) = std::fs::write(&debug_path, rendered) {
-        warn!(
-            "☁️ Cloud-init debug copy skipped (write error): {}",
-            err
-        );
+        warn!("☁️ Cloud-init debug copy skipped (write error): {}", err);
     } else {
         info!("☁️ Cloud-init debug copy: {}", debug_path.display());
     }

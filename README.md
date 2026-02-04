@@ -1,5 +1,11 @@
 # wslforge
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Release builds](https://github.com/mirai-toto/wslforge/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/mirai-toto/wslforge/actions/workflows/release.yml)
+[![Latest Release](https://img.shields.io/github/v/release/mirai-toto/wslforge)](https://github.com/mirai-toto/wslforge/releases)
+[![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/)
+---
+
 ✨ A clean, declarative way to create WSL instances from a single YAML config, with a focus on clarity and repeatability.
 
 > Status: early/in-development. Some operations are still mock.
@@ -24,25 +30,51 @@ winget install --id Microsoft.PowerShell --source winget
 
 ## ⚡ Quickstart
 
-Create a config from the template and run the CLI. This is the fastest way to get a working instance:
+Download the latest release binary from: 📦
+
+```
+https://github.com/mirai-toto/wslforge/releases
+```
+
+Run it with your config: ✅
 
 ```sh
+./wslforge --config config.yaml
+```
+
+Want to preview what will happen without making changes? Use dry-run: 🔍
+
+```sh
+./wslforge --config config.yaml --dry-run
+```
+
+Need more details for troubleshooting? Increase verbosity: 🧰
+
+```sh
+./wslforge -v
+./wslforge -vv
+```
+
+---
+
+## 🛠 Development
+
+Build locally:
+
+```sh
+cargo build --release
 cp config.template.yaml config.yaml
 ./target/release/wslforge --config config.yaml
 ```
 
-Want to preview what will happen without making changes? Use dry-run:
+Enable the repo githooks and make the hook executable:
 
 ```sh
-./target/release/wslforge --config config.yaml --dry-run
+chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
 ```
 
-Need more details for troubleshooting? Increase verbosity:
-
-```sh
-./target/release/wslforge -v
-./target/release/wslforge -vv
-```
+The pre-commit hook runs `cargo fmt --all`.
 
 ---
 
