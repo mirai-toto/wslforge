@@ -1,7 +1,7 @@
 use crate::config::{AppConfig, ImageSource};
 use crate::wsl::env::expand_env_vars;
 use crate::wsl::{cloud_init, commands, validation};
-use log::{debug, info};
+use log::info;
 
 pub struct WslManager;
 
