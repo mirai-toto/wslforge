@@ -5,6 +5,7 @@
 # Config files with secrets
 config.yaml
 config.local.yaml
+cloud-init.yaml
 *.env
 
 # IDEs
