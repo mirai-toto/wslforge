@@ -4,6 +4,7 @@
 [![Release builds](https://github.com/mirai-toto/wslforge/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/mirai-toto/wslforge/actions/workflows/release.yml)
 [![Latest Release](https://img.shields.io/github/v/release/mirai-toto/wslforge)](https://github.com/mirai-toto/wslforge/releases)
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/)
+
 ---
 
 ✨ A clean, declarative way to create WSL instances from a single YAML config, with a focus on clarity and repeatability.
@@ -32,7 +33,7 @@ winget install --id Microsoft.PowerShell --source winget
 
 Download the latest release binary from: 📦
 
-```
+```text
 https://github.com/mirai-toto/wslforge/releases
 ```
 
