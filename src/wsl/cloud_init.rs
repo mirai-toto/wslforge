@@ -1,6 +1,6 @@
 use super::env::{expand_env_vars, resolve_userprofile_dir};
 use crate::config::{AppConfig, CloudInitSource};
-use log::{info, warn};
+use log::{debug, info, warn};
 use minijinja::Environment;
 use sha_crypt::{sha512_simple, Sha512Params, ROUNDS_DEFAULT};
 use std::path::PathBuf;
@@ -31,12 +31,14 @@ pub fn prepare_cloud_init(cfg: &AppConfig) -> anyhow::Result<()> {
             info!("☁️ Cloud-init source: {}", expanded_path.display());
             let raw = std::fs::read_to_string(expanded_path)?;
             let rendered = render_cloud_init(&raw, cfg)?;
+            debug!("☁️ Cloud-init rendered:\n{}", rendered);
             std::fs::write(&target_file, &rendered)?;
             write_debug_copy(&rendered, cfg);
         }
         CloudInitSource::Inline { content } => {
             info!("☁️ Cloud-init source: inline content");
             let rendered = render_cloud_init(content, cfg)?;
+            debug!("☁️ Cloud-init rendered:\n{}", rendered);
             std::fs::write(&target_file, &rendered)?;
             write_debug_copy(&rendered, cfg);
         }

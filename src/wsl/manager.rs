@@ -12,26 +12,26 @@ impl WslManager {
 
     pub fn create_instance(&self, cfg: &AppConfig, dry_run: bool) -> anyhow::Result<()> {
         validation::validate_all(cfg)?;
-        self.print_plan(cfg);
+        cloud_init::prepare_cloud_init(cfg)?;
+        self.log_config_summary(cfg);
         if dry_run {
             info!("🧪 Dry run: WSL instance would be created");
         } else {
-            cloud_init::prepare_cloud_init(cfg)?;
             info!("🚀 Creating WSL instance");
             commands::create_instance(cfg)?;
         }
         Ok(())
     }
 
-    fn print_plan(&self, cfg: &AppConfig) {
-        debug!("🏷️ Hostname: {}", cfg.hostname);
-        debug!("👤 User: {}", cfg.username);
+    fn log_config_summary(&self, cfg: &AppConfig) {
+        info!("🏷️ Hostname: {}", cfg.hostname);
+        info!("👤 User: {}", cfg.username);
         let expanded_install_dir = expand_env_vars(&cfg.install_dir.to_string_lossy())
             .unwrap_or_else(|_| cfg.install_dir.to_string_lossy().into_owned());
-        debug!("📦 Install dir: {}", expanded_install_dir);
+        info!("📦 Install dir: {}", expanded_install_dir);
         match &cfg.cloud_init {
-            Some(source) => debug!("☁️ Cloud-init: {}", source),
-            None => debug!("☁️ Cloud-init: not configured"),
+            Some(source) => info!("☁️ Cloud-init: {}", source),
+            None => info!("☁️ Cloud-init: not configured"),
         }
 
         match &cfg.image {
@@ -44,10 +44,10 @@ impl WslManager {
         }
 
         if let Some(proxy) = &cfg.http_proxy {
-            debug!("🌐 HTTP proxy: {}", proxy);
+            info!("🌐 HTTP proxy: {}", proxy);
         }
         if let Some(proxy) = &cfg.https_proxy {
-            debug!("🔐 HTTPS proxy: {}", proxy);
+            info!("🔐 HTTPS proxy: {}", proxy);
         }
     }
 }
