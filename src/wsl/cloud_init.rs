@@ -1,5 +1,5 @@
 use crate::config::{AppConfig, CloudInitSource};
-use log::info;
+use log::{info, warn};
 use minijinja::Environment;
 use sha_crypt::{sha512_simple, Sha512Params, ROUNDS_DEFAULT};
 use std::path::PathBuf;
@@ -30,12 +30,14 @@ pub fn prepare_cloud_init(cfg: &AppConfig) -> anyhow::Result<()> {
             info!("☁️ Cloud-init source: {}", expanded_path.display());
             let raw = std::fs::read_to_string(expanded_path)?;
             let rendered = render_cloud_init(&raw, cfg)?;
-            std::fs::write(&target_file, rendered)?;
+            std::fs::write(&target_file, &rendered)?;
+            write_debug_copy(&rendered, cfg);
         }
         CloudInitSource::Inline { content } => {
             info!("☁️ Cloud-init source: inline content");
             let rendered = render_cloud_init(content, cfg)?;
-            std::fs::write(&target_file, rendered)?;
+            std::fs::write(&target_file, &rendered)?;
+            write_debug_copy(&rendered, cfg);
         }
     }
     Ok(())
@@ -84,4 +86,23 @@ fn resolve_userprofile_dir() -> anyhow::Result<PathBuf> {
         return Ok(PathBuf::from(path));
     }
     anyhow::bail!("USERPROFILE is not set; cannot place cloud-init user-data")
+}
+
+fn write_debug_copy(rendered: &str, cfg: &AppConfig) {
+    let debug_path = match std::env::current_dir() {
+        Ok(dir) => dir.join(format!("cloud-init.{}.user-data", cfg.hostname)),
+        Err(err) => {
+            warn!("☁️ Cloud-init debug copy skipped (cwd error): {err}");
+            return;
+        }
+    };
+
+    if let Err(err) = std::fs::write(&debug_path, rendered) {
+        warn!(
+            "☁️ Cloud-init debug copy skipped (write error): {}",
+            err
+        );
+    } else {
+        info!("☁️ Cloud-init debug copy: {}", debug_path.display());
+    }
 }
