@@ -1,12 +1,12 @@
 # --- Basic instance settings ---
 hostname: UbuntuWslDev
 username: wsluser
-password: root   # optional, omit to disable password setup
+password: root
 
 # --- Network (all optional) ---
-http_proxy: null
-https_proxy: null
-no_proxy: null
+http_proxy:
+https_proxy:
+no_proxy:
 
 # --- Paths ---
 install_dir: "%userprofile%/VMs"
