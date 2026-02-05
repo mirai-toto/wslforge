@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
     log::debug!("📋 Loaded config from {}", args.config.display());
     let manager = WslManager::new();
 
-    manager.create_instance(&cfg, args.dry_run)?;
+    manager.create_instance(&cfg, args.dry_run, args.debug)?;
 
     Ok(())
 }

@@ -16,6 +16,10 @@ pub struct Args {
     #[arg(long)]
     pub dry_run: bool,
 
+    /// Enable extra debug output and artifacts
+    #[arg(long)]
+    pub debug: bool,
+
     /// Increase verbosity (-v, -vv)
     #[arg(short, long, action = ArgAction::Count)]
     pub verbose: u8,

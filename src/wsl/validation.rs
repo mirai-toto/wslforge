@@ -6,7 +6,10 @@ use std::process::Command;
 pub fn validate_all(cfg: &AppConfig) -> anyhow::Result<()> {
     validate_wsl_installed()?;
     update_wsl_version()?;
-    validate_windows_features(&["Microsoft-Windows-Subsystem-Linux"])?;
+    validate_windows_features(&[
+        "Microsoft-Windows-Subsystem-Linux",
+        "VirtualMachinePlatform",
+    ])?;
     validate_image_source(cfg)?;
     Ok(())
 }
@@ -54,11 +57,21 @@ pub fn validate_image_source(cfg: &AppConfig) -> anyhow::Result<()> {
 }
 
 pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
+    let mut disabled = Vec::new();
     for feature_name in feature_names {
         match is_windows_feature_enabled(feature_name)? {
             true => info!("✅ {feature_name} is enabled"),
-            false => warn!("⚠️  {feature_name} is not enabled"),
+            false => {
+                warn!("⚠️  {feature_name} is not enabled");
+                disabled.push(*feature_name);
+            }
         }
+    }
+    if !disabled.is_empty() {
+        anyhow::bail!(
+            "required Windows feature(s) are disabled: {}",
+            disabled.join(", ")
+        );
     }
     Ok(())
 }
