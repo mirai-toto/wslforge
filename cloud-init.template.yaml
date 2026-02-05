@@ -3,9 +3,11 @@
 hostname: {{ cfg.hostname }}
 manage_etc_hosts: true
 
+{% if cfg.http_proxy %}
 apt:
-  http_proxy: "{{ cfg.http_proxy | default('') }}"
-  https_proxy: "{{ cfg.https_proxy | default('') }}"
+  http_proxy: "{{ cfg.http_proxy }}"
+  https_proxy: "{{ cfg.https_proxy }}"
+{% endif %}
 
 users:
   - name: {{ cfg.username }}
@@ -29,17 +31,21 @@ packages:
   - npm
 
 write_files:
+{% if cfg.http_proxy %}
   - path: /etc/profile.d/proxy.sh
     permissions: '0644'
     content: |
-      export http_proxy="{{ cfg.http_proxy | default('') }}"
-      export https_proxy="{{ cfg.https_proxy | default('') }}"
-      export no_proxy="{{ cfg.no_proxy | default('') }}"
+      export http_proxy="{{ cfg.http_proxy }}"
+      export https_proxy="{{ cfg.https_proxy }}"
+      export no_proxy="{{ cfg.no_proxy }}"
+{% endif %}
+{% if cfg.http_proxy %}
   - path: /etc/apt/apt.conf.d/95proxies
     permissions: '0644'
     content: |
-      Acquire::http::Proxy "{{ cfg.http_proxy | default('') }}";
-      Acquire::https::Proxy "{{ cfg.https_proxy | default('') }}";
+      Acquire::http::Proxy "{{ cfg.http_proxy }}";
+      Acquire::https::Proxy "{{ cfg.https_proxy }}";
+{% endif %}
   - path: /usr/lib/binfmt.d/WSLInterop.conf
     permissions: '0644'
     content: |
@@ -57,8 +63,10 @@ write_files:
       default={{ cfg.username }}
 
 runcmd:
-  - git config --system http.proxy "{{ cfg.http_proxy | default('') }}"
-  - git config --system https.proxy "{{ cfg.https_proxy | default('') }}"
+{% if cfg.http_proxy %}
+  - git config --system http.proxy "{{ cfg.http_proxy }}"
+  - git config --system https.proxy "{{ cfg.https_proxy }}"
+{% endif %}
   - curl -fsSL https://get.docker.com | sh
   - usermod -aG docker {{ cfg.username }}
   - systemctl enable docker
