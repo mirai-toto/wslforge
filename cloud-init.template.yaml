@@ -72,7 +72,12 @@ runcmd:
   - systemctl enable docker
   - systemctl start docker
   - apt install -y docker-compose-plugin
-  - curl -sfL https://get.k3s.io | sh -
-  - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  - snap install microk8s --classic
+  - usermod -a -G microk8s {{ cfg.username }}
+  - mkdir -p /home/{{ cfg.username }}/.kube
+  - microk8s status --wait-ready
+  - microk8s config > /home/{{ cfg.username }}/.kube/config
+  - chown -R {{ cfg.username }}:{{ cfg.username }} /home/{{ cfg.username }}/.kube
+  - snap install kubectl --classic
 
 final_message: "✅ cloud-init finished on {{ cfg.hostname }}"

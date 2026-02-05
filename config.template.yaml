@@ -33,4 +33,4 @@ image:
 # Option B: Install from local rootfs file
 # image:
 #   type: file
-#   path: "C:/Users/Hamza/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"
+#   path: "%USERPROFILE%/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"
