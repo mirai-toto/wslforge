@@ -2,7 +2,7 @@
 name = "wslforge"
 version = "0.1.0"
 edition = "2021"
-authors = ["Hamza Ince"]
+authors = ["mirai-toto"]
 description = "WSL instance manager using YAML configuration"
 license = "MIT"
 repository = "https://github.com/mirai-toto/wslforge"
