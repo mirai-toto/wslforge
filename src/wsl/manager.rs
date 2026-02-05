@@ -16,7 +16,7 @@ impl WslManager {
         dry_run: bool,
         debug: bool,
     ) -> anyhow::Result<()> {
-        validation::validate_all(cfg)?;
+        validation::validate_all(cfg, dry_run)?;
         cloud_init::prepare_cloud_init(cfg, dry_run, debug)?;
         self.log_config_summary(cfg);
         if dry_run {

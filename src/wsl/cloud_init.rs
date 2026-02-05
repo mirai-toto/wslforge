@@ -10,7 +10,7 @@ pub fn prepare_cloud_init(cfg: &AppConfig, dry_run: bool, debug: bool) -> anyhow
         return Ok(());
     };
 
-    let target_file = cloud_init_target(&cfg.hostname)?;
+    let target_file = create_cloud_init_target(&cfg.hostname, dry_run)?;
     info!("☁️ Cloud-init target: {}", target_file.display());
 
     let raw = load_cloud_init_source(source)?;
@@ -21,7 +21,14 @@ pub fn prepare_cloud_init(cfg: &AppConfig, dry_run: bool, debug: bool) -> anyhow
 }
 
 // Determine the target path for the cloud-init user-data file based on the hostname.
-fn cloud_init_target(hostname: &str) -> anyhow::Result<PathBuf> {
+fn create_cloud_init_target(hostname: &str, dry_run: bool) -> anyhow::Result<PathBuf> {
+    if dry_run {
+        info!(
+            "🧪 Dry run: cloud-init target would be created at: {}",
+            hostname
+        );
+        return Ok(PathBuf::from(format!("{}.user-data", hostname)));
+    }
     let userprofile = resolve_userprofile_dir()?;
     let target_dir = userprofile.join(".cloud-init");
     std::fs::create_dir_all(&target_dir)?;
