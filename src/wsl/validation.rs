@@ -3,9 +3,9 @@ use encoding_rs::UTF_16LE;
 use log::{debug, info, warn};
 use std::process::Command;
 
-pub fn validate_all(cfg: &AppConfig) -> anyhow::Result<()> {
+pub fn validate_all(cfg: &AppConfig, dry_run: bool) -> anyhow::Result<()> {
     validate_wsl_installed()?;
-    update_wsl_version()?;
+    update_wsl_version(dry_run)?;
     validate_windows_features(&[
         "Microsoft-Windows-Subsystem-Linux",
         "VirtualMachinePlatform",
@@ -24,7 +24,11 @@ pub fn validate_wsl_installed() -> anyhow::Result<()> {
     }
 }
 
-pub fn update_wsl_version() -> anyhow::Result<()> {
+pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<()> {
+    if dry_run {
+        info!("🧪 Dry run: WSL update would be performed");
+        return Ok(());
+    }
     let output = Command::new("wsl.exe").arg("--update").output()?;
     if output.status.success() {
         info!("✅ WSL update completed");
