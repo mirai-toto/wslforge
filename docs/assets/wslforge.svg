@@ -1,50 +1,72 @@
-<svg viewBox="0 0 496 380" xmlns="http://www.w3.org/2000/svg">
-  <!-- Rounded container -->
-  <rect x="10" y="10" width="476" height="360" rx="36" fill="#ffffff"/>
+<svg role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#CFE3FF" stroke="#041a85"
+  stroke-width="0.3" stroke-linejoin="round" stroke-linecap="round">
+  <title>wslforge</title>
+  <rect x="1" y="2" width="22" height="20" rx="6" fill="#0E1628" stroke="#1F2A44" stroke-width="0.6" />
 
-  <!-- Anvil (flat) -->
-  <path d="M160 120
-           H40
-           C60 150 90 165 145 180
-           H170
-           L190 190
-           V270
-           L150 295
-           V325
-           H185
-           C210 310 235 305 250 305
-           C265 305 290 310 315 325
-           H350
-           V295
-           L305 270
-           C300 250 300 230 305 210
-           C315 185 350 165 390 150
-           C430 135 470 135 470 135
-           V110
-           H160 Z"
-        fill="#111111"/>
+  <g transform="translate(4 0) scale(0.70 1)">
 
-  <!-- Terminal window (simplified) -->
-  <rect x="75" y="35" width="150" height="80" rx="16" fill="#0d0f0d"/>
+    <!-- Main anvil body -->
+    <path d="
+        M8.206 5.866l.005.396H6.754l.006.655v.005l-6.758.002v.211L0 7.973l.02.041
+        c.212.467.663.901 1.257 1.313.594.411 1.335.796 2.145 1.13
+        1.62.664 3.502 1.12 5.006 1.1.746-.01 1.265.228 1.62.672
+        .341.426.51 1.092.524 1.92L7.94 16.239l.008 1.896H20.29
+        l-.004-1.76-2.63-2.22c.055-2.013.708-3.443 1.777-4.405
+        1.087-.979 2.61-1.49 4.37-1.616l.195-.015L24 5.872z
+      " />
 
-  <!-- Prompt -->
-  <path d="M105 75 L125 85 L105 95"
-        stroke="#00ff88"
-        stroke-width="5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        fill="none"/>
-  <rect x="135" y="88" width="26" height="6" rx="3" fill="#00ff88"/>
+    <!-- Top bar / horn extension -->
+    <path d="
+        m8.631 6.288l14.946.006-.004 1.457
+        c-1.737.155-3.29.666-4.424 1.685
+        -.912.822-1.433 2.062-1.691 3.534
+        l-1.617.004.002.422 1.535-.004
+        c-.027.226-.113.4-.123.64
+        l-.893-.003-.002.422.995.004
+        2.138 1.802-2.941.002
+        c-.724-.675-1.552-1.116-2.416-1.158
+        -.817-.04-1.638.324-2.387 1.04
+        l-2.978-.024 2.248-1.781v-.102
+        c.002-.943-.2-1.72-.64-2.269
+        -.396-.496-1.007-.749-1.741-.79
+        l-.008-4.49h.008z
+      " />
 
-  <!-- Spark cluster (flat modern) -->
-  <g fill="#ffb300">
-    <!-- Big spark -->
-    <path d="M375 55 L380 72 L395 77 L380 82 L375 100 L370 82 L355 77 L370 72 Z"/>
+    <!-- Left base support -->
+    <path d="
+        m7.181 6.684h1.026l.008 4.404
+        c-1.387-.02-3.125-.404-4.631-1.023
+        -.787-.324-1.507-.698-2.066-1.086
+        C.968 8.6.587 8.203.424 7.86
+        v-.514l6.336-.002v2.16h.422
+        v-2.16h.004l-.004-.435v-.226z
+      " />
 
-    <!-- Small upper -->
-    <path d="M355 60 L358 68 L366 71 L358 74 L355 82 L352 74 L344 71 L352 68 Z"/>
+    <!-- Center foot -->
+    <path d="
+        m14.116 15.523c.75.037 1.503.436 2.18 1.078
+        l-.002 1.112h-4.345l-.006-1.2
+        c.706-.717 1.443-1.026 2.173-.99z
+      " />
 
-    <!-- Small lower -->
-    <path d="M350 90 L353 98 L361 101 L353 104 L350 112 L347 104 L339 101 L347 98 Z"/>
+    <!-- Left foot -->
+    <path d="
+        M8.36 16.537l3.16.023.006 1.153h-3.16z
+      " />
+
+    <!-- Right foot -->
+    <path d="
+        m19.86 16.679l.002 1.034h-3.148V16.68z
+      " />
+
   </g>
+
+  <g transform="translate(1.5 0.5)">
+    <path d="M2.5 10.4 L7.5 13.4 L2.5 16.4" stroke="#0B5D3B" stroke-width="2.6" stroke-linecap="round"
+      stroke-linejoin="round" fill="none" />
+    <path d="M2.5 10.4 L7.5 13.4 L2.5 16.4" stroke="#7FE3B0" stroke-width="1.8" stroke-linecap="round"
+      stroke-linejoin="round" fill="none" />
+    <rect x="9" y="15.4" width="6.5" height="2" rx="1" fill="#7FE3B0" stroke="#0B5D3B" />
+  </g>
+
 </svg>
