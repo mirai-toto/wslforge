@@ -4,11 +4,7 @@ use log::{debug, info, warn};
 use minijinja::Environment;
 use std::path::PathBuf;
 
-pub fn prepare_cloud_init(
-    cfg: &AppConfig,
-    dry_run: bool,
-    debug: bool,
-) -> anyhow::Result<()> {
+pub fn prepare_cloud_init(cfg: &AppConfig, dry_run: bool, debug: bool) -> anyhow::Result<()> {
     let Some(source) = &cfg.cloud_init else {
         info!("☁️ Cloud-init: not configured");
         return Ok(());
@@ -20,13 +16,7 @@ pub fn prepare_cloud_init(
     let raw = load_cloud_init_source(source)?;
     let rendered = render_cloud_init(&raw, cfg)?;
     debug!("☁️ Cloud-init rendered:\n{}", rendered);
-    write_cloud_init(
-        &target_file,
-        &rendered,
-        &cfg.hostname,
-        dry_run,
-        debug,
-    )?;
+    write_cloud_init(&target_file, &rendered, &cfg.hostname, dry_run, debug)?;
     Ok(())
 }
 
