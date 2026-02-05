@@ -1,5 +1,5 @@
 use crate::config::{AppConfig, ImageSource};
-use crate::wsl::env::expand_env_vars;
+use crate::wsl::helpers::expand_env_vars;
 use crate::wsl::{cloud_init, commands, validation};
 use log::info;
 
@@ -10,9 +10,14 @@ impl WslManager {
         Self
     }
 
-    pub fn create_instance(&self, cfg: &AppConfig, dry_run: bool) -> anyhow::Result<()> {
+    pub fn create_instance(
+        &self,
+        cfg: &AppConfig,
+        dry_run: bool,
+        debug: bool,
+    ) -> anyhow::Result<()> {
         validation::validate_all(cfg)?;
-        cloud_init::prepare_cloud_init(cfg)?;
+        cloud_init::prepare_cloud_init(cfg, dry_run, debug)?;
         self.log_config_summary(cfg);
         if dry_run {
             info!("🧪 Dry run: WSL instance would be created");
