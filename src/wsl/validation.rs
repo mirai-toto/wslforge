@@ -3,14 +3,13 @@ use encoding_rs::UTF_16LE;
 use log::{debug, info, warn};
 use std::process::Command;
 
-pub fn validate_all(profile: &Profile, dry_run: bool) -> anyhow::Result<()> {
+pub fn validate_environment(dry_run: bool) -> anyhow::Result<()> {
     validate_wsl_installed()?;
     update_wsl_version(dry_run)?;
     validate_windows_features(&[
         "Microsoft-Windows-Subsystem-Linux",
         "VirtualMachinePlatform",
     ])?;
-    validate_image_source(profile)?;
     Ok(())
 }
 

@@ -12,13 +12,14 @@ impl WslManager {
 
     pub fn create_instance(
         &self,
+        profile_name: &str,
         profile: &Profile,
         dry_run: bool,
         debug: bool,
     ) -> anyhow::Result<()> {
-        validation::validate_all(profile, dry_run)?;
+        validation::validate_image_source(profile)?;
         cloud_init::prepare_cloud_init(profile, dry_run, debug)?;
-        self.log_config_summary(profile);
+        self.log_config_summary(profile_name, profile);
         if dry_run {
             info!("🧪 Dry run: WSL instance would be created");
         } else {
@@ -28,7 +29,8 @@ impl WslManager {
         Ok(())
     }
 
-    fn log_config_summary(&self, profile: &Profile) {
+    fn log_config_summary(&self, profile_name: &str, profile: &Profile) {
+        info!("🧩 Profile: {}", profile_name);
         info!("🏷️ Hostname: {}", profile.hostname);
         info!("👤 User: {}", profile.username);
         let expanded_install_dir = expand_env_vars(&profile.install_dir.to_string_lossy())

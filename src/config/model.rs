@@ -5,6 +5,7 @@
 //   `| default('...')` works as expected.
 // - `password` is optional; we hash it when rendering cloud-init templates.
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fmt;
 use std::path::PathBuf;
 use url::Url;
@@ -94,4 +95,10 @@ pub struct Profile {
 
     #[serde(default)]
     pub image: ImageSource,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootConfig {
+    pub profiles: BTreeMap<String, Profile>,
 }
