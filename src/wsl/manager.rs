@@ -10,6 +10,10 @@ impl WslManager {
         Self
     }
 
+    pub fn validate_environment(&self, dry_run: bool) -> anyhow::Result<()> {
+        validation::validate_environment(dry_run)
+    }
+
     pub fn create_instance(
         &self,
         profile_name: &str,
@@ -17,6 +21,16 @@ impl WslManager {
         dry_run: bool,
         debug: bool,
     ) -> anyhow::Result<()> {
+        if profile.override_instance {
+            if dry_run {
+                info!(
+                    "🧪 Dry run: WSL instance '{}' would be deleted before creation",
+                    profile.hostname
+                );
+            } else {
+                commands::delete_instance_if_exists(&profile.hostname)?;
+            }
+        }
         validation::validate_image_source(profile)?;
         cloud_init::prepare_cloud_init(profile, dry_run, debug)?;
         self.log_config_summary(profile_name, profile);
@@ -31,6 +45,7 @@ impl WslManager {
 
     fn log_config_summary(&self, profile_name: &str, profile: &Profile) {
         info!("🧩 Profile: {}", profile_name);
+        info!("♻️ Override: {}", profile.override_instance);
         info!("🏷️ Hostname: {}", profile.hostname);
         info!("👤 User: {}", profile.username);
         let expanded_install_dir = expand_env_vars(&profile.install_dir.to_string_lossy())

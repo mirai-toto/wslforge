@@ -1,5 +1,6 @@
 profiles:
   UbuntuWslDev:
+    override: true
     # --- Basic instance settings ---
     hostname: UbuntuWslDev
     username: wsluser

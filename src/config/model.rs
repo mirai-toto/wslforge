@@ -30,6 +30,10 @@ fn default_distro() -> String {
     "Ubuntu".into()
 }
 
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ImageSource {
@@ -74,6 +78,8 @@ impl Default for ImageSource {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Profile {
+    #[serde(default, skip_serializing_if = "is_false", rename = "override")]
+    pub override_instance: bool,
     #[serde(default = "default_hostname")]
     pub hostname: String,
     #[serde(default = "default_username")]

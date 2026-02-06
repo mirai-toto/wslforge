@@ -1,10 +1,6 @@
 use clap::Parser;
 use log::LevelFilter;
-use wslforge::{
-    cli::Args,
-    config,
-    wsl::{validation, WslManager},
-};
+use wslforge::{cli::Args, config, wsl::WslManager};
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
@@ -16,7 +12,7 @@ fn main() -> anyhow::Result<()> {
     log::debug!("📋 Loaded config from {}", args.config.display());
     let manager = WslManager::new();
 
-    validation::validate_environment(args.dry_run)?;
+    manager.validate_environment(args.dry_run)?;
     for (profile_name, profile) in &cfg.profiles {
         manager.create_instance(profile_name, profile, args.dry_run, args.debug)?;
     }

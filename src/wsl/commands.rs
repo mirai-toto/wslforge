@@ -2,6 +2,31 @@ use crate::config::{ImageSource, Profile};
 use log::info;
 use std::process::{Command, Stdio};
 
+pub fn delete_instance_if_exists(instance_name: &str) -> anyhow::Result<()> {
+    if !wsl_instance_exists(instance_name) {
+        return Ok(());
+    }
+
+    info!("🧹 Deleting existing WSL instance '{}'", instance_name);
+    let output = Command::new("wsl.exe")
+        .args(["--unregister", instance_name])
+        .output()?;
+
+    if !output.status.success() {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!(
+            "wsl.exe --unregister failed with status {}\n{}\n{}",
+            output.status,
+            stdout.trim(),
+            stderr.trim()
+        );
+    }
+
+    info!("✅ WSL instance '{}' deleted successfully.", instance_name);
+    Ok(())
+}
+
 pub fn create_instance(profile: &Profile) -> anyhow::Result<()> {
     match &profile.image {
         ImageSource::File { path } => {
