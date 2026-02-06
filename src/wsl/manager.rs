@@ -1,4 +1,4 @@
-use crate::config::{AppConfig, ImageSource};
+use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::expand_env_vars;
 use crate::wsl::{cloud_init, commands, validation};
 use log::info;
@@ -12,34 +12,34 @@ impl WslManager {
 
     pub fn create_instance(
         &self,
-        cfg: &AppConfig,
+        profile: &Profile,
         dry_run: bool,
         debug: bool,
     ) -> anyhow::Result<()> {
-        validation::validate_all(cfg, dry_run)?;
-        cloud_init::prepare_cloud_init(cfg, dry_run, debug)?;
-        self.log_config_summary(cfg);
+        validation::validate_all(profile, dry_run)?;
+        cloud_init::prepare_cloud_init(profile, dry_run, debug)?;
+        self.log_config_summary(profile);
         if dry_run {
             info!("🧪 Dry run: WSL instance would be created");
         } else {
             info!("🚀 Creating WSL instance");
-            commands::create_instance(cfg)?;
+            commands::create_instance(profile)?;
         }
         Ok(())
     }
 
-    fn log_config_summary(&self, cfg: &AppConfig) {
-        info!("🏷️ Hostname: {}", cfg.hostname);
-        info!("👤 User: {}", cfg.username);
-        let expanded_install_dir = expand_env_vars(&cfg.install_dir.to_string_lossy())
-            .unwrap_or_else(|_| cfg.install_dir.to_string_lossy().into_owned());
+    fn log_config_summary(&self, profile: &Profile) {
+        info!("🏷️ Hostname: {}", profile.hostname);
+        info!("👤 User: {}", profile.username);
+        let expanded_install_dir = expand_env_vars(&profile.install_dir.to_string_lossy())
+            .unwrap_or_else(|_| profile.install_dir.to_string_lossy().into_owned());
         info!("📦 Install dir: {}", expanded_install_dir);
-        match &cfg.cloud_init {
+        match &profile.cloud_init {
             Some(source) => info!("☁️ Cloud-init: {}", source),
             None => info!("☁️ Cloud-init: not configured"),
         }
 
-        match &cfg.image {
+        match &profile.image {
             ImageSource::Distro { name } => {
                 info!("🐧 Using WSL distro '{}'", name);
             }
@@ -48,10 +48,10 @@ impl WslManager {
             }
         }
 
-        if let Some(proxy) = &cfg.http_proxy {
+        if let Some(proxy) = &profile.http_proxy {
             info!("🌐 HTTP proxy: {}", proxy);
         }
-        if let Some(proxy) = &cfg.https_proxy {
+        if let Some(proxy) = &profile.https_proxy {
             info!("🔐 HTTPS proxy: {}", proxy);
         }
     }

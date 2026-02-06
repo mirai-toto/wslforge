@@ -1,5 +1,5 @@
 // NOTE: We only *read* this config from YAML, but we also derive `Serialize` so we can pass
-// it into the cloud-init template renderer (minijinja) as `cfg`.
+// it into the cloud-init template renderer (minijinja) as `profile`.
 // - Nothing writes this config back to disk.
 // - `skip_serializing_if` on `Option<T>` makes `None` act like "missing" in templates, so
 //   `| default('...')` works as expected.
@@ -72,7 +72,7 @@ impl Default for ImageSource {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct AppConfig {
+pub struct Profile {
     #[serde(default = "default_hostname")]
     pub hostname: String,
     #[serde(default = "default_username")]

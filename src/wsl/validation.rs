@@ -1,16 +1,16 @@
-use crate::config::{AppConfig, ImageSource};
+use crate::config::{ImageSource, Profile};
 use encoding_rs::UTF_16LE;
 use log::{debug, info, warn};
 use std::process::Command;
 
-pub fn validate_all(cfg: &AppConfig, dry_run: bool) -> anyhow::Result<()> {
+pub fn validate_all(profile: &Profile, dry_run: bool) -> anyhow::Result<()> {
     validate_wsl_installed()?;
     update_wsl_version(dry_run)?;
     validate_windows_features(&[
         "Microsoft-Windows-Subsystem-Linux",
         "VirtualMachinePlatform",
     ])?;
-    validate_image_source(cfg)?;
+    validate_image_source(profile)?;
     Ok(())
 }
 
@@ -38,8 +38,8 @@ pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<()> {
     }
 }
 
-pub fn validate_image_source(cfg: &AppConfig) -> anyhow::Result<()> {
-    match &cfg.image {
+pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
+    match &profile.image {
         ImageSource::File { path } => {
             if !path.exists() {
                 anyhow::bail!("image file not found: {}", path.display());

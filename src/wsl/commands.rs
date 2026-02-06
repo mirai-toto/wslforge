@@ -1,21 +1,21 @@
-use crate::config::{AppConfig, ImageSource};
+use crate::config::{ImageSource, Profile};
 use log::info;
 use std::process::{Command, Stdio};
 
-pub fn create_instance(cfg: &AppConfig) -> anyhow::Result<()> {
-    match &cfg.image {
+pub fn create_instance(profile: &Profile) -> anyhow::Result<()> {
+    match &profile.image {
         ImageSource::File { path } => {
-            let install_dir = cfg.install_dir.join(&cfg.hostname);
+            let install_dir = profile.install_dir.join(&profile.hostname);
             info!(
                 "📦 Creating WSL instance '{}' from rootfs file {}",
-                cfg.hostname,
+                profile.hostname,
                 path.display()
             );
-            import_rootfs(&cfg.hostname, &install_dir, path)
+            import_rootfs(&profile.hostname, &install_dir, path)
         }
         ImageSource::Distro { name } => {
             info!("🐧 Installing WSL distro '{}'", name);
-            install_distro(name, &cfg.hostname)
+            install_distro(name, &profile.hostname)
         }
     }
 }
