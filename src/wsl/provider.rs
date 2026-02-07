@@ -35,7 +35,10 @@ impl WslProvider {
     pub fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
         info!("🧹 Deleting existing WSL instance '{}'", name);
         if !self.engine.instance_exists(name)? {
-            info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", name);
+            info!(
+                "ℹ️ WSL instance '{}' does not exist. Skipping delete.",
+                name
+            );
             return Ok(());
         }
         self.engine.delete_instance(name)?;
@@ -49,7 +52,8 @@ impl WslProvider {
         install_dir: &std::path::Path,
         rootfs_tar: &std::path::Path,
     ) -> anyhow::Result<CreateOutcome> {
-        self.engine.create_from_file(name, install_dir, rootfs_tar)?;
+        self.engine
+            .create_from_file(name, install_dir, rootfs_tar)?;
         Ok(CreateOutcome::Created)
     }
 

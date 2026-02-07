@@ -1,6 +1,6 @@
 use crate::config::{ImageSource, Profile};
-use crate::wsl::helpers::expand_env_vars;
 use crate::wsl::engine::CreateOutcome;
+use crate::wsl::helpers::expand_env_vars;
 use crate::wsl::{cloud_init, provider, validation};
 use log::info;
 
@@ -43,7 +43,11 @@ impl WslManager {
         }
         info!("🚀 Creating WSL instance");
         let outcome = self.create_profile(profile)?;
-        self.log_create_outcome(outcome, &profile.hostname, matches!(profile.image, ImageSource::Distro { .. }));
+        self.log_create_outcome(
+            outcome,
+            &profile.hostname,
+            matches!(profile.image, ImageSource::Distro { .. }),
+        );
         Ok(())
     }
 
@@ -92,12 +96,7 @@ impl WslManager {
         }
     }
 
-    fn log_create_outcome(
-        &self,
-        outcome: CreateOutcome,
-        hostname: &str,
-        is_distro: bool,
-    ) {
+    fn log_create_outcome(&self, outcome: CreateOutcome, hostname: &str, is_distro: bool) {
         match outcome {
             CreateOutcome::Created => {
                 if is_distro {
