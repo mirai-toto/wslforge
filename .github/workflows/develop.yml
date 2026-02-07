@@ -1,0 +1,43 @@
+name: develop → release PR
+
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: [develop]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-pr:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: develop
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install semantic-release
+        run: |
+          npm install -g \
+            semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @timada/semantic-release-cargo \
+            semantic-release-pr \
+            @semantic-release/github
+
+      - name: Create release PR
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: semantic-release

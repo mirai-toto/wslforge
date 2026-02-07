@@ -1,26 +1,22 @@
 {
   "branches": [
-    "main"
+    "main",
+    {
+      "name": "develop",
+      "prerelease": false
+    }
   ],
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
+    "@timada/semantic-release-cargo",
     [
-      "@timada/semantic-release-cargo",
+      "semantic-release-pr",
       {
-        "cargoPublish": false
+        "branch": "release/${nextRelease.version}",
+        "baseRef": "main"
       }
     ],
-    [
-      "@semantic-release/github",
-      {
-        "assets": [
-          {
-            "path": "target/release/wslforge.exe",
-            "label": "wslforge.exe (Windows x64)"
-          }
-        ]
-      }
-    ]
+    "@semantic-release/github"
   ]
 }

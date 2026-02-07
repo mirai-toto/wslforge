@@ -1,72 +1,40 @@
 name: release
 
 on:
-  workflow_run:
-    workflows: ["ci"]
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    tags:
+      - "v*"
 
 permissions:
   contents: write
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@v2
 
-      - name: Build
-        run: cargo build --release
+      - run: cargo build --release
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: wslforge-windows
           path: target/release/wslforge.exe
 
-  release:
+  publish:
     needs: build
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: wslforge-windows
-          path: target/release
+          path: .
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          node-version: 20
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install semantic-release
-        run: |
-          npm install -g \
-            semantic-release \
-            @semantic-release/commit-analyzer \
-            @semantic-release/release-notes-generator \
-            @timada/semantic-release-cargo \
-            @semantic-release/github
-
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ github.token }}
-        run: semantic-release
+          files: wslforge.exe
