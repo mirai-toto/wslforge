@@ -1,10 +1,11 @@
 // NOTE: We only *read* this config from YAML, but we also derive `Serialize` so we can pass
-// it into the cloud-init template renderer (minijinja) as `cfg`.
+// it into the cloud-init template renderer (minijinja) as `profile`.
 // - Nothing writes this config back to disk.
 // - `skip_serializing_if` on `Option<T>` makes `None` act like "missing" in templates, so
 //   `| default('...')` works as expected.
 // - `password` is optional; we hash it when rendering cloud-init templates.
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fmt;
 use std::path::PathBuf;
 use url::Url;
@@ -27,6 +28,10 @@ fn default_cloud_init_path() -> PathBuf {
 
 fn default_distro() -> String {
     "Ubuntu".into()
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -64,15 +69,15 @@ impl fmt::Display for CloudInitSource {
 
 impl Default for ImageSource {
     fn default() -> Self {
-        ImageSource::Distro {
-            name: default_distro(),
-        }
+        ImageSource::Distro { name: default_distro() }
     }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct AppConfig {
+pub struct Profile {
+    #[serde(default, skip_serializing_if = "is_false", rename = "override")]
+    pub override_instance: bool,
     #[serde(default = "default_hostname")]
     pub hostname: String,
     #[serde(default = "default_username")]
@@ -94,4 +99,10 @@ pub struct AppConfig {
 
     #[serde(default)]
     pub image: ImageSource,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct RootConfig {
+    pub profiles: BTreeMap<String, Profile>,
 }

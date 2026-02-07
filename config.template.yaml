@@ -1,36 +1,39 @@
-# --- Basic instance settings ---
-hostname: UbuntuWslDev
-username: wsluser
-password: root
+profiles:
+  UbuntuWslDev:
+    override: true
+    # --- Basic instance settings ---
+    hostname: UbuntuWslDev
+    username: wsluser
+    password: root
 
-# --- Network (all optional) ---
-http_proxy:
-https_proxy:
-no_proxy:
+    # --- Network (all optional) ---
+    http_proxy:
+    https_proxy:
+    no_proxy:
 
-# --- Paths ---
-install_dir: "%userprofile%/VMs"
-# Cloud-init user-data source (optional)
-cloud_init:
-  type: file
-  path: "cloud-init.template.yaml"
+    # --- Paths ---
+    install_dir: "%userprofile%/VMs"
+    # Cloud-init user-data source (optional)
+    cloud_init:
+      type: file
+      path: "cloud-init.template.yaml"
 
-# Inline cloud-init example
-# cloud_init:
-#   type: inline
-#   content: |
-#     #cloud-config
-#     packages:
-#       - curl
+    # Inline cloud-init example
+    # cloud_init:
+    #   type: inline
+    #   content: |
+    #     #cloud-config
+    #     packages:
+    #       - curl
 
-# --- Image source (choose ONE type) ---
+    # --- Image source (choose ONE type) ---
 
-# Option A: Install from official WSL distro
-image:
-  type: distro
-  name: Ubuntu
+    # Option A: Install from official WSL distro
+    image:
+      type: distro
+      name: Ubuntu
 
-# Option B: Install from local rootfs file
-# image:
-#   type: file
-#   path: "%USERPROFILE%/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"
+    # Option B: Install from local rootfs file
+    # image:
+    #   type: file
+    #   path: "%USERPROFILE%/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"

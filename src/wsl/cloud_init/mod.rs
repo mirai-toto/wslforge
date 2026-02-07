@@ -1,32 +1,29 @@
 use super::helpers::{expand_env_vars, hash_password_sha512, resolve_userprofile_dir};
-use crate::config::{AppConfig, CloudInitSource};
+use crate::config::{CloudInitSource, Profile};
 use log::{debug, info, warn};
 use minijinja::Environment;
 use std::path::PathBuf;
 
-pub fn prepare_cloud_init(cfg: &AppConfig, dry_run: bool, debug: bool) -> anyhow::Result<()> {
-    let Some(source) = &cfg.cloud_init else {
+pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<()> {
+    let Some(source) = &profile.cloud_init else {
         info!("☁️ Cloud-init: not configured");
         return Ok(());
     };
 
-    let target_file = create_cloud_init_target(&cfg.hostname, dry_run)?;
+    let target_file = create_cloud_init_target(&profile.hostname, dry_run)?;
     info!("☁️ Cloud-init target: {}", target_file.display());
 
     let raw = load_cloud_init_source(source)?;
-    let rendered = render_cloud_init(&raw, cfg)?;
+    let rendered = render_cloud_init(&raw, profile)?;
     debug!("☁️ Cloud-init rendered:\n{}", rendered);
-    write_cloud_init(&target_file, &rendered, &cfg.hostname, dry_run, debug)?;
+    write_cloud_init(&target_file, &rendered, &profile.hostname, dry_run, debug)?;
     Ok(())
 }
 
 // Determine the target path for the cloud-init user-data file based on the hostname.
 fn create_cloud_init_target(hostname: &str, dry_run: bool) -> anyhow::Result<PathBuf> {
     if dry_run {
-        info!(
-            "🧪 Dry run: cloud-init target would be created at: {}",
-            hostname
-        );
+        info!("🧪 Dry run: cloud-init target would be created at: {}", hostname);
         return Ok(PathBuf::from(format!("{}.user-data", hostname)));
     }
     let userprofile = resolve_userprofile_dir()?;
@@ -41,10 +38,7 @@ fn load_cloud_init_source(source: &CloudInitSource) -> anyhow::Result<String> {
             let expanded = expand_env_vars(&path.to_string_lossy())?;
             let expanded_path = PathBuf::from(expanded);
             if !expanded_path.exists() {
-                anyhow::bail!(
-                    "cloud-init user-data file not found: {}",
-                    expanded_path.display()
-                );
+                anyhow::bail!("cloud-init user-data file not found: {}", expanded_path.display());
             }
             info!("☁️ Cloud-init source: {}", expanded_path.display());
             std::fs::read_to_string(expanded_path).map_err(Into::into)
@@ -72,7 +66,7 @@ fn write_cloud_init(
     Ok(())
 }
 
-fn render_cloud_init(raw: &str, cfg: &AppConfig) -> anyhow::Result<String> {
+fn render_cloud_init(raw: &str, profile: &Profile) -> anyhow::Result<String> {
     let mut env = Environment::new();
     env.add_template("cloud-init.user-data", raw)
         .map_err(|e| anyhow::anyhow!("cloud-init template parse error: {e}"))?;
@@ -81,13 +75,13 @@ fn render_cloud_init(raw: &str, cfg: &AppConfig) -> anyhow::Result<String> {
         .get_template("cloud-init.user-data")
         .map_err(|e| anyhow::anyhow!("cloud-init template load error: {e}"))?;
 
-    let password_hash = match cfg.password.as_deref() {
+    let password_hash = match profile.password.as_deref() {
         Some(password) => Some(hash_password_sha512(password)?),
         None => None,
     };
 
     template
-        .render(minijinja::context! { cfg => cfg, password_hash => password_hash })
+        .render(minijinja::context! { profile => profile, password_hash => password_hash })
         .map_err(|e| anyhow::anyhow!("cloud-init template render error: {e}"))
 }
 

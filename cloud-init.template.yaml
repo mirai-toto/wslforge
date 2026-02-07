@@ -1,16 +1,16 @@
 #cloud-config
 ## template: jinja
-hostname: {{ cfg.hostname }}
+hostname: {{ profile.hostname }}
 manage_etc_hosts: true
 
-{% if cfg.http_proxy %}
+{% if profile.http_proxy %}
 apt:
-  http_proxy: "{{ cfg.http_proxy }}"
-  https_proxy: "{{ cfg.https_proxy }}"
+  http_proxy: "{{ profile.http_proxy }}"
+  https_proxy: "{{ profile.https_proxy }}"
 {% endif %}
 
 users:
-  - name: {{ cfg.username }}
+  - name: {{ profile.username }}
     groups: sudo
     shell: /bin/bash
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
@@ -31,20 +31,20 @@ packages:
   - npm
 
 write_files:
-{% if cfg.http_proxy %}
+{% if profile.http_proxy %}
   - path: /etc/profile.d/proxy.sh
     permissions: '0644'
     content: |
-      export http_proxy="{{ cfg.http_proxy }}"
-      export https_proxy="{{ cfg.https_proxy }}"
-      export no_proxy="{{ cfg.no_proxy }}"
+      export http_proxy="{{ profile.http_proxy }}"
+      export https_proxy="{{ profile.https_proxy }}"
+      export no_proxy="{{ profile.no_proxy }}"
 {% endif %}
-{% if cfg.http_proxy %}
+{% if profile.http_proxy %}
   - path: /etc/apt/apt.conf.d/95proxies
     permissions: '0644'
     content: |
-      Acquire::http::Proxy "{{ cfg.http_proxy }}";
-      Acquire::https::Proxy "{{ cfg.https_proxy }}";
+      Acquire::http::Proxy "{{ profile.http_proxy }}";
+      Acquire::https::Proxy "{{ profile.https_proxy }}";
 {% endif %}
   - path: /usr/lib/binfmt.d/WSLInterop.conf
     permissions: '0644'
@@ -60,24 +60,24 @@ write_files:
       [interop]
       appendWindowsPath = true
       [user]
-      default={{ cfg.username }}
+      default={{ profile.username }}
 
 runcmd:
-{% if cfg.http_proxy %}
-  - git config --system http.proxy "{{ cfg.http_proxy }}"
-  - git config --system https.proxy "{{ cfg.https_proxy }}"
+{% if profile.http_proxy %}
+  - git config --system http.proxy "{{ profile.http_proxy }}"
+  - git config --system https.proxy "{{ profile.https_proxy }}"
 {% endif %}
   - curl -fsSL https://get.docker.com | sh
-  - usermod -aG docker {{ cfg.username }}
+  - usermod -aG docker {{ profile.username }}
   - systemctl enable docker
   - systemctl start docker
   - apt install -y docker-compose-plugin
   - snap install microk8s --classic
-  - usermod -a -G microk8s {{ cfg.username }}
-  - mkdir -p /home/{{ cfg.username }}/.kube
+  - usermod -a -G microk8s {{ profile.username }}
+  - mkdir -p /home/{{ profile.username }}/.kube
   - microk8s status --wait-ready
-  - microk8s config > /home/{{ cfg.username }}/.kube/config
-  - chown -R {{ cfg.username }}:{{ cfg.username }} /home/{{ cfg.username }}/.kube
+  - microk8s config > /home/{{ profile.username }}/.kube/config
+  - chown -R {{ profile.username }}:{{ profile.username }} /home/{{ profile.username }}/.kube
   - snap install kubectl --classic
 
-final_message: "✅ cloud-init finished on {{ cfg.hostname }}"
+final_message: "✅ cloud-init finished on {{ profile.hostname }}"
