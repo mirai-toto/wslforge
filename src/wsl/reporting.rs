@@ -3,14 +3,10 @@ use crate::wsl::engine::CreateOutcome;
 use crate::wsl::helpers::expand_env_vars;
 use log::info;
 
-pub fn log_create_outcome(outcome: CreateOutcome, hostname: &str, is_distro: bool) {
+pub fn log_create_outcome(outcome: CreateOutcome, hostname: &str) {
     match outcome {
         CreateOutcome::Created => {
-            if is_distro {
-                info!("✅ WSL instance '{}' installed successfully.", hostname);
-            } else {
-                info!("✅ WSL instance '{}' created successfully.", hostname);
-            }
+            info!("✅ WSL instance '{}' created successfully.", hostname);
         }
         CreateOutcome::AlreadyExists => {
             info!("ℹ️ WSL instance '{}' already exists.", hostname);

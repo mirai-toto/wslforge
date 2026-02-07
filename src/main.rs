@@ -10,11 +10,11 @@ fn main() -> anyhow::Result<()> {
 
     let cfg = config::load_yaml(&args.config)?;
     log::debug!("📋 Loaded config from {}", args.config.display());
-    let manager = WslManager::new();
+    let manager = WslManager::new(args.dry_run, args.debug);
 
-    manager.validate_environment(args.dry_run)?;
+    manager.validate_environment()?;
     for (profile_name, profile) in &cfg.profiles {
-        manager.create_instance(profile_name, profile, args.dry_run, args.debug)?;
+        manager.create_instance(profile_name, profile)?;
     }
 
     Ok(())

@@ -5,48 +5,48 @@ use log::info;
 
 pub struct WslManager {
     provider: provider::WslProvider,
+    dry_run: bool,
+    debug: bool,
 }
 
 impl WslManager {
-    pub fn new() -> Self {
+    pub fn new(dry_run: bool, debug: bool) -> Self {
         Self {
             provider: provider::WslProvider::new(provider::EngineKind::Cli),
+            dry_run,
+            debug,
         }
     }
 
-    pub fn with_engine(kind: provider::EngineKind) -> Self {
+    pub fn with_engine(kind: provider::EngineKind, dry_run: bool, debug: bool) -> Self {
         Self {
             provider: provider::WslProvider::new(kind),
+            dry_run,
+            debug,
         }
     }
 
-    pub fn validate_environment(&self, dry_run: bool) -> anyhow::Result<()> {
-        validation::validate_environment(dry_run)
+    pub fn validate_environment(&self) -> anyhow::Result<()> {
+        validation::validate_environment(self.dry_run)
     }
 
-    pub fn create_instance(
-        &self,
-        profile_name: &str,
-        profile: &Profile,
-        dry_run: bool,
-        debug: bool,
-    ) -> anyhow::Result<()> {
-        if !self.handle_override(profile, dry_run)? {
-            reporting::log_create_outcome(
-                CreateOutcome::AlreadyExists,
-                &profile.hostname,
-                matches!(profile.image, ImageSource::Distro { .. }),
-            );
+    pub fn create_instance(&self, profile_name: &str, profile: &Profile) -> anyhow::Result<()> {
+        let instance_exists = self.provider.instance_exists(&profile.hostname)?;
+        if profile.override_instance {
+            self.delete_instance(&profile.hostname, instance_exists)?;
+        } else if instance_exists {
+            reporting::log_create_outcome(CreateOutcome::AlreadyExists, &profile.hostname);
             return Ok(());
         }
-        self.prepare_profile(profile, dry_run, debug)?;
+
+        self.prepare_profile(profile)?;
         reporting::log_config_summary(profile_name, profile);
-        if dry_run {
+
+        if self.dry_run {
             info!("🧪 Dry run: WSL instance would be created");
             reporting::log_create_outcome(
                 CreateOutcome::Skipped,
                 &profile.hostname,
-                matches!(profile.image, ImageSource::Distro { .. }),
             );
             return Ok(());
         }
@@ -55,39 +55,33 @@ impl WslManager {
         reporting::log_create_outcome(
             outcome,
             &profile.hostname,
-            matches!(profile.image, ImageSource::Distro { .. }),
         );
         Ok(())
     }
 
-    fn handle_override(&self, profile: &Profile, dry_run: bool) -> anyhow::Result<bool> {
-        let instance_exists = self.provider.instance_exists(&profile.hostname)?;
-        if profile.override_instance {
-            if !instance_exists {
-                info!(
-                    "ℹ️ WSL instance '{}' does not exist. Skipping delete.",
-                    profile.hostname
-                );
-            } else if dry_run {
-                info!(
-                    "🧪 Dry run: WSL instance '{}' would be deleted before creation",
-                    profile.hostname
-                );
-            } else {
-                self.provider.delete_instance(&profile.hostname)?;
-            }
-            return Ok(true);
+    fn delete_instance(&self, hostname: &str, instance_exists: bool) -> anyhow::Result<()> {
+        if !instance_exists {
+            info!(
+                "ℹ️ WSL instance '{}' does not exist. Skipping delete.",
+                hostname
+            );
+            return Ok(());
+        } else {
+            info!(
+                "⚠️ WSL instance '{}' already exists and will be overridden.",
+                hostname
+            );
         }
-
-        if instance_exists {
-            return Ok(false);
+        if self.dry_run {
+            info!("🧪 Dry run: WSL instance '{}' would be deleted", hostname);
+            return Ok(());
         }
-        Ok(true)
+        self.provider.delete_instance(hostname)
     }
 
-    fn prepare_profile(&self, profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<()> {
+    fn prepare_profile(&self, profile: &Profile) -> anyhow::Result<()> {
         validation::validate_image_source(profile)?;
-        cloud_init::prepare_cloud_init(profile, dry_run, debug)?;
+        cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
         Ok(())
     }
 
@@ -107,6 +101,6 @@ impl WslManager {
 
 impl Default for WslManager {
     fn default() -> Self {
-        Self::new()
+        Self::new(false, false)
     }
 }
