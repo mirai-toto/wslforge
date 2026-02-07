@@ -65,6 +65,19 @@ Need more details for troubleshooting? Increase verbosity: 🧰
 
 ---
 
+## 🧭 CLI
+
+Common flags:
+
+| Flag | Description | Default |
+| --- | --- | --- |
+| `--config` | Path to YAML config file | `config.yaml` |
+| `--dry-run` | Show what would be done without changes | `false` |
+| `--debug` | Enable extra debug output and artifacts | `false` |
+| `-v`, `-vv` | Increase verbosity | `0` |
+
+---
+
 ## 🛠 Development
 
 Build locally:
@@ -90,11 +103,23 @@ The pre-commit hook runs `cargo fmt --all`.
 
 The configuration is intentionally small. Most fields are optional, and you can grow into advanced options as needed.
 
-Core fields:
+The top-level config is now a `profiles` map, where each key is a profile name:
+
+```yaml
+profiles:
+  MyProfile:
+    hostname: MyProfile
+    username: wsluser
+```
+
+Note: a single-profile file without `profiles:` is still accepted for backward compatibility, but the recommended format is the `profiles` map.
+
+Core fields (per profile):
 
 | Field | Description | Example | Mandatory |
 | --- | --- | --- | --- |
-| `hostname` | WSL instance name | `Ubuntuinstance` | ✅ |
+| `override` | Replace existing instance if it exists | `true` | ➖ |
+| `hostname` | WSL instance name | `UbuntuWslDev` | ✅ |
 | `username` | Default user | `wsluser` | ✅ |
 | `password` | Optional password (hashed for cloud-init) | `root` | ➖ |
 | `install_dir` | Target install directory | `%userprofile%/VMs` | ✅ |
@@ -110,28 +135,31 @@ Related sections:
 Example `config.yaml` with a file-based cloud-init and an official distro:
 
 ```yaml
-hostname: Ubuntuinstance
-username: wsluser
-# password: root
+profiles:
+  UbuntuWslDev:
+    override: true
+    hostname: UbuntuWslDev
+    username: wsluser
+    password: root
 
-http_proxy: null
-https_proxy: null
-no_proxy: null
+    http_proxy: null
+    https_proxy: null
+    no_proxy: null
 
-install_dir: "%userprofile%/VMs"
+    install_dir: "%userprofile%/VMs"
 
-cloud_init:
-  type: file
-  path: "cloud-init.yaml"
+    cloud_init:
+      type: file
+      path: "cloud-init.yaml"
 
-image:
-  type: distro
-  name: Ubuntu
+    image:
+      type: distro
+      name: Ubuntu
 ```
 
 ### Cloud init
 
-Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline.
+Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline. These blocks live inside a profile.
 
 Cloud-init types:
 
@@ -161,7 +189,7 @@ cloud_init:
 
 ### Image Sources
 
-Pick where the root filesystem comes from: an official WSL distro or a local rootfs archive.
+Pick where the root filesystem comes from: an official WSL distro or a local rootfs archive. These blocks live inside a profile.
 
 Image types:
 
