@@ -44,18 +44,12 @@ impl WslManager {
 
         if self.dry_run {
             info!("🧪 Dry run: WSL instance would be created");
-            reporting::log_create_outcome(
-                CreateOutcome::Skipped,
-                &profile.hostname,
-            );
+            reporting::log_create_outcome(CreateOutcome::Skipped, &profile.hostname);
             return Ok(());
         }
         info!("🚀 Creating WSL instance");
         let outcome = self.create_profile(profile)?;
-        reporting::log_create_outcome(
-            outcome,
-            &profile.hostname,
-        );
+        reporting::log_create_outcome(outcome, &profile.hostname);
         Ok(())
     }
 
