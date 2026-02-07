@@ -103,7 +103,6 @@ impl WslManager {
             }
         }
     }
-
 }
 
 impl Default for WslManager {
