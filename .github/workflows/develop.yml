@@ -34,10 +34,17 @@ jobs:
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
             @timada/semantic-release-cargo \
-            semantic-release-pr \
-            @semantic-release/github
+            @semantic-release/exec
 
-      - name: Create release PR
+      - name: Run semantic-release (prepare only)
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: semantic-release
+        run: semantic-release --no-ci
+
+      - name: Create release PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: release/${{ env.RELEASE_VERSION }}
+          title: "chore(release): v${{ env.RELEASE_VERSION }}"
+          commit-message: "chore(release): v${{ env.RELEASE_VERSION }}"
+          base: main

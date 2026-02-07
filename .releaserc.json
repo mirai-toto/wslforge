@@ -11,12 +11,10 @@
     "@semantic-release/release-notes-generator",
     "@timada/semantic-release-cargo",
     [
-      "semantic-release-pr",
+      "@semantic-release/exec",
       {
-        "branch": "release/${nextRelease.version}",
-        "baseRef": "main"
+        "prepareCmd": "echo RELEASE_VERSION=${nextRelease.version} >> $GITHUB_ENV"
       }
-    ],
-    "@semantic-release/github"
+    ]
   ]
 }
