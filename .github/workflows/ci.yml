@@ -88,3 +88,35 @@ jobs:
           languages: rust
       - uses: github/codeql-action/autobuild@v4
       - uses: github/codeql-action/analyze@v4
+
+  release-dry-run:
+    name: semantic-release (dry run)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # semantic-release needs full history
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install semantic-release
+        run: |
+          npm install -g \
+            semantic-release \
+            @semantic-release/commit-analyzer \
+            @semantic-release/release-notes-generator \
+            @timada/semantic-release-cargo \
+            @semantic-release/github
+
+      - name: semantic-release dry run
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+        run: semantic-release --dry-run
