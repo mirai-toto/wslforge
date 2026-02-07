@@ -69,9 +69,7 @@ impl fmt::Display for CloudInitSource {
 
 impl Default for ImageSource {
     fn default() -> Self {
-        ImageSource::Distro {
-            name: default_distro(),
-        }
+        ImageSource::Distro { name: default_distro() }
     }
 }
 

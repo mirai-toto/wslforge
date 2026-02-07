@@ -20,9 +20,7 @@ impl WslEngine for CliEngine {
     }
 
     fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
-        let output = Command::new("wsl.exe")
-            .args(["--unregister", name])
-            .output()?;
+        let output = Command::new("wsl.exe").args(["--unregister", name]).output()?;
 
         if !output.status.success() {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -69,19 +67,9 @@ impl WslEngine for CliEngine {
 
     fn create_from_distro(&self, distro_name: &str, name: &str) -> anyhow::Result<()> {
         let mut cmd = Command::new("wsl.exe");
-        cmd.args([
-            "--install",
-            "-d",
-            distro_name,
-            "--name",
-            name,
-            "--no-launch",
-        ]);
+        cmd.args(["--install", "-d", distro_name, "--name", name, "--no-launch"]);
 
-        let status = cmd
-            .stdout(Stdio::inherit())
-            .stderr(Stdio::inherit())
-            .status()?;
+        let status = cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit()).status()?;
         if !status.success() {
             anyhow::bail!("wsl.exe --install failed with status {}", status);
         }

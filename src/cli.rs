@@ -2,11 +2,7 @@ use clap::{ArgAction, Parser, ValueHint};
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(
-    name = "wslforge",
-    version,
-    about = "Manage WSL instances from a YAML configuration"
-)]
+#[command(name = "wslforge", version, about = "Manage WSL instances from a YAML configuration")]
 pub struct Args {
     /// Path to YAML configuration file
     #[arg(short, long, value_hint = ValueHint::FilePath, default_value = "config.yaml")]

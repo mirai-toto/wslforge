@@ -6,10 +6,7 @@ use std::process::Command;
 pub fn validate_environment(dry_run: bool) -> anyhow::Result<()> {
     validate_wsl_installed()?;
     update_wsl_version(dry_run)?;
-    validate_windows_features(&[
-        "Microsoft-Windows-Subsystem-Linux",
-        "VirtualMachinePlatform",
-    ])?;
+    validate_windows_features(&["Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"])?;
     Ok(())
 }
 
@@ -71,20 +68,13 @@ pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
         }
     }
     if !disabled.is_empty() {
-        anyhow::bail!(
-            "required Windows feature(s) are disabled: {}",
-            disabled.join(", ")
-        );
+        anyhow::bail!("required Windows feature(s) are disabled: {}", disabled.join(", "));
     }
     Ok(())
 }
 
 fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
-    let name = path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("")
-        .to_lowercase();
+    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
     name.ends_with(".tar") || name.ends_with(".tar.gz") || name.ends_with(".tgz")
 }
 
@@ -93,15 +83,10 @@ fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
 //
 
 fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
-    let output = Command::new("wsl.exe")
-        .args(["--list", "--online"])
-        .output()?;
+    let output = Command::new("wsl.exe").args(["--list", "--online"]).output()?;
 
     if !output.status.success() {
-        anyhow::bail!(
-            "wsl.exe --list --online failed with status {}",
-            output.status
-        );
+        anyhow::bail!("wsl.exe --list --online failed with status {}", output.status);
     }
 
     let (text, _, _) = UTF_16LE.decode(&output.stdout);

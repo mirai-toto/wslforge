@@ -4,8 +4,7 @@ use std::collections::BTreeMap;
 use std::{fs, path::Path};
 
 pub fn load_yaml(path: &Path) -> anyhow::Result<RootConfig> {
-    let raw = fs::read_to_string(path)
-        .with_context(|| format!("unable to read config file: {}", path.display()))?;
+    let raw = fs::read_to_string(path).with_context(|| format!("unable to read config file: {}", path.display()))?;
 
     match serde_yaml::from_str::<RootConfig>(&raw) {
         Ok(cfg) => Ok(cfg),

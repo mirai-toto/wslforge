@@ -55,16 +55,10 @@ impl WslManager {
 
     fn delete_instance(&self, hostname: &str, instance_exists: bool) -> anyhow::Result<()> {
         if !instance_exists {
-            info!(
-                "ℹ️ WSL instance '{}' does not exist. Skipping delete.",
-                hostname
-            );
+            info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname);
             return Ok(());
         } else {
-            info!(
-                "⚠️ WSL instance '{}' already exists and will be overridden.",
-                hostname
-            );
+            info!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname);
         }
         if self.dry_run {
             info!("🧪 Dry run: WSL instance '{}' would be deleted", hostname);
@@ -86,9 +80,7 @@ impl WslManager {
                 self.provider
                     .create_from_file(&profile.hostname, &install_dir, rootfs_tar)
             }
-            ImageSource::Distro { name } => {
-                self.provider.create_from_distro(name, &profile.hostname)
-            }
+            ImageSource::Distro { name } => self.provider.create_from_distro(name, &profile.hostname),
         }
     }
 }

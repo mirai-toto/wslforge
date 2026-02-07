@@ -23,10 +23,7 @@ pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyh
 // Determine the target path for the cloud-init user-data file based on the hostname.
 fn create_cloud_init_target(hostname: &str, dry_run: bool) -> anyhow::Result<PathBuf> {
     if dry_run {
-        info!(
-            "🧪 Dry run: cloud-init target would be created at: {}",
-            hostname
-        );
+        info!("🧪 Dry run: cloud-init target would be created at: {}", hostname);
         return Ok(PathBuf::from(format!("{}.user-data", hostname)));
     }
     let userprofile = resolve_userprofile_dir()?;
@@ -41,10 +38,7 @@ fn load_cloud_init_source(source: &CloudInitSource) -> anyhow::Result<String> {
             let expanded = expand_env_vars(&path.to_string_lossy())?;
             let expanded_path = PathBuf::from(expanded);
             if !expanded_path.exists() {
-                anyhow::bail!(
-                    "cloud-init user-data file not found: {}",
-                    expanded_path.display()
-                );
+                anyhow::bail!("cloud-init user-data file not found: {}", expanded_path.display());
             }
             info!("☁️ Cloud-init source: {}", expanded_path.display());
             std::fs::read_to_string(expanded_path).map_err(Into::into)
