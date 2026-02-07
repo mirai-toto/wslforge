@@ -74,7 +74,14 @@ Common flags:
 | `--config` | Path to YAML config file | `config.yaml` |
 | `--dry-run` | Show what would be done without changes | `false` |
 | `--debug` | Enable extra debug output and artifacts | `false` |
+| `--print-config` | Print a minimal example config and exit | `false` |
 | `-v`, `-vv` | Increase verbosity | `0` |
+
+Print a minimal example config:
+
+```sh
+./wslforge --print-config
+```
 
 ---
 

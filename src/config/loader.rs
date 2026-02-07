@@ -3,6 +3,14 @@ use anyhow::Context;
 use std::collections::BTreeMap;
 use std::{fs, path::Path};
 
+fn format_yaml_error(path: &Path, err: &serde_yaml::Error) -> String {
+    if let Some(loc) = err.location() {
+        format!("{}:{}:{}: {}", path.display(), loc.line(), loc.column(), err)
+    } else {
+        format!("{}: {}", path.display(), err)
+    }
+}
+
 pub fn load_yaml(path: &Path) -> anyhow::Result<RootConfig> {
     let raw = fs::read_to_string(path).with_context(|| format!("unable to read config file: {}", path.display()))?;
 
@@ -16,10 +24,9 @@ pub fn load_yaml(path: &Path) -> anyhow::Result<RootConfig> {
                 Ok(RootConfig { profiles })
             }
             Err(profile_err) => Err(anyhow::anyhow!(
-                "invalid yaml in: {}\n- profiles format error: {}\n- single-profile format error: {}",
-                path.display(),
-                root_err,
-                profile_err
+                "invalid yaml\n- profiles format error: {}\n- single-profile format error: {}\n\nExpected either:\n- profiles:\n    <name>:\n      <profile>\n- or a single profile object at the root",
+                format_yaml_error(path, &root_err),
+                format_yaml_error(path, &profile_err)
             )),
         },
     }

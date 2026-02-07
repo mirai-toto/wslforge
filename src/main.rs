@@ -5,6 +5,11 @@ use wslforge::{cli::Args, config, wsl::WslManager};
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
+    if args.print_config {
+        println!("{}", config::EXAMPLE_CONFIG);
+        return Ok(());
+    }
+
     init_logger(args.verbose);
     ensure_windows()?;
 
