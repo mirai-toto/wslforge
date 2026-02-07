@@ -7,6 +7,13 @@ description = "WSL instance manager using YAML configuration"
 license = "MIT"
 repository = "https://github.com/mirai-toto/wslforge"
 
+[package.metadata.release]
+sign-commit = false
+sign-tag = false
+push = false
+publish = false
+tag = false
+
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
