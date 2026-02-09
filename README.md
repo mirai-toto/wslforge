@@ -10,7 +10,7 @@ A minimal tool to declaratively create and manage WSL instances.
 ### WSL instance manager
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Release builds](https://github.com/mirai-toto/wslforge/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/mirai-toto/wslforge/actions/workflows/build.yml)
+[![build release artifacts](https://github.com/mirai-toto/wslforge/actions/workflows/build.yml/badge.svg)](https://github.com/mirai-toto/wslforge/actions/workflows/build.yml)
 [![Latest Release](https://img.shields.io/github/v/release/mirai-toto/wslforge)](https://github.com/mirai-toto/wslforge/releases)
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/)
 
