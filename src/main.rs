@@ -1,6 +1,6 @@
 use clap::Parser;
 use log::LevelFilter;
-use wslforge::{cli::Args, config, wsl::WslManager};
+use wslforge::{app, config, wsl::cli::Args};
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
@@ -11,24 +11,12 @@ fn main() -> anyhow::Result<()> {
     }
 
     init_logger(args.verbose);
-    ensure_windows()?;
+    app::run(app::AppConfig {
+        config_path: &args.config,
+        dry_run: args.dry_run,
+        debug: args.debug,
+    })?;
 
-    let cfg = config::load_yaml(&args.config)?;
-    log::debug!("📋 Loaded config from {}", args.config.display());
-    let manager = WslManager::new(args.dry_run, args.debug);
-
-    manager.validate_environment()?;
-    for (profile_name, profile) in &cfg.profiles {
-        manager.create_instance(profile_name, profile)?;
-    }
-
-    Ok(())
-}
-
-fn ensure_windows() -> anyhow::Result<()> {
-    if !cfg!(target_os = "windows") {
-        anyhow::bail!("wslforge is Windows-only (target_os=windows required)");
-    }
     Ok(())
 }
 

@@ -1,5 +1,6 @@
 use crate::config::{ImageSource, Profile};
-use crate::wsl::engine::CreateOutcome;
+use crate::wsl::helpers::path;
+use crate::wsl::CreateOutcome;
 use log::info;
 
 pub fn log_create_outcome(outcome: CreateOutcome, hostname: &str) {
@@ -45,7 +46,7 @@ pub fn log_config_summary(profile_name: &str, profile: &Profile) {
 }
 
 fn expand_install_dir(profile: &Profile) -> String {
-    match crate::wsl::helpers::expand_path(&profile.install_dir) {
+    match path::expand_path(&profile.install_dir) {
         Ok(path) => path.to_string_lossy().into_owned(),
         Err(_) => profile.install_dir.to_string_lossy().into_owned(),
     }

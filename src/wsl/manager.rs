@@ -1,6 +1,7 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
-use crate::wsl::{cloud_init, helpers, provider, reporting, validation};
+use crate::wsl::validation;
+use crate::wsl::{cloud_init, helpers::path, provider};
 use log::info;
 use std::path::{Path, PathBuf};
 
@@ -31,27 +32,23 @@ impl WslManager {
         validation::validate_environment(self.dry_run)
     }
 
-    pub fn create_instance(&self, profile_name: &str, profile: &Profile) -> anyhow::Result<()> {
+    pub fn create_instance(&self, _profile_name: &str, profile: &Profile) -> anyhow::Result<CreateOutcome> {
         let instance_exists = self.provider.instance_exists(&profile.hostname)?;
         if profile.override_instance {
             self.delete_instance(&profile.hostname, instance_exists)?;
         } else if instance_exists {
-            reporting::log_create_outcome(CreateOutcome::AlreadyExists, &profile.hostname);
-            return Ok(());
+            return Ok(CreateOutcome::AlreadyExists);
         }
 
         self.prepare_profile(profile)?;
-        reporting::log_config_summary(profile_name, profile);
 
         if self.dry_run {
             info!("🧪 Dry run: WSL instance would be created");
-            reporting::log_create_outcome(CreateOutcome::Skipped, &profile.hostname);
-            return Ok(());
+            return Ok(CreateOutcome::Skipped);
         }
         info!("🚀 Creating WSL instance");
         let outcome = self.create_profile(profile)?;
-        reporting::log_create_outcome(outcome, &profile.hostname);
-        Ok(())
+        Ok(outcome)
     }
 
     fn delete_instance(&self, hostname: &str, instance_exists: bool) -> anyhow::Result<()> {
@@ -70,6 +67,9 @@ impl WslManager {
 
     fn prepare_profile(&self, profile: &Profile) -> anyhow::Result<()> {
         validation::validate_image_source(profile)?;
+        if let ImageSource::Distro { name } = &profile.image {
+            validation::validate_wsl_distro_name(name)?;
+        }
         cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
         Ok(())
     }
@@ -94,10 +94,10 @@ impl Default for WslManager {
 }
 
 fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
-    let expanded = helpers::expand_path(&profile.install_dir)?;
+    let expanded = path::expand_path(&profile.install_dir)?;
     Ok(expanded.join(&profile.hostname))
 }
 
 fn resolve_rootfs_path(rootfs_tar: &Path) -> anyhow::Result<PathBuf> {
-    helpers::expand_path(rootfs_tar)
+    path::expand_path(rootfs_tar)
 }
