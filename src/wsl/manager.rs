@@ -94,11 +94,10 @@ impl Default for WslManager {
 }
 
 fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
-    let expanded = helpers::expand_env_vars(&profile.install_dir.to_string_lossy())?;
-    Ok(PathBuf::from(expanded).join(&profile.hostname))
+    let expanded = helpers::expand_path(&profile.install_dir)?;
+    Ok(expanded.join(&profile.hostname))
 }
 
 fn resolve_rootfs_path(rootfs_tar: &Path) -> anyhow::Result<PathBuf> {
-    let expanded = helpers::expand_env_vars(&rootfs_tar.to_string_lossy())?;
-    Ok(PathBuf::from(expanded))
+    helpers::expand_path(rootfs_tar)
 }
