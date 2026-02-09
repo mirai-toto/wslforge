@@ -1,60 +1,28 @@
-name: release
+name: semantic release
 
 on:
   workflow_run:
     workflows: ["ci"]
-    types:
-      - completed
-    branches:
-      - main
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: write
 
 jobs:
-  build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: windows-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo
-        uses: Swatinem/rust-cache@v2
-
-      - name: Build
-        run: cargo build --release
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: wslforge-windows
-          path: target/release/wslforge.exe
-
   release:
-    needs: build
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
         with:
-          name: wslforge-windows
-          path: target/release
+          fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Install semantic-release
         run: |
@@ -62,10 +30,11 @@ jobs:
             semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
-            @timada/semantic-release-cargo \
+            @semantic-release/exec \
+            @semantic-release/git \
             @semantic-release/github
 
-      - name: Release
+      - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
