@@ -2,7 +2,7 @@ use super::helpers::{expand_env_vars, hash_password_sha512, resolve_userprofile_
 use crate::config::{CloudInitSource, Profile};
 use log::{debug, info, warn};
 use minijinja::Environment;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<()> {
     let Some(source) = &profile.cloud_init else {
@@ -51,7 +51,7 @@ fn load_cloud_init_source(source: &CloudInitSource) -> anyhow::Result<String> {
 }
 
 fn write_cloud_init(
-    target_file: &PathBuf,
+    target_file: &Path,
     rendered: &str,
     hostname: &str,
     dry_run: bool,

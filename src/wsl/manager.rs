@@ -2,7 +2,7 @@ use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
 use crate::wsl::{cloud_init, helpers, provider, reporting, validation};
 use log::info;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub struct WslManager {
     provider: provider::WslProvider,
@@ -78,7 +78,7 @@ impl WslManager {
         match &profile.image {
             ImageSource::File { path: rootfs_tar } => {
                 let install_dir = resolve_install_dir(profile)?;
-                let rootfs_tar = resolve_rootfs_path(rootfs_tar)?;
+                let rootfs_tar = resolve_rootfs_path(rootfs_tar.as_path())?;
                 self.provider
                     .create_from_file(&profile.hostname, &install_dir, &rootfs_tar)
             }
@@ -98,7 +98,7 @@ fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
     Ok(PathBuf::from(expanded).join(&profile.hostname))
 }
 
-fn resolve_rootfs_path(rootfs_tar: &PathBuf) -> anyhow::Result<PathBuf> {
+fn resolve_rootfs_path(rootfs_tar: &Path) -> anyhow::Result<PathBuf> {
     let expanded = helpers::expand_env_vars(&rootfs_tar.to_string_lossy())?;
     Ok(PathBuf::from(expanded))
 }
