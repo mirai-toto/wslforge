@@ -1,9 +1,8 @@
 name: build release artifacts
 
 on:
-  push:
-    tags:
-      - "v*"
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -13,7 +12,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release
-      - uses: actions/upload-artifact@v4
+      - name: Upload binary to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: wslforge-windows
-          path: target/release/wslforge.exe
+          files: target/release/wslforge.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
