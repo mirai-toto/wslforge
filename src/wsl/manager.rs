@@ -1,6 +1,7 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
-use crate::wsl::{cloud_init, helpers, provider, reporting, validation};
+use crate::wsl::validation;
+use crate::wsl::{cloud_init, helpers, provider, reporting};
 use log::info;
 use std::path::{Path, PathBuf};
 
@@ -70,6 +71,9 @@ impl WslManager {
 
     fn prepare_profile(&self, profile: &Profile) -> anyhow::Result<()> {
         validation::validate_image_source(profile)?;
+        if let ImageSource::Distro { name } = &profile.image {
+            validation::validate_wsl_distro_name(name)?;
+        }
         cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
         Ok(())
     }
