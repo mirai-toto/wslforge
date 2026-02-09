@@ -1,4 +1,4 @@
-use super::helpers::crypto::hash_password_sha512;
+use crate::wsl::helpers::crypto::hash_password_sha512;
 use crate::config::Profile;
 use minijinja::Environment;
 

@@ -1,6 +1,6 @@
-use super::helpers::userprofile::resolve_userprofile_dir;
+use crate::wsl::helpers::userprofile::resolve_userprofile_dir;
 use log::{info, warn};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub fn store(hostname: &str, rendered: &str, dry_run: bool, debug: bool) -> anyhow::Result<PathBuf> {
     let target_file = create_cloud_init_target(hostname, dry_run)?;
