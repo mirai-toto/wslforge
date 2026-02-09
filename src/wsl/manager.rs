@@ -1,7 +1,7 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
 use crate::wsl::validation;
-use crate::wsl::{cloud_init, helpers, provider, reporting};
+use crate::wsl::{cloud_init, helpers::path, provider, reporting};
 use log::info;
 use std::path::{Path, PathBuf};
 
@@ -98,10 +98,10 @@ impl Default for WslManager {
 }
 
 fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
-    let expanded = helpers::expand_path(&profile.install_dir)?;
+    let expanded = path::expand_path(&profile.install_dir)?;
     Ok(expanded.join(&profile.hostname))
 }
 
 fn resolve_rootfs_path(rootfs_tar: &Path) -> anyhow::Result<PathBuf> {
-    helpers::expand_path(rootfs_tar)
+    path::expand_path(rootfs_tar)
 }

@@ -1,4 +1,4 @@
-use super::helpers::resolve_userprofile_dir;
+use super::helpers::userprofile::resolve_userprofile_dir;
 use log::{info, warn};
 use std::path::{Path, PathBuf};
 

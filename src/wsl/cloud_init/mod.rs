@@ -1,4 +1,4 @@
-use super::helpers::expand_env_vars;
+use super::helpers::path::expand_env_vars;
 use crate::config::{CloudInitSource, Profile};
 use log::{debug, info};
 use std::path::PathBuf;

@@ -1,5 +1,5 @@
 use crate::config::{ImageSource, Profile};
-use crate::wsl::helpers::expand_env_vars;
+use crate::wsl::helpers::path::expand_env_vars;
 use log::warn;
 
 pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
