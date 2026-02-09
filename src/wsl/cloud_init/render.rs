@@ -1,5 +1,5 @@
-use crate::config::Profile;
 use super::helpers::hash_password_sha512;
+use crate::config::Profile;
 use minijinja::Environment;
 
 pub fn render(raw: &str, profile: &Profile) -> anyhow::Result<String> {

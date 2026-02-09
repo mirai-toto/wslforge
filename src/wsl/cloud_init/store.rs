@@ -2,12 +2,7 @@ use super::helpers::resolve_userprofile_dir;
 use log::{info, warn};
 use std::path::{Path, PathBuf};
 
-pub fn store(
-    hostname: &str,
-    rendered: &str,
-    dry_run: bool,
-    debug: bool,
-) -> anyhow::Result<PathBuf> {
+pub fn store(hostname: &str, rendered: &str, dry_run: bool, debug: bool) -> anyhow::Result<PathBuf> {
     let target_file = create_cloud_init_target(hostname, dry_run)?;
     if !dry_run {
         std::fs::write(&target_file, rendered)?;
