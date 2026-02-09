@@ -1,7 +1,7 @@
+use crate::cli;
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
 use crate::wsl::validation;
-use crate::cli;
 use crate::wsl::{cloud_init, helpers::path, provider};
 use log::info;
 use std::path::{Path, PathBuf};
