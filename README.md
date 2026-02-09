@@ -39,7 +39,7 @@ flowchart LR
   CLI -->|load + validate| PM[Provisioner<br/>WslManager]
   PM -->|render user-data| CI[cloud-init<br/>renderer]
   PM -->|create instance| WP[WSL Provider]
-  WP -->|select + execute| ENG[Engine<br/>CliEngine | ApiEngine]
+  WP -->|select + execute| ENG[Engine<br/>CliEngine / ApiEngine]
   ENG -->|create outcome| WP
   WP -->|outcome| PM
   PM -->|report summary| CLI
