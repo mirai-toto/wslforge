@@ -1,11 +1,11 @@
 # Rust
 /target
 **/*.rs.bk
-Cargo.lock
 
 # Config files with secrets
 config.yaml
 config.local.yaml
+cloud-init.yaml
 *.env
 
 # IDEs
@@ -25,4 +25,3 @@ Thumbs.db
 dist/
 build/
 tmp/
-

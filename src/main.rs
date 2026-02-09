@@ -5,19 +5,30 @@ use wslforge::{cli::Args, config, wsl::WslManager};
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    init_logger(args.verbose);
-
-    let cfg = config::load_yaml(&args.config)?;
-    log::debug!("Loaded config: {:#?}", cfg);
-
-    let manager = WslManager::new();
-
-    if args.dry_run {
-        manager.dry_run(&cfg)?;
-    } else {
-        manager.create_instance(&cfg)?;
+    if args.print_config {
+        println!("{}", config::EXAMPLE_CONFIG);
+        return Ok(());
     }
 
+    init_logger(args.verbose);
+    ensure_windows()?;
+
+    let cfg = config::load_yaml(&args.config)?;
+    log::debug!("📋 Loaded config from {}", args.config.display());
+    let manager = WslManager::new(args.dry_run, args.debug);
+
+    manager.validate_environment()?;
+    for (profile_name, profile) in &cfg.profiles {
+        manager.create_instance(profile_name, profile)?;
+    }
+
+    Ok(())
+}
+
+fn ensure_windows() -> anyhow::Result<()> {
+    if !cfg!(target_os = "windows") {
+        anyhow::bail!("wslforge is Windows-only (target_os=windows required)");
+    }
     Ok(())
 }
 

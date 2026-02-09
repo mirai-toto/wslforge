@@ -1,11 +1,18 @@
 [package]
 name = "wslforge"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
-authors = ["Hamza Ince"]
+authors = ["mirai-toto"]
 description = "WSL instance manager using YAML configuration"
 license = "MIT"
 repository = "https://github.com/mirai-toto/wslforge"
+
+[package.metadata.release]
+sign-commit = false
+sign-tag = false
+push = false
+publish = false
+tag = false
 
 [dependencies]
 anyhow = "1"
@@ -15,6 +22,12 @@ url = { version = "2", features = ["serde"] }
 serde_yaml = "0.9"
 log = "0.4"
 env_logger = "0.11"
+owo-colors = "4"
+encoding_rs = "0.8"
+shellexpand = "3"
+expand_str = "0.1"
+minijinja = "1"
+sha-crypt = { version = "0.5", features = ["rand"] }
 
 [dev-dependencies]
 tempfile = "3"
