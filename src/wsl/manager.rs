@@ -1,7 +1,8 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
 use crate::wsl::validation;
-use crate::wsl::{cloud_init, helpers::path, provider, reporting};
+use crate::cli;
+use crate::wsl::{cloud_init, helpers::path, provider};
 use log::info;
 use std::path::{Path, PathBuf};
 
@@ -37,21 +38,21 @@ impl WslManager {
         if profile.override_instance {
             self.delete_instance(&profile.hostname, instance_exists)?;
         } else if instance_exists {
-            reporting::log_create_outcome(CreateOutcome::AlreadyExists, &profile.hostname);
+            cli::log_create_outcome(CreateOutcome::AlreadyExists, &profile.hostname);
             return Ok(());
         }
 
         self.prepare_profile(profile)?;
-        reporting::log_config_summary(profile_name, profile);
+        cli::log_config_summary(profile_name, profile);
 
         if self.dry_run {
             info!("🧪 Dry run: WSL instance would be created");
-            reporting::log_create_outcome(CreateOutcome::Skipped, &profile.hostname);
+            cli::log_create_outcome(CreateOutcome::Skipped, &profile.hostname);
             return Ok(());
         }
         info!("🚀 Creating WSL instance");
         let outcome = self.create_profile(profile)?;
-        reporting::log_create_outcome(outcome, &profile.hostname);
+        cli::log_create_outcome(outcome, &profile.hostname);
         Ok(())
     }
 
