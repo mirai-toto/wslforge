@@ -69,13 +69,13 @@ Need more details for troubleshooting? Increase verbosity: 🧰
 
 Common flags:
 
-| Flag | Description | Default |
-| --- | --- | --- |
-| `--config` | Path to YAML config file | `config.yaml` |
-| `--dry-run` | Show what would be done without changes | `false` |
-| `--debug` | Enable extra debug output and artifacts | `false` |
-| `--print-config` | Print a minimal example config and exit | `false` |
-| `-v`, `-vv` | Increase verbosity | `0` |
+| Flag             | Description                             | Default       |
+| ---------------- | --------------------------------------- | ------------- |
+| `--config`       | Path to YAML config file                | `config.yaml` |
+| `--dry-run`      | Show what would be done without changes | `false`       |
+| `--debug`        | Enable extra debug output and artifacts | `false`       |
+| `--print-config` | Print a minimal example config and exit | `false`       |
+| `-v`, `-vv`      | Increase verbosity                      | `0`           |
 
 Print a minimal example config:
 
@@ -123,16 +123,16 @@ Note: a single-profile file without `profiles:` is still accepted for backward c
 
 Core fields (per profile):
 
-| Field | Description | Example | Mandatory |
-| --- | --- | --- | --- |
-| `override` | Replace existing instance if it exists | `true` | ➖ |
-| `hostname` | WSL instance name | `UbuntuWslDev` | ✅ |
-| `username` | Default user | `wsluser` | ✅ |
-| `password` | Optional password (hashed for cloud-init) | `root` | ➖ |
-| `install_dir` | Target install directory | `%userprofile%/VMs` | ✅ |
-| `http_proxy` | HTTP proxy URL | `http://proxy.local:8080` | ➖ |
-| `https_proxy` | HTTPS proxy URL | `https://proxy.local:8443` | ➖ |
-| `no_proxy` | Comma-separated proxy bypass list | `localhost,127.0.0.1` | ➖ |
+| Field         | Description                               | Example                    | Mandatory |
+| ------------- | ----------------------------------------- | -------------------------- | --------- |
+| `override`    | Replace existing instance if it exists    | `true`                     | ➖        |
+| `hostname`    | WSL instance name                         | `UbuntuWslDev`             | ✅        |
+| `username`    | Default user                              | `wsluser`                  | ✅        |
+| `password`    | Optional password (hashed for cloud-init) | `root`                     | ➖        |
+| `install_dir` | Target install directory                  | `%userprofile%/VMs`        | ✅        |
+| `http_proxy`  | HTTP proxy URL                            | `http://proxy.local:8080`  | ➖        |
+| `https_proxy` | HTTPS proxy URL                           | `https://proxy.local:8443` | ➖        |
+| `no_proxy`    | Comma-separated proxy bypass list         | `localhost,127.0.0.1`      | ➖        |
 
 Related sections:
 
@@ -170,10 +170,10 @@ Use cloud-init to bootstrap packages and settings on first boot. You can referen
 
 Cloud-init types:
 
-| Type | Description | Example |
-| --- | --- | --- |
-| `file` | Load user-data from a file | `path: "cloud-init.yaml"` |
-| `inline` | Inline YAML user-data | `content: \| ...` |
+| Type     | Description                | Example                   |
+| -------- | -------------------------- | ------------------------- |
+| `file`   | Load user-data from a file | `path: "cloud-init.yaml"` |
+| `inline` | Inline YAML user-data      | `content: \| ...`         |
 
 File-based user-data (recommended for larger configs):
 
@@ -200,10 +200,10 @@ Pick where the root filesystem comes from: an official WSL distro or a local roo
 
 Image types:
 
-| Type | Description | Example |
-| --- | --- | --- |
-| `distro` | Install from official WSL distro | `name: Ubuntu` |
-| `file` | Import from local rootfs archive | `path: "%USERPROFILE%/Downloads/..."` |
+| Type     | Description                      | Example                               |
+| -------- | -------------------------------- | ------------------------------------- |
+| `distro` | Install from official WSL distro | `name: Ubuntu`                        |
+| `file`   | Import from local rootfs archive | `path: "%USERPROFILE%/Downloads/..."` |
 
 Official WSL distro (simple and quick):
 
@@ -220,6 +220,35 @@ image:
   type: file
   path: "%USERPROFILE%/Downloads/ubuntu-noble-wsl-amd64-ubuntu.rootfs.tar.gz"
 ```
+
+---
+
+## 💡 Rationale
+
+### Why this project exists
+
+- Set up WSL the same way every time using one config file
+- No more clicking around or doing steps by hand
+- Share your setup with others easily
+- Recreate your dev environment in minutes
+- Break things safely and rebuild fast
+
+### Why it’s written in Rust
+
+Originally prototyped in **PowerShell**, but moved to **Rust** for long-term reliability and maintainability.
+
+- A single executable is easier for users than running and trusting scripts
+- Strong typing and solid tooling make the app more reliable as it grows
+- Great ecosystem for CLI apps, config parsing, logging, and testing
+
+### Why it uses cloud-init
+
+Originally provisioned with **Ansible**, but moved to **cloud-init** to better match first-boot, zero-prep environments.
+
+- Simpler model: one config applied automatically at first boot
+- Faster path to a ready system since provisioning happens during startup
+- No prior network or SSH setup required to begin configuration
+- Already included on most modern distros, no extra install step
 
 ---
 
