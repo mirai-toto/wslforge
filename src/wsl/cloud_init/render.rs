@@ -1,5 +1,5 @@
-use crate::wsl::helpers::crypto::hash_password_sha512;
 use crate::config::Profile;
+use crate::wsl::helpers::crypto::hash_password_sha512;
 use minijinja::Environment;
 
 pub fn render(raw: &str, profile: &Profile) -> anyhow::Result<String> {
