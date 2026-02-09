@@ -110,7 +110,6 @@ jobs:
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
             @semantic-release/exec \
-            @semantic-release/git \
             @semantic-release/github
       - name: semantic-release dry run
         env:
