@@ -112,7 +112,8 @@ jobs:
             semantic-release \
             @semantic-release/commit-analyzer \
             @semantic-release/release-notes-generator \
-            @timada/semantic-release-cargo \
+            @semantic-release/exec \
+            @semantic-release/git \
             @semantic-release/github
 
       - name: semantic-release dry run
