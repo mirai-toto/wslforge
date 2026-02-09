@@ -1,4 +1,5 @@
 use crate::config::{ImageSource, Profile};
+use crate::wsl::helpers::expand_env_vars;
 use encoding_rs::UTF_16LE;
 use log::{debug, info, warn};
 use std::process::Command;
@@ -16,7 +17,9 @@ pub fn validate_wsl_installed() -> anyhow::Result<()> {
         info!("✅ WSL is installed");
         Ok(())
     } else {
-        anyhow::bail!("⛔ WSL is not installed.")
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("⛔ WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
@@ -30,20 +33,24 @@ pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<()> {
         info!("✅ WSL update completed");
         Ok(())
     } else {
-        anyhow::bail!("⛔ Failed to update WSL.")
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("⛔ Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
 pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
     match &profile.image {
         ImageSource::File { path } => {
-            if !path.exists() {
-                anyhow::bail!("image file not found: {}", path.display());
+            let expanded = expand_env_vars(&path.to_string_lossy())?;
+            let expanded_path = std::path::PathBuf::from(expanded);
+            if !expanded_path.exists() {
+                anyhow::bail!("image file not found: {}", expanded_path.display());
             }
-            if !is_likely_rootfs_archive(path) {
+            if !is_likely_rootfs_archive(&expanded_path) {
                 warn!(
                     "⚠️  Image file does not look like a rootfs archive (.tar/.tar.gz/.tgz): {}",
-                    path.display()
+                    expanded_path.display()
                 );
             }
         }

@@ -39,7 +39,7 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.RELEASE_PAT }}
-          branch: release/version-bump
+          branch: release/version-bump-${{ github.event.release.tag_name }}
           base: main
-          title: "chore(release): bump version"
-          commit-message: "chore(release): bump version"
+          title: "chore(release): bump version to ${{ github.event.release.tag_name }}"
+          commit-message: "chore(release): bump version to ${{ github.event.release.tag_name }}"

@@ -1,7 +1,8 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
-use crate::wsl::{cloud_init, provider, reporting, validation};
+use crate::wsl::{cloud_init, helpers, provider, reporting, validation};
 use log::info;
+use std::path::PathBuf;
 
 pub struct WslManager {
     provider: provider::WslProvider,
@@ -76,9 +77,10 @@ impl WslManager {
     fn create_profile(&self, profile: &Profile) -> anyhow::Result<CreateOutcome> {
         match &profile.image {
             ImageSource::File { path: rootfs_tar } => {
-                let install_dir = profile.install_dir.join(&profile.hostname);
+                let install_dir = resolve_install_dir(profile)?;
+                let rootfs_tar = resolve_rootfs_path(rootfs_tar)?;
                 self.provider
-                    .create_from_file(&profile.hostname, &install_dir, rootfs_tar)
+                    .create_from_file(&profile.hostname, &install_dir, &rootfs_tar)
             }
             ImageSource::Distro { name } => self.provider.create_from_distro(name, &profile.hostname),
         }
@@ -89,4 +91,14 @@ impl Default for WslManager {
     fn default() -> Self {
         Self::new(false, false)
     }
+}
+
+fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
+    let expanded = helpers::expand_env_vars(&profile.install_dir.to_string_lossy())?;
+    Ok(PathBuf::from(expanded).join(&profile.hostname))
+}
+
+fn resolve_rootfs_path(rootfs_tar: &PathBuf) -> anyhow::Result<PathBuf> {
+    let expanded = helpers::expand_env_vars(&rootfs_tar.to_string_lossy())?;
+    Ok(PathBuf::from(expanded))
 }
