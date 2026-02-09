@@ -1,6 +1,6 @@
 use clap::Parser;
 use log::LevelFilter;
-use wslforge::{app, cli::Args, config};
+use wslforge::{app, config, wsl::cli::Args};
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();

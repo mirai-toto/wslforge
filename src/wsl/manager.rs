@@ -1,4 +1,3 @@
-use crate::cli;
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
 use crate::wsl::validation;
@@ -33,27 +32,23 @@ impl WslManager {
         validation::validate_environment(self.dry_run)
     }
 
-    pub fn create_instance(&self, profile_name: &str, profile: &Profile) -> anyhow::Result<()> {
+    pub fn create_instance(&self, _profile_name: &str, profile: &Profile) -> anyhow::Result<CreateOutcome> {
         let instance_exists = self.provider.instance_exists(&profile.hostname)?;
         if profile.override_instance {
             self.delete_instance(&profile.hostname, instance_exists)?;
         } else if instance_exists {
-            cli::log_create_outcome(CreateOutcome::AlreadyExists, &profile.hostname);
-            return Ok(());
+            return Ok(CreateOutcome::AlreadyExists);
         }
 
         self.prepare_profile(profile)?;
-        cli::log_config_summary(profile_name, profile);
 
         if self.dry_run {
             info!("🧪 Dry run: WSL instance would be created");
-            cli::log_create_outcome(CreateOutcome::Skipped, &profile.hostname);
-            return Ok(());
+            return Ok(CreateOutcome::Skipped);
         }
         info!("🚀 Creating WSL instance");
         let outcome = self.create_profile(profile)?;
-        cli::log_create_outcome(outcome, &profile.hostname);
-        Ok(())
+        Ok(outcome)
     }
 
     fn delete_instance(&self, hostname: &str, instance_exists: bool) -> anyhow::Result<()> {

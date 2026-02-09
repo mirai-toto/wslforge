@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::{config, wsl::WslManager};
+use crate::{config, wsl::cli, wsl::WslManager};
 
 pub struct AppConfig<'a> {
     pub config_path: &'a Path,
@@ -17,7 +17,9 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
 
     manager.validate_environment()?;
     for (profile_name, profile) in &config.profiles {
-        manager.create_instance(profile_name, profile)?;
+        cli::log_config_summary(profile_name, profile);
+        let outcome = manager.create_instance(profile_name, profile)?;
+        cli::log_create_outcome(outcome, &profile.hostname);
     }
 
     Ok(())
