@@ -1,6 +1,5 @@
 use crate::wsl::{EnvironmentEvent, EnvironmentReport};
 use encoding_rs::UTF_16LE;
-use log::debug;
 use std::process::Command;
 
 pub fn validate_environment(dry_run: bool) -> anyhow::Result<EnvironmentReport> {
@@ -29,7 +28,7 @@ pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("⛔ WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
+        anyhow::bail!("WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
@@ -43,7 +42,7 @@ pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<EnvironmentEvent> {
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("⛔ Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
+        anyhow::bail!("Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
@@ -91,7 +90,6 @@ fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
         .filter_map(|l| l.split_whitespace().next().map(str::to_string))
         .collect();
 
-    debug!("Available WSL online distros: {:?}", ids);
     Ok(ids.iter().any(|id| id.eq_ignore_ascii_case(name)))
 }
 
