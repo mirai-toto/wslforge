@@ -1,57 +1,64 @@
+use crate::wsl::{EnvironmentEvent, EnvironmentReport};
 use encoding_rs::UTF_16LE;
-use log::{debug, info, warn};
 use std::process::Command;
 
-pub fn validate_environment(dry_run: bool) -> anyhow::Result<()> {
-    validate_wsl_installed()?;
-    update_wsl_version(dry_run)?;
-    validate_windows_features(&["Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"])?;
-    Ok(())
+pub fn validate_environment(dry_run: bool) -> anyhow::Result<EnvironmentReport> {
+    let mut events = check_environment()?;
+    events.push(prepare_environment(dry_run)?);
+    Ok(EnvironmentReport { events })
 }
 
-pub fn validate_wsl_installed() -> anyhow::Result<()> {
+pub fn check_environment() -> anyhow::Result<Vec<EnvironmentEvent>> {
+    let mut events = vec![validate_wsl_installed()?];
+    events.extend(validate_windows_features(&[
+        "Microsoft-Windows-Subsystem-Linux",
+        "VirtualMachinePlatform",
+    ])?);
+    Ok(events)
+}
+
+pub fn prepare_environment(dry_run: bool) -> anyhow::Result<EnvironmentEvent> {
+    update_wsl_version(dry_run)
+}
+
+pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
     let output = Command::new("wsl.exe").arg("--status").output()?;
     if output.status.success() {
-        info!("✅ WSL is installed");
-        Ok(())
+        Ok(EnvironmentEvent::WslInstalled)
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("⛔ WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
+        anyhow::bail!("WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
-pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<()> {
+pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<EnvironmentEvent> {
     if dry_run {
-        info!("🧪 Dry run: WSL update would be performed");
-        return Ok(());
+        return Ok(EnvironmentEvent::WslUpdateDryRun);
     }
     let output = Command::new("wsl.exe").arg("--update").output()?;
     if output.status.success() {
-        info!("✅ WSL update completed");
-        Ok(())
+        Ok(EnvironmentEvent::WslUpdateCompleted)
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("⛔ Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
+        anyhow::bail!("Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
-pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
+pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<Vec<EnvironmentEvent>> {
     let mut disabled = Vec::new();
+    let mut events = Vec::new();
     for feature_name in feature_names {
         match is_windows_feature_enabled(feature_name)? {
-            true => info!("✅ {feature_name} is enabled"),
-            false => {
-                warn!("⚠️  {feature_name} is not enabled");
-                disabled.push(*feature_name);
-            }
+            true => events.push(EnvironmentEvent::WindowsFeatureEnabled((*feature_name).to_string())),
+            false => disabled.push(*feature_name),
         }
     }
     if !disabled.is_empty() {
         anyhow::bail!("required Windows feature(s) are disabled: {}", disabled.join(", "));
     }
-    Ok(())
+    Ok(events)
 }
 
 pub fn validate_wsl_distro_name(name: &str) -> anyhow::Result<()> {
@@ -83,7 +90,6 @@ fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
         .filter_map(|l| l.split_whitespace().next().map(str::to_string))
         .collect();
 
-    debug!("Available WSL online distros: {:?}", ids);
     Ok(ids.iter().any(|id| id.eq_ignore_ascii_case(name)))
 }
 

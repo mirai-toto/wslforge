@@ -1,9 +1,13 @@
-use crate::config::Profile;
+use crate::config::{CloudInitInput, Profile};
 use crate::wsl::helpers::userprofile::resolve_userprofile_dir;
-use log::{debug, info};
+use crate::wsl::model::CloudInitEvent;
 use std::path::PathBuf;
 
-use super::{copy_debug_to_current_dir, load::load_cloud_init_source, render, store};
+use super::{
+    copy_debug_to_current_dir,
+    load::{load_cloud_init_source, LoadedCloudInitSource},
+    render, store, DebugCopyOutcome,
+};
 
 pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
     let userprofile = resolve_userprofile_dir()?;
@@ -11,29 +15,33 @@ pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
     Ok(target_dir.join(format!("{}.user-data", hostname)))
 }
 
-pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<()> {
+pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<Vec<CloudInitEvent>> {
+    let mut events = Vec::new();
     let Some(source) = &profile.cloud_init else {
-        info!("☁️ Cloud-init: not configured");
-        return Ok(());
+        events.push(CloudInitEvent::NotConfigured);
+        return Ok(events);
     };
 
-    let raw = load_cloud_init_source(source)?;
-    let rendered = render(&raw, profile)?;
-    debug!("☁️ Cloud-init rendered:\n{}", rendered);
+    let LoadedCloudInitSource { content, source } = load_cloud_init_source(source)?;
+    match source {
+        CloudInitInput::File { path } => events.push(CloudInitEvent::SourceFile(path)),
+        CloudInitInput::Inline { .. } => events.push(CloudInitEvent::SourceInline),
+    }
+    let rendered = render(&content, profile)?;
 
     let target_file = cloud_init_target_file(&profile.hostname)?;
     if dry_run {
-        info!(
-            "🧪 Dry run: cloud-init target would be created at: {}",
-            target_file.display()
-        );
-        return Ok(());
+        events.push(CloudInitEvent::DryRunTarget(target_file));
+        return Ok(events);
     }
 
     store(&target_file, &rendered)?;
+    events.push(CloudInitEvent::TargetWritten(target_file));
     if debug {
-        copy_debug_to_current_dir(&profile.hostname, &rendered);
+        match copy_debug_to_current_dir(&profile.hostname, &rendered) {
+            DebugCopyOutcome::Written(path) => events.push(CloudInitEvent::DebugCopyWritten(path)),
+            DebugCopyOutcome::Skipped(reason) => events.push(CloudInitEvent::DebugCopySkipped(reason)),
+        }
     }
-    info!("☁️ Cloud-init target: {}", target_file.display());
-    Ok(())
+    Ok(events)
 }

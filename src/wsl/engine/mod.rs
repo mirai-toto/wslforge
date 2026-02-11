@@ -2,10 +2,9 @@ pub mod api;
 pub mod cli;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CreateOutcome {
-    Created,
-    AlreadyExists,
-    Skipped,
+pub enum EngineKind {
+    Cli,
+    Api,
 }
 
 pub trait WslEngine {
