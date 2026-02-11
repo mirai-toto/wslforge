@@ -1,79 +1,14 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::path;
-use crate::wsl::{CloudInitEvent, CreateEvent, CreateOutcome, CreateReport};
+use crate::wsl::{CreateEvent, CreateOutcome, CreateReport};
 use log::info;
 
 pub fn log_create_report(report: &CreateReport, hostname: &str) {
     for event in &report.events {
-        match event {
-            CreateEvent::InstanceCheckStarted => {
-                info!("🔍 Checking if WSL instance '{}' exists...", hostname);
-            }
-            CreateEvent::InstanceExists => {
-                info!("✅ WSL instance '{}' exists.", hostname);
-            }
-            CreateEvent::InstanceMissing => {
-                info!("ℹ️ WSL instance '{}' does not exist.", hostname);
-            }
-            CreateEvent::OverrideRequested => {}
-            CreateEvent::OverrideExistingInstance => {
-                info!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname);
-            }
-            CreateEvent::DeleteSkippedMissing => {
-                info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname);
-            }
-            CreateEvent::DeleteDryRun => {
-                info!("🧪 Dry run: WSL instance '{}' would be deleted", hostname);
-            }
-            CreateEvent::DeleteStarted => {
-                info!("🧹 Deleting existing WSL instance '{}'", hostname);
-            }
-            CreateEvent::DeleteCompleted => {
-                info!("✅ WSL instance '{}' deleted successfully.", hostname);
-            }
-            CreateEvent::CreateDryRun => {
-                info!("🧪 Dry run: WSL instance would be created");
-            }
-            CreateEvent::CreateStarted => {
-                info!("🚀 Creating WSL instance");
-            }
-            CreateEvent::CloudInit(event) => match event {
-                CloudInitEvent::NotConfigured => {
-                    info!("☁️ Cloud-init: not configured");
-                }
-                CloudInitEvent::SourceFile(path) => {
-                    info!("☁️ Cloud-init source: {}", path.display());
-                }
-                CloudInitEvent::SourceInline => {
-                    info!("☁️ Cloud-init source: inline content");
-                }
-                CloudInitEvent::DryRunTarget(path) => {
-                    info!("🧪 Dry run: cloud-init target would be created at: {}", path.display());
-                }
-                CloudInitEvent::TargetWritten(path) => {
-                    info!("☁️ Cloud-init target: {}", path.display());
-                }
-                CloudInitEvent::DebugCopyWritten(path) => {
-                    info!("☁️ Cloud-init debug copy: {}", path.display());
-                }
-                CloudInitEvent::DebugCopySkipped(reason) => {
-                    info!("☁️ Cloud-init debug copy skipped ({reason})");
-                }
-            },
-        }
+        log_create_event(event, hostname);
     }
 
-    match report.outcome {
-        CreateOutcome::Created => {
-            info!("✅ WSL instance '{}' created successfully.", hostname);
-        }
-        CreateOutcome::AlreadyExists => {
-            info!("ℹ️ WSL instance '{}' already exists.", hostname);
-        }
-        CreateOutcome::Skipped => {
-            info!("ℹ️ WSL instance '{}' was skipped.", hostname);
-        }
-    }
+    log_create_outcome(report.outcome, hostname);
 }
 
 pub fn log_config_summary(profile_name: &str, profile: &Profile) {
@@ -109,4 +44,14 @@ fn expand_install_dir(profile: &Profile) -> String {
         Ok(path) => path.to_string_lossy().into_owned(),
         Err(_) => profile.install_dir.to_string_lossy().into_owned(),
     }
+}
+
+fn log_create_event(event: &CreateEvent, hostname: &str) {
+    if let Some(message) = event.message(hostname) {
+        info!("{} {}", event.icon(), message);
+    }
+}
+
+fn log_create_outcome(outcome: CreateOutcome, hostname: &str) {
+    info!("{} {}", outcome.icon(), outcome.message(hostname));
 }
