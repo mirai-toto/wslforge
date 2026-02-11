@@ -1,6 +1,5 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::path::expand_env_vars;
-use log::warn;
 
 pub fn validate_profile(profile: &Profile) -> anyhow::Result<()> {
     validate_image_source(profile)
@@ -14,8 +13,8 @@ pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
             anyhow::bail!("image file not found: {}", expanded_path.display());
         }
         if !is_likely_rootfs_archive(&expanded_path) {
-            warn!(
-                "⚠️  Image file does not look like a rootfs archive (.tar/.tar.gz/.tgz): {}",
+            anyhow::bail!(
+                "image file must be one of: .tar, .tar.gz, .tgz, .tar.xz; got: {}",
                 expanded_path.display()
             );
         }
@@ -25,5 +24,5 @@ pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
 
 fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
     let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
-    name.ends_with(".tar") || name.ends_with(".tar.gz") || name.ends_with(".tgz")
+    name.ends_with(".tar") || name.ends_with(".tar.gz") || name.ends_with(".tgz") || name.ends_with(".tar.xz")
 }
