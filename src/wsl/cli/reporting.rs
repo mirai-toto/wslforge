@@ -1,6 +1,6 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::path;
-use crate::wsl::{CreateEvent, CreateOutcome, CreateReport};
+use crate::wsl::{CloudInitEvent, CreateEvent, CreateOutcome, CreateReport};
 use log::info;
 
 pub fn log_create_report(report: &CreateReport, hostname: &str) {
@@ -37,6 +37,32 @@ pub fn log_create_report(report: &CreateReport, hostname: &str) {
             CreateEvent::CreateStarted => {
                 info!("🚀 Creating WSL instance");
             }
+            CreateEvent::CloudInit(event) => match event {
+                CloudInitEvent::NotConfigured => {
+                    info!("☁️ Cloud-init: not configured");
+                }
+                CloudInitEvent::SourceFile(path) => {
+                    info!("☁️ Cloud-init source: {}", path.display());
+                }
+                CloudInitEvent::SourceInline => {
+                    info!("☁️ Cloud-init source: inline content");
+                }
+                CloudInitEvent::DryRunTarget(path) => {
+                    info!(
+                        "🧪 Dry run: cloud-init target would be created at: {}",
+                        path.display()
+                    );
+                }
+                CloudInitEvent::TargetWritten(path) => {
+                    info!("☁️ Cloud-init target: {}", path.display());
+                }
+                CloudInitEvent::DebugCopyWritten(path) => {
+                    info!("☁️ Cloud-init debug copy: {}", path.display());
+                }
+                CloudInitEvent::DebugCopySkipped(reason) => {
+                    info!("☁️ Cloud-init debug copy skipped ({reason})");
+                }
+            },
         }
     }
 

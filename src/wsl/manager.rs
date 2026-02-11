@@ -1,34 +1,12 @@
 use crate::config::{ImageSource, Profile};
-use crate::wsl::engine::CreateOutcome;
 use crate::wsl::validation::{config, environment};
-use crate::wsl::{cloud_init, helpers::path, provider};
+use crate::wsl::{CreateEvent, CreateOutcome, CreateReport, cloud_init, helpers::path, provider};
 use std::path::{Path, PathBuf};
 
 pub struct WslManager {
     provider: provider::WslProvider,
     dry_run: bool,
     debug: bool,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CreateEvent {
-    InstanceCheckStarted,
-    InstanceExists,
-    InstanceMissing,
-    OverrideRequested,
-    OverrideExistingInstance,
-    DeleteSkippedMissing,
-    DeleteDryRun,
-    DeleteStarted,
-    DeleteCompleted,
-    CreateDryRun,
-    CreateStarted,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CreateReport {
-    pub outcome: CreateOutcome,
-    pub events: Vec<CreateEvent>,
 }
 
 impl WslManager {
@@ -115,11 +93,12 @@ impl WslManager {
         Ok(())
     }
 
-    fn prepare_profile(&self, profile: &Profile) -> anyhow::Result<()> {
+    fn prepare_profile(&self, profile: &Profile, events: &mut Vec<CreateEvent>) -> anyhow::Result<()> {
         if let ImageSource::Distro { name } = &profile.image {
             environment::validate_wsl_distro_name(name)?;
         }
-        cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
+        let cloud_init_events = cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
+        events.extend(cloud_init_events.into_iter().map(CreateEvent::CloudInit));
         Ok(())
     }
 

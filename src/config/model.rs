@@ -48,7 +48,7 @@ pub enum ImageSource {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
-pub enum CloudInitSource {
+pub enum CloudInitInput {
     File {
         #[serde(default = "default_cloud_init_path")]
         path: PathBuf,
@@ -58,11 +58,11 @@ pub enum CloudInitSource {
     },
 }
 
-impl fmt::Display for CloudInitSource {
+impl fmt::Display for CloudInitInput {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            CloudInitSource::File { path } => write!(f, "file: {}", path.display()),
-            CloudInitSource::Inline { .. } => write!(f, "inline"),
+            CloudInitInput::File { path } => write!(f, "file: {}", path.display()),
+            CloudInitInput::Inline { .. } => write!(f, "inline"),
         }
     }
 }
@@ -95,7 +95,7 @@ pub struct Profile {
     #[serde(default = "default_install_dir")]
     pub install_dir: PathBuf,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cloud_init: Option<CloudInitSource>,
+    pub cloud_init: Option<CloudInitInput>,
 
     #[serde(default)]
     pub image: ImageSource,

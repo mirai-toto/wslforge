@@ -1,13 +1,6 @@
 pub mod api;
 pub mod cli;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CreateOutcome {
-    Created,
-    AlreadyExists,
-    Skipped,
-}
-
 pub trait WslEngine {
     fn instance_exists(&self, name: &str) -> anyhow::Result<bool>;
     fn delete_instance(&self, name: &str) -> anyhow::Result<()>;

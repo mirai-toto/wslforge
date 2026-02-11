@@ -1,6 +1,7 @@
 use crate::wsl::engine::api::ApiEngine;
 use crate::wsl::engine::cli::CliEngine;
-use crate::wsl::engine::{CreateOutcome, WslEngine};
+use crate::wsl::engine::WslEngine;
+use crate::wsl::model::CreateOutcome;
 
 pub enum EngineKind {
     Cli,
