@@ -69,15 +69,16 @@ impl WslManager {
 
         if profile.override_instance {
             events.push(CreateEvent::OverrideRequested);
+            self.prepare_profile(profile)?;
             self.delete_instance(&profile.hostname, instance_exists, &mut events)?;
         } else if instance_exists {
             return Ok(CreateReport {
                 outcome: CreateOutcome::AlreadyExists,
                 events,
             });
+        } else {
+            self.prepare_profile(profile)?;
         }
-
-        self.prepare_profile(profile)?;
         if self.dry_run {
             events.push(CreateEvent::CreateDryRun);
             return Ok(CreateReport {
