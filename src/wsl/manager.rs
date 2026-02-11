@@ -1,6 +1,6 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
-use crate::wsl::validation;
+use crate::wsl::validation::{config, environment};
 use crate::wsl::{cloud_init, helpers::path, provider};
 use std::path::{Path, PathBuf};
 
@@ -49,10 +49,16 @@ impl WslManager {
     }
 
     pub fn validate_environment(&self) -> anyhow::Result<()> {
-        validation::validate_environment(self.dry_run)
+        environment::validate_environment(self.dry_run)
+    }
+
+    pub fn validate_profile_config(&self, profile: &Profile) -> anyhow::Result<()> {
+        config::validate_profile(profile)
     }
 
     pub fn create_instance(&self, _profile_name: &str, profile: &Profile) -> anyhow::Result<CreateReport> {
+        self.validate_profile_config(profile)?;
+
         let mut events = vec![CreateEvent::InstanceCheckStarted];
         let instance_exists = self.provider.instance_exists(&profile.hostname)?;
         if instance_exists {
@@ -109,9 +115,8 @@ impl WslManager {
     }
 
     fn prepare_profile(&self, profile: &Profile) -> anyhow::Result<()> {
-        validation::validate_image_source(profile)?;
         if let ImageSource::Distro { name } = &profile.image {
-            validation::validate_wsl_distro_name(name)?;
+            environment::validate_wsl_distro_name(name)?;
         }
         cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
         Ok(())

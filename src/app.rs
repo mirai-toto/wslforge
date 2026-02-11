@@ -15,6 +15,9 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
     log::debug!("📋 Loaded config from {}", cfg.config_path.display());
     let manager = WslManager::new(cfg.dry_run, cfg.debug);
 
+    for profile in config.profiles.values() {
+        manager.validate_profile_config(profile)?;
+    }
     manager.validate_environment()?;
     for (profile_name, profile) in &config.profiles {
         cli::log_config_summary(profile_name, profile);

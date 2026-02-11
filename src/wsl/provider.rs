@@ -21,12 +21,11 @@ impl WslProvider {
     }
 
     pub fn instance_exists(&self, name: &str) -> anyhow::Result<bool> {
-        Ok(self.engine.instance_exists(name)?)
+        self.engine.instance_exists(name)
     }
 
     pub fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
-        self.engine.delete_instance(name)?;
-        Ok(())
+        self.engine.delete_instance(name)
     }
 
     pub fn create_from_file(
