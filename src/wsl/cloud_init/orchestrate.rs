@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use super::{
     copy_debug_to_current_dir,
-    load::{LoadedCloudInitSource, load_cloud_init_source},
+    load::{load_cloud_init_source, LoadedCloudInitSource},
     render, store, DebugCopyOutcome,
 };
 
@@ -15,11 +15,7 @@ pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
     Ok(target_dir.join(format!("{}.user-data", hostname)))
 }
 
-pub fn prepare_cloud_init(
-    profile: &Profile,
-    dry_run: bool,
-    debug: bool,
-) -> anyhow::Result<Vec<CloudInitEvent>> {
+pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<Vec<CloudInitEvent>> {
     let mut events = Vec::new();
     let Some(source) = &profile.cloud_init else {
         events.push(CloudInitEvent::NotConfigured);
@@ -44,9 +40,7 @@ pub fn prepare_cloud_init(
     if debug {
         match copy_debug_to_current_dir(&profile.hostname, &rendered) {
             DebugCopyOutcome::Written(path) => events.push(CloudInitEvent::DebugCopyWritten(path)),
-            DebugCopyOutcome::Skipped(reason) => {
-                events.push(CloudInitEvent::DebugCopySkipped(reason))
-            }
+            DebugCopyOutcome::Skipped(reason) => events.push(CloudInitEvent::DebugCopySkipped(reason)),
         }
     }
     Ok(events)

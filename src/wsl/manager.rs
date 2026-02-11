@@ -1,6 +1,6 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::validation::{config, environment};
-use crate::wsl::{CreateEvent, CreateOutcome, CreateReport, cloud_init, helpers::path, provider};
+use crate::wsl::{cloud_init, helpers::path, provider, CreateEvent, CreateOutcome, CreateReport};
 use std::path::{Path, PathBuf};
 
 pub struct WslManager {

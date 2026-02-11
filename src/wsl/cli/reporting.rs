@@ -48,10 +48,7 @@ pub fn log_create_report(report: &CreateReport, hostname: &str) {
                     info!("☁️ Cloud-init source: inline content");
                 }
                 CloudInitEvent::DryRunTarget(path) => {
-                    info!(
-                        "🧪 Dry run: cloud-init target would be created at: {}",
-                        path.display()
-                    );
+                    info!("🧪 Dry run: cloud-init target would be created at: {}", path.display());
                 }
                 CloudInitEvent::TargetWritten(path) => {
                     info!("☁️ Cloud-init target: {}", path.display());
