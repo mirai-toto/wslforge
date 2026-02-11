@@ -1,7 +1,6 @@
 use crate::wsl::engine::api::ApiEngine;
 use crate::wsl::engine::cli::CliEngine;
 use crate::wsl::engine::{CreateOutcome, WslEngine};
-use log::info;
 
 pub enum EngineKind {
     Cli,
@@ -22,24 +21,11 @@ impl WslProvider {
     }
 
     pub fn instance_exists(&self, name: &str) -> anyhow::Result<bool> {
-        info!("🔍 Checking if WSL instance '{}' exists...", name);
-        let exists = self.engine.instance_exists(name)?;
-        if exists {
-            info!("✅ WSL instance '{}' exists.", name);
-        } else {
-            info!("ℹ️ WSL instance '{}' does not exist.", name);
-        }
-        Ok(exists)
+        Ok(self.engine.instance_exists(name)?)
     }
 
     pub fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
-        info!("🧹 Deleting existing WSL instance '{}'", name);
-        if !self.engine.instance_exists(name)? {
-            info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", name);
-            return Ok(());
-        }
         self.engine.delete_instance(name)?;
-        info!("✅ WSL instance '{}' deleted successfully.", name);
         Ok(())
     }
 

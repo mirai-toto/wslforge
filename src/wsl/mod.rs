@@ -7,4 +7,4 @@ mod provider;
 mod validation;
 
 pub use engine::CreateOutcome;
-pub use manager::WslManager;
+pub use manager::{CreateEvent, CreateReport, WslManager};

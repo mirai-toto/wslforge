@@ -18,8 +18,8 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
     manager.validate_environment()?;
     for (profile_name, profile) in &config.profiles {
         cli::log_config_summary(profile_name, profile);
-        let outcome = manager.create_instance(profile_name, profile)?;
-        cli::log_create_outcome(outcome, &profile.hostname);
+        let report = manager.create_instance(profile_name, profile)?;
+        cli::log_create_report(&report, &profile.hostname);
     }
 
     Ok(())
