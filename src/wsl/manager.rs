@@ -1,10 +1,13 @@
 use crate::config::{ImageSource, Profile};
+use crate::wsl::engine::api::ApiEngine;
+use crate::wsl::engine::cli::CliEngine;
+use crate::wsl::engine::{EngineKind, WslEngine};
 use crate::wsl::validation::{config, environment};
-use crate::wsl::{cloud_init, helpers::path, provider, CreateEvent, CreateOutcome, CreateReport};
+use crate::wsl::{cloud_init, helpers::path, CreateEvent, CreateOutcome, CreateReport};
 use std::path::{Path, PathBuf};
 
 pub struct WslManager {
-    provider: provider::WslProvider,
+    engine: Box<dyn WslEngine>,
     dry_run: bool,
     debug: bool,
 }
@@ -12,15 +15,15 @@ pub struct WslManager {
 impl WslManager {
     pub fn new(dry_run: bool, debug: bool) -> Self {
         Self {
-            provider: provider::WslProvider::new(provider::EngineKind::Cli),
+            engine: build_engine(EngineKind::Cli),
             dry_run,
             debug,
         }
     }
 
-    pub fn with_engine(kind: provider::EngineKind, dry_run: bool, debug: bool) -> Self {
+    pub fn with_engine(kind: EngineKind, dry_run: bool, debug: bool) -> Self {
         Self {
-            provider: provider::WslProvider::new(kind),
+            engine: build_engine(kind),
             dry_run,
             debug,
         }
@@ -38,7 +41,7 @@ impl WslManager {
         self.validate_profile_config(profile)?;
 
         let mut events = vec![CreateEvent::InstanceCheckStarted];
-        let instance_exists = self.provider.instance_exists(&profile.hostname)?;
+        let instance_exists = self.engine.instance_exists(&profile.hostname)?;
         if instance_exists {
             events.push(CreateEvent::InstanceExists);
         } else {
@@ -88,7 +91,7 @@ impl WslManager {
         }
 
         events.push(CreateEvent::DeleteStarted);
-        self.provider.delete_instance(hostname)?;
+        self.engine.delete_instance(hostname)?;
         events.push(CreateEvent::DeleteCompleted);
         Ok(())
     }
@@ -107,10 +110,14 @@ impl WslManager {
             ImageSource::File { path: rootfs_tar } => {
                 let install_dir = resolve_install_dir(profile)?;
                 let rootfs_tar = resolve_rootfs_path(rootfs_tar.as_path())?;
-                self.provider
-                    .create_from_file(&profile.hostname, &install_dir, &rootfs_tar)
+                self.engine
+                    .create_from_file(&profile.hostname, &install_dir, &rootfs_tar)?;
+                Ok(CreateOutcome::Created)
             }
-            ImageSource::Distro { name } => self.provider.create_from_distro(name, &profile.hostname),
+            ImageSource::Distro { name } => {
+                self.engine.create_from_distro(name, &profile.hostname)?;
+                Ok(CreateOutcome::Created)
+            }
         }
     }
 }
@@ -128,4 +135,11 @@ fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
 
 fn resolve_rootfs_path(rootfs_tar: &Path) -> anyhow::Result<PathBuf> {
     path::expand_path(rootfs_tar)
+}
+
+fn build_engine(kind: EngineKind) -> Box<dyn WslEngine> {
+    match kind {
+        EngineKind::Cli => Box::new(CliEngine::new()),
+        EngineKind::Api => Box::new(ApiEngine::new()),
+    }
 }

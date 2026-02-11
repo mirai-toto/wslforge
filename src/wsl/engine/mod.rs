@@ -1,6 +1,12 @@
 pub mod api;
 pub mod cli;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EngineKind {
+    Cli,
+    Api,
+}
+
 pub trait WslEngine {
     fn instance_exists(&self, name: &str) -> anyhow::Result<bool>;
     fn delete_instance(&self, name: &str) -> anyhow::Result<()>;
