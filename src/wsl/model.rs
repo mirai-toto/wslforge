@@ -126,6 +126,37 @@ pub struct CreateReport {
     pub events: Vec<CreateEvent>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EnvironmentEvent {
+    WslInstalled,
+    WslUpdateDryRun,
+    WslUpdateCompleted,
+    WindowsFeatureEnabled(String),
+}
+
+impl EnvironmentEvent {
+    pub fn icon(&self) -> ReportIcon {
+        match self {
+            Self::WslUpdateDryRun => ReportIcon::DryRun,
+            Self::WslInstalled | Self::WslUpdateCompleted | Self::WindowsFeatureEnabled(_) => ReportIcon::Success,
+        }
+    }
+
+    pub fn message(&self) -> String {
+        match self {
+            Self::WslInstalled => "WSL is installed".to_string(),
+            Self::WslUpdateDryRun => "Dry run: WSL update would be performed".to_string(),
+            Self::WslUpdateCompleted => "WSL update completed".to_string(),
+            Self::WindowsFeatureEnabled(name) => format!("{name} is enabled"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EnvironmentReport {
+    pub events: Vec<EnvironmentEvent>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReportIcon {
     Search,

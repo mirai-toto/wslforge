@@ -3,7 +3,7 @@ use crate::wsl::engine::api::ApiEngine;
 use crate::wsl::engine::cli::CliEngine;
 use crate::wsl::engine::{EngineKind, WslEngine};
 use crate::wsl::validation::{config, environment};
-use crate::wsl::{cloud_init, helpers::path, CreateEvent, CreateOutcome, CreateReport};
+use crate::wsl::{cloud_init, helpers::path, CreateEvent, CreateOutcome, CreateReport, EnvironmentReport};
 use std::path::{Path, PathBuf};
 
 pub struct WslManager {
@@ -29,7 +29,7 @@ impl WslManager {
         }
     }
 
-    pub fn validate_environment(&self) -> anyhow::Result<()> {
+    pub fn validate_environment(&self) -> anyhow::Result<EnvironmentReport> {
         environment::validate_environment(self.dry_run)
     }
 

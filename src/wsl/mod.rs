@@ -8,4 +8,6 @@ mod validation;
 
 pub use engine::EngineKind;
 pub use manager::WslManager;
-pub use model::{CloudInitEvent, CreateEvent, CreateOutcome, CreateReport, ReportIcon};
+pub use model::{
+    CloudInitEvent, CreateEvent, CreateOutcome, CreateReport, EnvironmentEvent, EnvironmentReport, ReportIcon,
+};

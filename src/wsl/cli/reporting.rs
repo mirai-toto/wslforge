@@ -1,6 +1,6 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::path;
-use crate::wsl::{CreateEvent, CreateOutcome, CreateReport};
+use crate::wsl::{CreateEvent, CreateOutcome, CreateReport, EnvironmentEvent, EnvironmentReport};
 use log::info;
 
 pub fn log_create_report(report: &CreateReport, hostname: &str) {
@@ -9,6 +9,12 @@ pub fn log_create_report(report: &CreateReport, hostname: &str) {
     }
 
     log_create_outcome(report.outcome, hostname);
+}
+
+pub fn log_environment_report(report: &EnvironmentReport) {
+    for event in &report.events {
+        log_environment_event(event);
+    }
 }
 
 pub fn log_config_summary(profile_name: &str, profile: &Profile) {
@@ -44,6 +50,10 @@ fn expand_install_dir(profile: &Profile) -> String {
         Ok(path) => path.to_string_lossy().into_owned(),
         Err(_) => profile.install_dir.to_string_lossy().into_owned(),
     }
+}
+
+fn log_environment_event(event: &EnvironmentEvent) {
+    info!("{} {}", event.icon(), event.message());
 }
 
 fn log_create_event(event: &CreateEvent, hostname: &str) {
