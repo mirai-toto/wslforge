@@ -1,10 +1,46 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::path;
-use crate::wsl::CreateOutcome;
+use crate::wsl::{CreateEvent, CreateOutcome, CreateReport};
 use log::info;
 
-pub fn log_create_outcome(outcome: CreateOutcome, hostname: &str) {
-    match outcome {
+pub fn log_create_report(report: &CreateReport, hostname: &str) {
+    for event in &report.events {
+        match event {
+            CreateEvent::InstanceCheckStarted => {
+                info!("🔍 Checking if WSL instance '{}' exists...", hostname);
+            }
+            CreateEvent::InstanceExists => {
+                info!("✅ WSL instance '{}' exists.", hostname);
+            }
+            CreateEvent::InstanceMissing => {
+                info!("ℹ️ WSL instance '{}' does not exist.", hostname);
+            }
+            CreateEvent::OverrideRequested => {}
+            CreateEvent::OverrideExistingInstance => {
+                info!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname);
+            }
+            CreateEvent::DeleteSkippedMissing => {
+                info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname);
+            }
+            CreateEvent::DeleteDryRun => {
+                info!("🧪 Dry run: WSL instance '{}' would be deleted", hostname);
+            }
+            CreateEvent::DeleteStarted => {
+                info!("🧹 Deleting existing WSL instance '{}'", hostname);
+            }
+            CreateEvent::DeleteCompleted => {
+                info!("✅ WSL instance '{}' deleted successfully.", hostname);
+            }
+            CreateEvent::CreateDryRun => {
+                info!("🧪 Dry run: WSL instance would be created");
+            }
+            CreateEvent::CreateStarted => {
+                info!("🚀 Creating WSL instance");
+            }
+        }
+    }
+
+    match report.outcome {
         CreateOutcome::Created => {
             info!("✅ WSL instance '{}' created successfully.", hostname);
         }

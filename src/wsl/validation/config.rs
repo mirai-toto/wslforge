@@ -2,6 +2,10 @@ use crate::config::{ImageSource, Profile};
 use crate::wsl::helpers::path::expand_env_vars;
 use log::warn;
 
+pub fn validate_profile(profile: &Profile) -> anyhow::Result<()> {
+    validate_image_source(profile)
+}
+
 pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
     if let ImageSource::File { path } = &profile.image {
         let expanded = expand_env_vars(&path.to_string_lossy())?;

@@ -1,14 +1,34 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::CreateOutcome;
-use crate::wsl::validation;
+use crate::wsl::validation::{config, environment};
 use crate::wsl::{cloud_init, helpers::path, provider};
-use log::info;
 use std::path::{Path, PathBuf};
 
 pub struct WslManager {
     provider: provider::WslProvider,
     dry_run: bool,
     debug: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CreateEvent {
+    InstanceCheckStarted,
+    InstanceExists,
+    InstanceMissing,
+    OverrideRequested,
+    OverrideExistingInstance,
+    DeleteSkippedMissing,
+    DeleteDryRun,
+    DeleteStarted,
+    DeleteCompleted,
+    CreateDryRun,
+    CreateStarted,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CreateReport {
+    pub outcome: CreateOutcome,
+    pub events: Vec<CreateEvent>,
 }
 
 impl WslManager {
@@ -29,46 +49,74 @@ impl WslManager {
     }
 
     pub fn validate_environment(&self) -> anyhow::Result<()> {
-        validation::validate_environment(self.dry_run)
+        environment::validate_environment(self.dry_run)
     }
 
-    pub fn create_instance(&self, _profile_name: &str, profile: &Profile) -> anyhow::Result<CreateOutcome> {
+    pub fn validate_profile_config(&self, profile: &Profile) -> anyhow::Result<()> {
+        config::validate_profile(profile)
+    }
+
+    pub fn create_instance(&self, _profile_name: &str, profile: &Profile) -> anyhow::Result<CreateReport> {
+        self.validate_profile_config(profile)?;
+
+        let mut events = vec![CreateEvent::InstanceCheckStarted];
         let instance_exists = self.provider.instance_exists(&profile.hostname)?;
+        if instance_exists {
+            events.push(CreateEvent::InstanceExists);
+        } else {
+            events.push(CreateEvent::InstanceMissing);
+        }
+
         if profile.override_instance {
-            self.delete_instance(&profile.hostname, instance_exists)?;
+            events.push(CreateEvent::OverrideRequested);
+            self.delete_instance(&profile.hostname, instance_exists, &mut events)?;
         } else if instance_exists {
-            return Ok(CreateOutcome::AlreadyExists);
+            return Ok(CreateReport {
+                outcome: CreateOutcome::AlreadyExists,
+                events,
+            });
         }
 
         self.prepare_profile(profile)?;
-
         if self.dry_run {
-            info!("🧪 Dry run: WSL instance would be created");
-            return Ok(CreateOutcome::Skipped);
+            events.push(CreateEvent::CreateDryRun);
+            return Ok(CreateReport {
+                outcome: CreateOutcome::Skipped,
+                events,
+            });
         }
-        info!("🚀 Creating WSL instance");
+
+        events.push(CreateEvent::CreateStarted);
         let outcome = self.create_profile(profile)?;
-        Ok(outcome)
+        Ok(CreateReport { outcome, events })
     }
 
-    fn delete_instance(&self, hostname: &str, instance_exists: bool) -> anyhow::Result<()> {
+    fn delete_instance(
+        &self,
+        hostname: &str,
+        instance_exists: bool,
+        events: &mut Vec<CreateEvent>,
+    ) -> anyhow::Result<()> {
         if !instance_exists {
-            info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname);
+            events.push(CreateEvent::DeleteSkippedMissing);
             return Ok(());
-        } else {
-            info!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname);
         }
+        events.push(CreateEvent::OverrideExistingInstance);
+
         if self.dry_run {
-            info!("🧪 Dry run: WSL instance '{}' would be deleted", hostname);
+            events.push(CreateEvent::DeleteDryRun);
             return Ok(());
         }
-        self.provider.delete_instance(hostname)
+
+        events.push(CreateEvent::DeleteStarted);
+        self.provider.delete_instance(hostname)?;
+        events.push(CreateEvent::DeleteCompleted);
+        Ok(())
     }
 
     fn prepare_profile(&self, profile: &Profile) -> anyhow::Result<()> {
-        validation::validate_image_source(profile)?;
         if let ImageSource::Distro { name } = &profile.image {
-            validation::validate_wsl_distro_name(name)?;
+            environment::validate_wsl_distro_name(name)?;
         }
         cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
         Ok(())
