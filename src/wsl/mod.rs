@@ -1,4 +1,3 @@
-pub mod cli;
 mod cloud_init;
 mod engine;
 mod helpers;
