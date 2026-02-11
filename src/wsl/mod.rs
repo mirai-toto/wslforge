@@ -4,6 +4,7 @@ mod engine;
 mod helpers;
 mod manager;
 mod model;
+mod use_cases;
 mod validation;
 
 pub use engine::EngineKind;
