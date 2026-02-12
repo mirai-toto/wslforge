@@ -1,18 +1,17 @@
 use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::validation::environment;
-use crate::wsl::{cloud_init, helpers::path, CreateEvent, CreateOutcome, CreateReport};
+use crate::wsl::{cloud_init, helpers::path, CreateEvent, CreateOutcome, CreateReport, ExecutionOptions};
 use std::path::{Path, PathBuf};
 
 pub(crate) struct CreateInstanceService<'a> {
     engine: &'a dyn WslEngine,
-    dry_run: bool,
-    debug: bool,
+    options: ExecutionOptions,
 }
 
 impl<'a> CreateInstanceService<'a> {
-    pub(crate) fn new(engine: &'a dyn WslEngine, dry_run: bool, debug: bool) -> Self {
-        Self { engine, dry_run, debug }
+    pub(crate) fn new(engine: &'a dyn WslEngine, options: ExecutionOptions) -> Self {
+        Self { engine, options }
     }
 
     pub(crate) fn execute(&self, profile: &Profile) -> anyhow::Result<CreateReport> {
@@ -37,7 +36,7 @@ impl<'a> CreateInstanceService<'a> {
             self.prepare_profile(profile, &mut events)?;
         }
 
-        if self.dry_run {
+        if self.options.dry_run {
             events.push(CreateEvent::CreateDryRun);
             return Ok(CreateReport {
                 outcome: CreateOutcome::Skipped,
@@ -62,7 +61,7 @@ impl<'a> CreateInstanceService<'a> {
         }
         events.push(CreateEvent::OverrideExistingInstance);
 
-        if self.dry_run {
+        if self.options.dry_run {
             events.push(CreateEvent::DeleteDryRun);
             return Ok(());
         }
@@ -77,7 +76,7 @@ impl<'a> CreateInstanceService<'a> {
         if let ImageSource::Distro { name } = &profile.image {
             environment::validate_wsl_distro_name(name)?;
         }
-        let cloud_init_events = cloud_init::prepare_cloud_init(profile, self.dry_run, self.debug)?;
+        let cloud_init_events = cloud_init::prepare_cloud_init(profile, self.options.dry_run, self.options.debug)?;
         events.extend(cloud_init_events.into_iter().map(CreateEvent::CloudInit));
         Ok(())
     }

@@ -1,6 +1,9 @@
 use std::path::Path;
 
-use crate::{config, reporting, wsl::WslManager};
+use crate::{
+    config, reporting,
+    wsl::{ExecutionOptions, WslManager},
+};
 
 pub struct AppConfig<'a> {
     pub config_path: &'a Path,
@@ -13,16 +16,20 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
 
     let config = config::load_yaml(cfg.config_path)?;
     log::debug!("📋 Loaded config from {}", cfg.config_path.display());
-    let manager = WslManager::new(cfg.dry_run, cfg.debug);
+    let manager = WslManager::new();
+    let options = ExecutionOptions {
+        dry_run: cfg.dry_run,
+        debug: cfg.debug,
+    };
 
     for profile in config.profiles.values() {
         manager.validate_profile_config(profile)?;
     }
-    let environment_report = manager.validate_environment()?;
+    let environment_report = manager.validate_environment(options)?;
     reporting::log_environment_report(&environment_report);
     for (profile_name, profile) in &config.profiles {
         reporting::log_config_summary(profile_name, profile);
-        let report = manager.create_instance(profile_name, profile)?;
+        let report = manager.create_instance(profile_name, profile, options)?;
         reporting::log_create_report(&report, &profile.hostname);
     }
 

@@ -1,10 +1,10 @@
-use crate::wsl::{EnvironmentEvent, EnvironmentReport};
+use crate::wsl::{EnvironmentEvent, EnvironmentReport, ExecutionOptions};
 use encoding_rs::UTF_16LE;
 use std::process::Command;
 
-pub fn validate_environment(dry_run: bool) -> anyhow::Result<EnvironmentReport> {
+pub fn validate_environment(options: ExecutionOptions) -> anyhow::Result<EnvironmentReport> {
     let mut events = check_environment()?;
-    events.push(prepare_environment(dry_run)?);
+    events.push(prepare_environment(options)?);
     Ok(EnvironmentReport { events })
 }
 
@@ -17,8 +17,8 @@ pub fn check_environment() -> anyhow::Result<Vec<EnvironmentEvent>> {
     Ok(events)
 }
 
-pub fn prepare_environment(dry_run: bool) -> anyhow::Result<EnvironmentEvent> {
-    update_wsl_version(dry_run)
+pub fn prepare_environment(options: ExecutionOptions) -> anyhow::Result<EnvironmentEvent> {
+    update_wsl_version(options.dry_run)
 }
 
 pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
