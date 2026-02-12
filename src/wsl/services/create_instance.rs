@@ -2,7 +2,6 @@ use crate::config::{ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::validation::environment;
 use crate::wsl::{cloud_init, helpers::path, CreateEvent, CreateOutcome, CreateReport, ExecutionOptions};
-use std::path::{Path, PathBuf};
 
 pub(crate) struct CreateInstanceService<'a> {
     engine: &'a dyn WslEngine,
@@ -84,8 +83,8 @@ impl<'a> CreateInstanceService<'a> {
     fn create_profile(&self, profile: &Profile) -> anyhow::Result<CreateOutcome> {
         match &profile.image {
             ImageSource::File { path: rootfs_tar } => {
-                let install_dir = resolve_install_dir(profile)?;
-                let rootfs_tar = resolve_rootfs_path(rootfs_tar.as_path())?;
+                let install_dir = path::resolve_install_dir(&profile.install_dir, &profile.hostname)?;
+                let rootfs_tar = path::expand_path(rootfs_tar.as_path())?;
                 self.engine
                     .create_from_file(&profile.hostname, &install_dir, &rootfs_tar)?;
                 Ok(CreateOutcome::Created)
@@ -96,13 +95,4 @@ impl<'a> CreateInstanceService<'a> {
             }
         }
     }
-}
-
-fn resolve_install_dir(profile: &Profile) -> anyhow::Result<PathBuf> {
-    let expanded = path::expand_path(&profile.install_dir)?;
-    Ok(expanded.join(&profile.hostname))
-}
-
-fn resolve_rootfs_path(rootfs_tar: &Path) -> anyhow::Result<PathBuf> {
-    path::expand_path(rootfs_tar)
 }
