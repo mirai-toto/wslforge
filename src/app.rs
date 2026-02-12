@@ -2,7 +2,10 @@ use std::path::Path;
 
 use crate::{
     config, reporting,
-    wsl::{ExecutionOptions, WslManager},
+    wsl::{
+        engine::{api::ApiEngine, cli::CliEngine, WslEngine},
+        EngineKind, ExecutionOptions, WslManager,
+    },
 };
 
 pub struct AppConfig<'a> {
@@ -16,7 +19,7 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
 
     let config = config::load_yaml(cfg.config_path)?;
     log::debug!("📋 Loaded config from {}", cfg.config_path.display());
-    let manager = WslManager::new();
+    let manager = WslManager::new(build_engine(EngineKind::Cli));
     let options = ExecutionOptions {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
@@ -41,4 +44,11 @@ fn ensure_windows() -> anyhow::Result<()> {
         anyhow::bail!("wslforge is Windows-only (target_os=windows required)");
     }
     Ok(())
+}
+
+fn build_engine(kind: EngineKind) -> Box<dyn WslEngine> {
+    match kind {
+        EngineKind::Cli => Box::new(CliEngine::new()),
+        EngineKind::Api => Box::new(ApiEngine::new()),
+    }
 }

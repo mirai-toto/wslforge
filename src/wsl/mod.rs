@@ -1,5 +1,5 @@
 mod cloud_init;
-mod engine;
+pub(crate) mod engine;
 mod helpers;
 mod manager;
 mod model;
