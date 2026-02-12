@@ -1,5 +1,6 @@
 use crate::config::Profile;
 use crate::wsl::engine::WslEngine;
+use crate::wsl::maintenance;
 use crate::wsl::services::CreateInstanceService;
 use crate::wsl::validation::{config, environment};
 use crate::wsl::{CreateReport, EnvironmentReport, ExecutionOptions};
@@ -14,7 +15,9 @@ impl WslManager {
     }
 
     pub fn validate_environment(&self, options: ExecutionOptions) -> anyhow::Result<EnvironmentReport> {
-        environment::validate_environment(options)
+        let mut events = environment::check_environment()?;
+        events.push(maintenance::environment::update_wsl_version(options.dry_run)?);
+        Ok(EnvironmentReport { events })
     }
 
     pub fn validate_profile_config(&self, profile: &Profile) -> anyhow::Result<()> {

@@ -1,6 +1,7 @@
 mod cloud_init;
 pub(crate) mod engine;
 mod helpers;
+mod maintenance;
 mod manager;
 mod model;
 mod services;

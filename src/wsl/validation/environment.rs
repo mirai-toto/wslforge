@@ -1,12 +1,6 @@
-use crate::wsl::{EnvironmentEvent, EnvironmentReport, ExecutionOptions};
+use crate::wsl::EnvironmentEvent;
 use encoding_rs::UTF_16LE;
 use std::process::Command;
-
-pub fn validate_environment(options: ExecutionOptions) -> anyhow::Result<EnvironmentReport> {
-    let mut events = check_environment()?;
-    events.push(prepare_environment(options)?);
-    Ok(EnvironmentReport { events })
-}
 
 pub fn check_environment() -> anyhow::Result<Vec<EnvironmentEvent>> {
     let mut events = vec![validate_wsl_installed()?];
@@ -17,10 +11,6 @@ pub fn check_environment() -> anyhow::Result<Vec<EnvironmentEvent>> {
     Ok(events)
 }
 
-pub fn prepare_environment(options: ExecutionOptions) -> anyhow::Result<EnvironmentEvent> {
-    update_wsl_version(options.dry_run)
-}
-
 pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
     let output = Command::new("wsl.exe").arg("--status").output()?;
     if output.status.success() {
@@ -29,20 +19,6 @@ pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
         anyhow::bail!("WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
-    }
-}
-
-pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<EnvironmentEvent> {
-    if dry_run {
-        return Ok(EnvironmentEvent::WslUpdateDryRun);
-    }
-    let output = Command::new("wsl.exe").arg("--update").output()?;
-    if output.status.success() {
-        Ok(EnvironmentEvent::WslUpdateCompleted)
-    } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
     }
 }
 
