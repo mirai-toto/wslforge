@@ -1,5 +1,11 @@
 use std::path::PathBuf;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ExecutionOptions {
+    pub dry_run: bool,
+    pub debug: bool,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CreateOutcome {
     Created,
