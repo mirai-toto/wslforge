@@ -4,7 +4,7 @@ use crate::{
     config, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
-        maintenance, EngineKind, ExecutionOptions, WslManager,
+        EngineKind, ExecutionOptions, WslManager,
     },
 };
 
@@ -22,18 +22,22 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };
-    let mut env_report = manager.validate_environment()?;
-    let env_event = maintenance::environment::update_wsl_version(options.dry_run)?;
-    env_report.events.push(env_event);
-    reporting::log_environment_report(&env_report);
 
     let config = config::load_yaml(cfg.config_path)?;
     log::debug!("📋 Loaded config from {}", cfg.config_path.display());
 
     for (profile_name, profile) in &config.profiles {
         reporting::log_config_summary(profile_name, profile);
-        let report = manager.create_instance(profile_name, profile, options)?;
-        reporting::log_create_report(&report, &profile.hostname);
+    }
+
+    let (environment_report, create_reports_by_profile) = manager.apply_config(&config, options)?;
+    reporting::log_environment_report(&environment_report);
+
+    for (profile_name, profile) in &config.profiles {
+        let report = create_reports_by_profile
+            .get(profile_name)
+            .ok_or_else(|| anyhow::anyhow!("missing create report for profile '{profile_name}'"))?;
+        reporting::log_create_report(report, &profile.hostname);
     }
 
     Ok(())
