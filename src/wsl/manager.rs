@@ -132,12 +132,11 @@ impl WslManager {
                 let rootfs_tar = path::expand_path(rootfs_tar.as_path())?;
                 self.engine
                     .create_from_file(&profile.hostname, &install_dir, &rootfs_tar)?;
-                Ok(CreateOutcome::Created)
             }
             ImageSource::Distro { name } => {
                 self.engine.create_from_distro(name, &profile.hostname)?;
-                Ok(CreateOutcome::Created)
             }
         }
+        Ok(CreateOutcome::Created)
     }
 }
