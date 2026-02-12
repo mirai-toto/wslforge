@@ -1,3 +1,7 @@
+//! `WslManager` is the use-case orchestrator for WSL workflows.
+//! It intentionally owns branching/sequencing decisions while delegating
+//! low-level mechanics (CLI/process/fs specifics) to helpers/adapters.
+
 use std::collections::BTreeMap;
 
 use crate::config::{ImageSource, Profile, RootConfig};
