@@ -10,6 +10,18 @@ impl CliEngine {
 }
 
 impl WslEngine for CliEngine {
+    fn status(&self) -> anyhow::Result<std::process::Output> {
+        Ok(Command::new("wsl.exe").arg("--status").output()?)
+    }
+
+    fn update(&self) -> anyhow::Result<std::process::Output> {
+        Ok(Command::new("wsl.exe").arg("--update").output()?)
+    }
+
+    fn list_online_distros(&self) -> anyhow::Result<std::process::Output> {
+        Ok(Command::new("wsl.exe").args(["--list", "--online"]).output()?)
+    }
+
     fn instance_exists(&self, name: &str) -> anyhow::Result<bool> {
         let status = Command::new("wsl.exe")
             .args(["-d", name, "--", "echo", "Already exists."])

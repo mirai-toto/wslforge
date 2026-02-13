@@ -1,12 +1,12 @@
+use crate::wsl::engine::WslEngine;
 use log::info;
-use std::process::Command;
 
-pub fn update_wsl_version(dry_run: bool) -> anyhow::Result<()> {
+pub fn update_wsl_version(engine: &dyn WslEngine, dry_run: bool) -> anyhow::Result<()> {
     if dry_run {
         info!("🧪 Dry run: WSL update would be performed");
         return Ok(());
     }
-    let output = Command::new("wsl.exe").arg("--update").output()?;
+    let output = engine.update()?;
     if output.status.success() {
         info!("✅ WSL update completed");
         Ok(())

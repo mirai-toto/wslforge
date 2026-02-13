@@ -1,15 +1,16 @@
+use crate::wsl::engine::WslEngine;
 use encoding_rs::UTF_16LE;
 use log::info;
 use std::process::Command;
 
-pub fn check_environment() -> anyhow::Result<()> {
-    validate_wsl_installed()?;
+pub fn check_environment(engine: &dyn WslEngine) -> anyhow::Result<()> {
+    validate_wsl_installed(engine)?;
     validate_windows_features(&["Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"])?;
     Ok(())
 }
 
-pub fn validate_wsl_installed() -> anyhow::Result<()> {
-    let output = Command::new("wsl.exe").arg("--status").output()?;
+pub fn validate_wsl_installed(engine: &dyn WslEngine) -> anyhow::Result<()> {
+    let output = engine.status()?;
     if output.status.success() {
         info!("✅ WSL is installed");
         Ok(())
@@ -35,15 +36,15 @@ pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn validate_wsl_distro_name(name: &str) -> anyhow::Result<()> {
-    if !is_valid_wsl_distro_name(name)? {
+pub fn validate_wsl_distro_name(engine: &dyn WslEngine, name: &str) -> anyhow::Result<()> {
+    if !is_valid_wsl_distro_name(engine, name)? {
         anyhow::bail!("unknown WSL distro name: {name}");
     }
     Ok(())
 }
 
-fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
-    let output = Command::new("wsl.exe").args(["--list", "--online"]).output()?;
+fn is_valid_wsl_distro_name(engine: &dyn WslEngine, name: &str) -> anyhow::Result<bool> {
+    let output = engine.list_online_distros()?;
 
     if !output.status.success() {
         anyhow::bail!("wsl.exe --list --online failed with status {}", output.status);
