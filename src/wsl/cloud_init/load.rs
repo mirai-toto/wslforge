@@ -16,3 +16,7 @@ pub(super) fn load_cloud_init_source(source: &CloudInitInput) -> anyhow::Result<
         CloudInitInput::Inline { content } => Ok(content.to_string()),
     }
 }
+
+#[cfg(test)]
+#[path = "load_tests.rs"]
+mod load_tests;

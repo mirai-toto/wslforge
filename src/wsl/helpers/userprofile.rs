@@ -4,3 +4,7 @@ pub(crate) fn resolve_userprofile_dir() -> anyhow::Result<std::path::PathBuf> {
     }
     anyhow::bail!("USERPROFILE is not set; cannot place cloud-init user-data")
 }
+
+#[cfg(test)]
+#[path = "userprofile_tests.rs"]
+mod userprofile_tests;

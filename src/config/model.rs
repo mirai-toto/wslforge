@@ -96,3 +96,7 @@ pub struct Profile {
 pub struct RootConfig {
     pub profiles: BTreeMap<String, Profile>,
 }
+
+#[cfg(test)]
+#[path = "model_tests.rs"]
+mod model_tests;

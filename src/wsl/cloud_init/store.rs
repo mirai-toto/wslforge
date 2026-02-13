@@ -29,3 +29,7 @@ pub fn copy_debug_to_current_dir(hostname: &str, rendered: &str) -> DebugCopyOut
         DebugCopyOutcome::Written(debug_path)
     }
 }
+
+#[cfg(test)]
+#[path = "store_tests.rs"]
+mod store_tests;

@@ -18,3 +18,7 @@ pub(crate) fn resolve_install_dir(install_dir: &Path, hostname: &str) -> anyhow:
     let expanded = expand_path(install_dir)?;
     Ok(expanded.join(hostname))
 }
+
+#[cfg(test)]
+#[path = "path_tests.rs"]
+mod path_tests;
