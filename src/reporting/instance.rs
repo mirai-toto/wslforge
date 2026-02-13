@@ -20,10 +20,9 @@ fn log_create_event(event: &ProfileEvent, hostname: &str) {
         ProfileEvent::InstanceExists => info!("✅ WSL instance '{}' exists.", hostname),
         ProfileEvent::InstanceMissing => info!("ℹ️ WSL instance '{}' does not exist.", hostname),
         ProfileEvent::OverrideRequested => info!("⚠️ Override requested for WSL instance '{}'.", hostname),
-        ProfileEvent::OverrideExistingInstance => info!(
-            "⚠️ WSL instance '{}' already exists and will be overridden.",
-            hostname
-        ),
+        ProfileEvent::OverrideExistingInstance => {
+            info!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname)
+        }
         ProfileEvent::DeleteSkippedMissing => info!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname),
         ProfileEvent::DeleteDryRun => info!("🧪 Dry run: WSL instance '{}' would be deleted", hostname),
         ProfileEvent::DeleteStarted => info!("🧹 Deleting existing WSL instance '{}'", hostname),
@@ -33,10 +32,9 @@ fn log_create_event(event: &ProfileEvent, hostname: &str) {
         ProfileEvent::CloudInitNotConfigured => info!("☁️ Cloud-init: not configured"),
         ProfileEvent::CloudInitSourceFile(path) => info!("☁️ Cloud-init source: {}", path.display()),
         ProfileEvent::CloudInitSourceInline => info!("☁️ Cloud-init source: inline content"),
-        ProfileEvent::CloudInitDryRunTarget(path) => info!(
-            "🧪 Dry run: cloud-init target would be created at: {}",
-            path.display()
-        ),
+        ProfileEvent::CloudInitDryRunTarget(path) => {
+            info!("🧪 Dry run: cloud-init target would be created at: {}", path.display())
+        }
         ProfileEvent::CloudInitTargetWritten(path) => info!("☁️ Cloud-init target: {}", path.display()),
         ProfileEvent::CloudInitDebugCopyWritten(path) => info!("☁️ Cloud-init debug copy: {}", path.display()),
         ProfileEvent::CloudInitDebugCopySkipped(reason) => info!("☁️ Cloud-init debug copy skipped ({reason})"),

@@ -8,6 +8,4 @@ mod validation;
 
 pub use engine::EngineKind;
 pub use manager::WslManager;
-pub use model::{
-    EnvironmentEvent, EnvironmentReport, ExecutionOptions, Outcome, ProfileEvent, ProfileReport,
-};
+pub use model::{EnvironmentEvent, EnvironmentReport, ExecutionOptions, Outcome, ProfileEvent, ProfileReport};
