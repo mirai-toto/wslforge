@@ -3,11 +3,7 @@ use crate::wsl::helpers::userprofile::resolve_userprofile_dir;
 use crate::wsl::model::ProfileEvent;
 use std::path::PathBuf;
 
-use super::{
-    copy_debug_to_current_dir,
-    load::load_cloud_init_source,
-    render, store, DebugCopyOutcome,
-};
+use super::{copy_debug_to_current_dir, load::load_cloud_init_source, render, store, DebugCopyOutcome};
 
 pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
     let userprofile = resolve_userprofile_dir()?;
