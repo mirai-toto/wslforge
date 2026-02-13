@@ -1,14 +1,11 @@
 mod cloud_init;
 pub(crate) mod engine;
-mod helpers;
-mod maintenance;
+pub(crate) mod helpers;
+pub(crate) mod maintenance;
 mod manager;
 mod model;
-mod services;
 mod validation;
 
 pub use engine::EngineKind;
 pub use manager::WslManager;
-pub use model::{
-    CloudInitEvent, CreateEvent, CreateOutcome, CreateReport, EnvironmentEvent, EnvironmentReport, ExecutionOptions,
-};
+pub use model::{ExecutionOptions, Outcome, ProfileEvent, ProfileReport};

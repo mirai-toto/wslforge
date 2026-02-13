@@ -13,3 +13,8 @@ pub(crate) fn expand_path(raw: &Path) -> anyhow::Result<PathBuf> {
     let expanded = expand_env_vars(&raw.to_string_lossy())?;
     Ok(PathBuf::from(expanded))
 }
+
+pub(crate) fn resolve_install_dir(install_dir: &Path, hostname: &str) -> anyhow::Result<PathBuf> {
+    let expanded = expand_path(install_dir)?;
+    Ok(expanded.join(hostname))
+}

@@ -17,23 +17,26 @@ pub struct AppConfig<'a> {
 pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
     ensure_windows()?;
 
-    let config = config::load_yaml(cfg.config_path)?;
-    log::debug!("📋 Loaded config from {}", cfg.config_path.display());
     let manager = WslManager::new(build_engine(EngineKind::Cli));
     let options = ExecutionOptions {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };
 
-    for profile in config.profiles.values() {
-        manager.validate_profile_config(profile)?;
-    }
-    let environment_report = manager.validate_environment(options)?;
-    reporting::log_environment_report(&environment_report);
+    let config = config::load_yaml(cfg.config_path)?;
+    log::debug!("📋 Loaded config from {}", cfg.config_path.display());
+
     for (profile_name, profile) in &config.profiles {
         reporting::log_config_summary(profile_name, profile);
-        let report = manager.create_instance(profile_name, profile, options)?;
-        reporting::log_create_report(&report, &profile.hostname);
+    }
+
+    let create_reports_by_profile = manager.apply_config(&config, options)?;
+
+    for (profile_name, profile) in &config.profiles {
+        let report = create_reports_by_profile
+            .get(profile_name)
+            .ok_or_else(|| anyhow::anyhow!("missing create report for profile '{profile_name}'"))?;
+        reporting::log_create_report(report, &profile.hostname);
     }
 
     Ok(())

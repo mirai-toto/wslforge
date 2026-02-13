@@ -1,4 +1,5 @@
 use crate::config::{ImageSource, Profile};
+use crate::wsl::helpers::path;
 use log::info;
 
 pub fn log_config_summary(profile_name: &str, profile: &Profile) {
@@ -6,7 +7,7 @@ pub fn log_config_summary(profile_name: &str, profile: &Profile) {
     info!("♻️ Override: {}", profile.override_instance);
     info!("🏷️ Hostname: {}", profile.hostname);
     info!("👤 User: {}", profile.username);
-    info!("📦 Install dir: {}", expand_install_dir(profile));
+    info!("📦 Install dir: {}", resolved_install_dir_display(profile));
     match &profile.cloud_init {
         Some(source) => info!("☁️ Cloud-init: {}", source),
         None => info!("☁️ Cloud-init: not configured"),
@@ -29,14 +30,9 @@ pub fn log_config_summary(profile_name: &str, profile: &Profile) {
     }
 }
 
-fn expand_install_dir(profile: &Profile) -> String {
-    let raw = profile.install_dir.to_string_lossy();
-    let percent_expanded = match expand_str::expand_string_with_env(&raw) {
-        Ok(value) => value,
-        Err(_) => return raw.into_owned(),
-    };
-    match shellexpand::env(&percent_expanded) {
-        Ok(value) => value.into_owned(),
-        Err(_) => raw.into_owned(),
+fn resolved_install_dir_display(profile: &Profile) -> String {
+    match path::resolve_install_dir(&profile.install_dir, &profile.hostname) {
+        Ok(path) => path.display().to_string(),
+        Err(_) => profile.install_dir.join(&profile.hostname).display().to_string(),
     }
 }
