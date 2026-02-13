@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use super::{
     copy_debug_to_current_dir,
-    load::{load_cloud_init_source, LoadedCloudInitSource},
+    load::load_cloud_init_source,
     render, store, DebugCopyOutcome,
 };
 
@@ -22,11 +22,16 @@ pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyh
         return Ok(events);
     };
 
-    let LoadedCloudInitSource { content, source } = load_cloud_init_source(source)?;
-    match source {
-        CloudInitInput::File { path } => events.push(ProfileEvent::CloudInitSourceFile(path)),
-        CloudInitInput::Inline { .. } => events.push(ProfileEvent::CloudInitSourceInline),
-    }
+    let content = match source {
+        CloudInitInput::File { path } => {
+            events.push(ProfileEvent::CloudInitSourceFile(path.clone()));
+            load_cloud_init_source(source)?
+        }
+        CloudInitInput::Inline { content } => {
+            events.push(ProfileEvent::CloudInitSourceInline);
+            content.clone()
+        }
+    };
     let rendered = render(&content, profile)?;
 
     let target_file = cloud_init_target_file(&profile.hostname)?;
