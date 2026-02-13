@@ -1,10 +1,4 @@
-// NOTE: We only *read* this config from YAML, but we also derive `Serialize` so we can pass
-// it into the cloud-init template renderer (minijinja) as `profile`.
-// - Nothing writes this config back to disk.
-// - `skip_serializing_if` on `Option<T>` makes `None` act like "missing" in templates, so
-//   `| default('...')` works as expected.
-// - `password` is optional; we hash it when rendering cloud-init templates.
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::path::PathBuf;
@@ -30,11 +24,7 @@ fn default_distro() -> String {
     "Ubuntu".into()
 }
 
-fn is_false(value: &bool) -> bool {
-    !*value
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ImageSource {
     Distro {
@@ -46,7 +36,7 @@ pub enum ImageSource {
     },
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum CloudInitInput {
     File {
@@ -73,35 +63,35 @@ impl Default for ImageSource {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Profile {
-    #[serde(default, skip_serializing_if = "is_false", rename = "override")]
+    #[serde(default, rename = "override")]
     pub override_instance: bool,
     #[serde(default = "default_hostname")]
     pub hostname: String,
     #[serde(default = "default_username")]
     pub username: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub password: Option<String>,
 
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub http_proxy: Option<Url>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub https_proxy: Option<Url>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub no_proxy: Option<String>,
 
     #[serde(default = "default_install_dir")]
     pub install_dir: PathBuf,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(default)]
     pub cloud_init: Option<CloudInitInput>,
 
     #[serde(default)]
     pub image: ImageSource,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RootConfig {
     pub profiles: BTreeMap<String, Profile>,
