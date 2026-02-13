@@ -40,16 +40,3 @@ pub struct ProfileReport {
     pub outcome: Outcome,
     pub events: Vec<ProfileEvent>,
 }
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum EnvironmentEvent {
-    WslInstalled,
-    WslUpdateDryRun,
-    WslUpdateCompleted,
-    WindowsFeatureEnabled(String),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EnvironmentReport {
-    pub events: Vec<EnvironmentEvent>,
-}

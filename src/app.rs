@@ -30,8 +30,7 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
         reporting::log_config_summary(profile_name, profile);
     }
 
-    let (environment_report, create_reports_by_profile) = manager.apply_config(&config, options)?;
-    reporting::log_environment_report(&environment_report);
+    let create_reports_by_profile = manager.apply_config(&config, options)?;
 
     for (profile_name, profile) in &config.profiles {
         let report = create_reports_by_profile
