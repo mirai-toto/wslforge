@@ -20,12 +20,12 @@ impl WslManager {
     }
 
     pub fn validate_environment(&self) -> anyhow::Result<()> {
-        environment::check_environment()
+        environment::check_environment(self.engine.as_ref())
     }
 
     pub fn prepare_environment(&self, dry_run: bool) -> anyhow::Result<()> {
         self.validate_environment()?;
-        maintenance::environment::update_wsl_version(dry_run)?;
+        maintenance::environment::update_wsl_version(self.engine.as_ref(), dry_run)?;
         Ok(())
     }
 
@@ -113,7 +113,7 @@ impl WslManager {
         events: &mut Vec<ProfileEvent>,
     ) -> anyhow::Result<()> {
         if let ImageSource::Distro { name } = &profile.image {
-            environment::validate_wsl_distro_name(name)?;
+            environment::validate_wsl_distro_name(self.engine.as_ref(), name)?;
         }
 
         let cloud_init_events = cloud_init::prepare_cloud_init(profile, options.dry_run, options.debug)?;
