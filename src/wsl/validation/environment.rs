@@ -1,20 +1,18 @@
-use crate::wsl::EnvironmentEvent;
 use encoding_rs::UTF_16LE;
+use log::info;
 use std::process::Command;
 
-pub fn check_environment() -> anyhow::Result<Vec<EnvironmentEvent>> {
-    let mut events = vec![validate_wsl_installed()?];
-    events.extend(validate_windows_features(&[
-        "Microsoft-Windows-Subsystem-Linux",
-        "VirtualMachinePlatform",
-    ])?);
-    Ok(events)
+pub fn check_environment() -> anyhow::Result<()> {
+    validate_wsl_installed()?;
+    validate_windows_features(&["Microsoft-Windows-Subsystem-Linux", "VirtualMachinePlatform"])?;
+    Ok(())
 }
 
-pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
+pub fn validate_wsl_installed() -> anyhow::Result<()> {
     let output = Command::new("wsl.exe").arg("--status").output()?;
     if output.status.success() {
-        Ok(EnvironmentEvent::WslInstalled)
+        info!("✅ WSL is installed");
+        Ok(())
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
         let stderr = String::from_utf8_lossy(&output.stderr);
@@ -22,19 +20,19 @@ pub fn validate_wsl_installed() -> anyhow::Result<EnvironmentEvent> {
     }
 }
 
-pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<Vec<EnvironmentEvent>> {
+pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
     let mut disabled = Vec::new();
-    let mut events = Vec::new();
     for feature_name in feature_names {
-        match is_windows_feature_enabled(feature_name)? {
-            true => events.push(EnvironmentEvent::WindowsFeatureEnabled((*feature_name).to_string())),
-            false => disabled.push(*feature_name),
+        if is_windows_feature_enabled(feature_name)? {
+            info!("✅ {feature_name} is enabled");
+        } else {
+            disabled.push(*feature_name);
         }
     }
     if !disabled.is_empty() {
         anyhow::bail!("required Windows feature(s) are disabled: {}", disabled.join(", "));
     }
-    Ok(events)
+    Ok(())
 }
 
 pub fn validate_wsl_distro_name(name: &str) -> anyhow::Result<()> {
@@ -43,10 +41,6 @@ pub fn validate_wsl_distro_name(name: &str) -> anyhow::Result<()> {
     }
     Ok(())
 }
-
-//
-// OS interaction helpers
-//
 
 fn is_valid_wsl_distro_name(name: &str) -> anyhow::Result<bool> {
     let output = Command::new("wsl.exe").args(["--list", "--online"]).output()?;

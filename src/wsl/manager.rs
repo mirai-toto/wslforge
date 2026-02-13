@@ -8,9 +8,7 @@ use crate::config::{ImageSource, Profile, RootConfig};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::maintenance;
 use crate::wsl::validation::{config, environment};
-use crate::wsl::{
-    cloud_init, helpers::path, EnvironmentReport, ExecutionOptions, Outcome, ProfileEvent, ProfileReport,
-};
+use crate::wsl::{cloud_init, helpers::path, ExecutionOptions, Outcome, ProfileEvent, ProfileReport};
 
 pub struct WslManager {
     engine: Box<dyn WslEngine>,
@@ -21,16 +19,14 @@ impl WslManager {
         Self { engine }
     }
 
-    pub fn validate_environment(&self) -> anyhow::Result<EnvironmentReport> {
-        let events = environment::check_environment()?;
-        Ok(EnvironmentReport { events })
+    pub fn validate_environment(&self) -> anyhow::Result<()> {
+        environment::check_environment()
     }
 
-    pub fn prepare_environment(&self, dry_run: bool) -> anyhow::Result<EnvironmentReport> {
-        let mut report = self.validate_environment()?;
-        let update_event = maintenance::environment::update_wsl_version(dry_run)?;
-        report.events.push(update_event);
-        Ok(report)
+    pub fn prepare_environment(&self, dry_run: bool) -> anyhow::Result<()> {
+        self.validate_environment()?;
+        maintenance::environment::update_wsl_version(dry_run)?;
+        Ok(())
     }
 
     pub fn create_instance(&self, profile: &Profile, options: ExecutionOptions) -> anyhow::Result<ProfileReport> {
@@ -74,8 +70,8 @@ impl WslManager {
         &self,
         root: &RootConfig,
         options: ExecutionOptions,
-    ) -> anyhow::Result<(EnvironmentReport, BTreeMap<String, ProfileReport>)> {
-        let environment_report = self.prepare_environment(options.dry_run)?;
+    ) -> anyhow::Result<BTreeMap<String, ProfileReport>> {
+        self.prepare_environment(options.dry_run)?;
 
         let mut create_reports_by_profile = BTreeMap::new();
         for (profile_name, profile) in &root.profiles {
@@ -83,7 +79,7 @@ impl WslManager {
             create_reports_by_profile.insert(profile_name.clone(), report);
         }
 
-        Ok((environment_report, create_reports_by_profile))
+        Ok(create_reports_by_profile)
     }
 
     fn delete_instance(
