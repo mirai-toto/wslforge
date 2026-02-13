@@ -9,5 +9,5 @@ mod validation;
 pub use engine::EngineKind;
 pub use manager::WslManager;
 pub use model::{
-    CloudInitEvent, CreateEvent, CreateOutcome, CreateReport, EnvironmentEvent, EnvironmentReport, ExecutionOptions,
+    EnvironmentEvent, EnvironmentReport, ExecutionOptions, Outcome, ProfileEvent, ProfileReport,
 };

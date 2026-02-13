@@ -7,25 +7,14 @@ pub struct ExecutionOptions {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum CreateOutcome {
+pub enum Outcome {
     Created,
     AlreadyExists,
     Skipped,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CloudInitEvent {
-    NotConfigured,
-    SourceFile(PathBuf),
-    SourceInline,
-    DryRunTarget(PathBuf),
-    TargetWritten(PathBuf),
-    DebugCopyWritten(PathBuf),
-    DebugCopySkipped(String),
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CreateEvent {
+pub enum ProfileEvent {
     InstanceCheckStarted,
     InstanceExists,
     InstanceMissing,
@@ -37,13 +26,19 @@ pub enum CreateEvent {
     DeleteCompleted,
     CreateDryRun,
     CreateStarted,
-    CloudInit(CloudInitEvent),
+    CloudInitNotConfigured,
+    CloudInitSourceFile(PathBuf),
+    CloudInitSourceInline,
+    CloudInitDryRunTarget(PathBuf),
+    CloudInitTargetWritten(PathBuf),
+    CloudInitDebugCopyWritten(PathBuf),
+    CloudInitDebugCopySkipped(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CreateReport {
-    pub outcome: CreateOutcome,
-    pub events: Vec<CreateEvent>,
+pub struct ProfileReport {
+    pub outcome: Outcome,
+    pub events: Vec<ProfileEvent>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
