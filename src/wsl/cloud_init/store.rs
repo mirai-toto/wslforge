@@ -31,5 +31,5 @@ pub fn copy_debug_to_current_dir(hostname: &str, rendered: &str) -> DebugCopyOut
 }
 
 #[cfg(test)]
-#[path = "store_tests.rs"]
+#[path = "../../../tests/unit/wsl/cloud_init/store_tests.rs"]
 mod store_tests;

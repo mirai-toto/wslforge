@@ -20,5 +20,5 @@ pub(crate) fn resolve_install_dir(install_dir: &Path, hostname: &str) -> anyhow:
 }
 
 #[cfg(test)]
-#[path = "path_tests.rs"]
+#[path = "../../../tests/unit/wsl/helpers/path_tests.rs"]
 mod path_tests;

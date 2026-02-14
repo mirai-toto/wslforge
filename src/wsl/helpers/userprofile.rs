@@ -6,5 +6,5 @@ pub(crate) fn resolve_userprofile_dir() -> anyhow::Result<std::path::PathBuf> {
 }
 
 #[cfg(test)]
-#[path = "userprofile_tests.rs"]
+#[path = "../../../tests/unit/wsl/helpers/userprofile_tests.rs"]
 mod userprofile_tests;
