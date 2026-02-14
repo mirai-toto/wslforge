@@ -55,3 +55,7 @@ pub fn render(raw: &str, profile: &Profile) -> anyhow::Result<String> {
         .render(context)
         .map_err(|e| anyhow::anyhow!("cloud-init template render error: {e}"))
 }
+
+#[cfg(test)]
+#[path = "render_tests.rs"]
+mod render_tests;
