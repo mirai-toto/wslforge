@@ -2,6 +2,7 @@ use super::render;
 use crate::config::Profile;
 
 #[test]
+// Verifies template rendering injects profile fields and leaves password hash empty when absent.
 fn render_injects_profile_fields_without_password_hash() {
     let profile: Profile = serde_yaml::from_str(
         r#"
@@ -25,6 +26,7 @@ override: true
 }
 
 #[test]
+// Verifies rendering with a password produces a SHA-512 crypt-style hash.
 fn render_produces_sha512_hash_when_password_is_present() {
     let profile: Profile = serde_yaml::from_str(
         r#"
@@ -40,6 +42,7 @@ password: secret123
 }
 
 #[test]
+// Verifies invalid template syntax is reported as a cloud-init parse error.
 fn render_reports_template_parse_errors() {
     let profile: Profile = serde_yaml::from_str("{}\n").expect("deserialize profile");
 

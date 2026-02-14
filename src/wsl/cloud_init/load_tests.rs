@@ -3,6 +3,7 @@ use crate::config::CloudInitInput;
 use std::fs;
 
 #[test]
+// Verifies inline cloud-init input is returned unchanged by the loader.
 fn load_cloud_init_source_returns_inline_content() {
     let source = CloudInitInput::Inline {
         content: "#cloud-config\nhostname: testbox".to_string(),
@@ -13,6 +14,7 @@ fn load_cloud_init_source_returns_inline_content() {
 }
 
 #[test]
+// Verifies file-based cloud-init input reads and returns file contents.
 fn load_cloud_init_source_reads_from_file_path() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let file_path = dir.path().join("user-data.yaml");
@@ -24,6 +26,7 @@ fn load_cloud_init_source_reads_from_file_path() {
 }
 
 #[test]
+// Verifies a missing file path returns a clear not-found load error.
 fn load_cloud_init_source_fails_for_missing_file() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let source = CloudInitInput::File {

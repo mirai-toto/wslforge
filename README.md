@@ -127,7 +127,7 @@ chmod +x .githooks/pre-commit
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs `cargo fmt --all`.
+The pre-commit hook runs `cargo fmt --all`, `cargo clippy --all-targets --all-features -- -D warnings`, `cargo check --all-targets --all-features`, and `cargo test --all-features`.
 
 ---
 
