@@ -136,3 +136,7 @@ impl WslManager {
         Ok(Outcome::Created)
     }
 }
+
+#[cfg(test)]
+#[path = "../../tests/unit/wsl/manager_tests.rs"]
+mod manager_tests;
