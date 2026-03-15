@@ -4,7 +4,7 @@ use crate::{
     config, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
-        EngineKind, ExecutionOptions, WslManager,
+        EngineKind, RunOptions, WslManager,
     },
 };
 
@@ -18,7 +18,7 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
     ensure_windows()?;
 
     let manager = WslManager::new(build_engine(EngineKind::Cli));
-    let options = ExecutionOptions {
+    let options = RunOptions {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };

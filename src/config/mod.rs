@@ -1,7 +1,7 @@
 mod loader;
 mod model;
 pub use loader::load_yaml;
-pub use model::{CloudInitInput, ImageSource, Profile, RootConfig};
+pub use model::{CloudInitSource, Config, ImageSource, Profile};
 
 pub const EXAMPLE_CONFIG: &str = r#"─── Example Config ───────────────────────────────────────────────
 

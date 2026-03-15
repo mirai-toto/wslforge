@@ -1,4 +1,4 @@
-use super::{CloudInitInput, ImageSource, Profile};
+use super::{CloudInitSource, ImageSource, Profile};
 use std::path::Path;
 
 #[test]
@@ -19,10 +19,10 @@ fn profile_deserialization_applies_defaults() {
 
 #[test]
 fn cloud_init_input_display_matches_variant() {
-    let file_input: CloudInitInput = serde_yaml::from_str("type: file\n").expect("deserialize file variant");
+    let file_input: CloudInitSource = serde_yaml::from_str("type: file\n").expect("deserialize file variant");
     assert_eq!(file_input.to_string(), "file: cloud-init.yaml");
 
-    let inline_input: CloudInitInput =
+    let inline_input: CloudInitSource =
         serde_yaml::from_str("type: inline\ncontent: '#cloud-config'\n").expect("deserialize inline variant");
     assert_eq!(inline_input.to_string(), "inline");
 }

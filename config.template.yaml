@@ -16,7 +16,7 @@ profiles:
     # Cloud-init user-data source (optional)
     cloud_init:
       type: file
-      path: "cloud-init.template.yaml"
+      path: "cloud-init.yaml.j2"
 
     # Inline cloud-init example
     # cloud_init:

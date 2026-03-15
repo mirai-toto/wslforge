@@ -4,11 +4,11 @@
 
 use std::collections::BTreeMap;
 
-use crate::config::{ImageSource, Profile, RootConfig};
+use crate::config::{Config, ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::maintenance;
 use crate::wsl::validation::{config, environment};
-use crate::wsl::{cloud_init, helpers::path, ExecutionOptions, Outcome, ProfileEvent, ProfileReport};
+use crate::wsl::{cloud_init, helpers::path, Outcome, ProfileResult, ProvisionEvent, RunOptions};
 
 pub struct WslManager {
     engine: Box<dyn WslEngine>,
@@ -29,23 +29,23 @@ impl WslManager {
         Ok(())
     }
 
-    pub fn create_instance(&self, profile: &Profile, options: ExecutionOptions) -> anyhow::Result<ProfileReport> {
+    pub fn create_instance(&self, profile: &Profile, options: RunOptions) -> anyhow::Result<ProfileResult> {
         config::validate_profile(profile)?;
 
-        let mut events = vec![ProfileEvent::InstanceCheckStarted];
+        let mut events = vec![ProvisionEvent::InstanceCheckStarted];
         let instance_exists = self.engine.instance_exists(&profile.hostname)?;
         if instance_exists {
-            events.push(ProfileEvent::InstanceExists);
+            events.push(ProvisionEvent::InstanceExists);
         } else {
-            events.push(ProfileEvent::InstanceMissing);
+            events.push(ProvisionEvent::InstanceMissing);
         }
 
         if profile.override_instance {
-            events.push(ProfileEvent::OverrideRequested);
+            events.push(ProvisionEvent::OverrideRequested);
             self.prepare_profile(profile, options, &mut events)?;
             self.delete_instance(&profile.hostname, instance_exists, options, &mut events)?;
         } else if instance_exists {
-            return Ok(ProfileReport {
+            return Ok(ProfileResult {
                 outcome: Outcome::AlreadyExists,
                 events,
             });
@@ -54,23 +54,19 @@ impl WslManager {
         }
 
         if options.dry_run {
-            events.push(ProfileEvent::CreateDryRun);
-            return Ok(ProfileReport {
+            events.push(ProvisionEvent::CreateDryRun);
+            return Ok(ProfileResult {
                 outcome: Outcome::Skipped,
                 events,
             });
         }
 
-        events.push(ProfileEvent::CreateStarted);
+        events.push(ProvisionEvent::CreateStarted);
         let outcome = self.create_profile(profile)?;
-        Ok(ProfileReport { outcome, events })
+        Ok(ProfileResult { outcome, events })
     }
 
-    pub fn apply_config(
-        &self,
-        root: &RootConfig,
-        options: ExecutionOptions,
-    ) -> anyhow::Result<BTreeMap<String, ProfileReport>> {
+    pub fn apply_config(&self, root: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, ProfileResult>> {
         self.prepare_environment(options.dry_run)?;
 
         let mut create_reports_by_profile = BTreeMap::new();
@@ -86,31 +82,31 @@ impl WslManager {
         &self,
         hostname: &str,
         instance_exists: bool,
-        options: ExecutionOptions,
-        events: &mut Vec<ProfileEvent>,
+        options: RunOptions,
+        events: &mut Vec<ProvisionEvent>,
     ) -> anyhow::Result<()> {
         if !instance_exists {
-            events.push(ProfileEvent::DeleteSkippedMissing);
+            events.push(ProvisionEvent::DeleteSkippedMissing);
             return Ok(());
         }
 
-        events.push(ProfileEvent::OverrideExistingInstance);
+        events.push(ProvisionEvent::OverrideExistingInstance);
         if options.dry_run {
-            events.push(ProfileEvent::DeleteDryRun);
+            events.push(ProvisionEvent::DeleteDryRun);
             return Ok(());
         }
 
-        events.push(ProfileEvent::DeleteStarted);
+        events.push(ProvisionEvent::DeleteStarted);
         self.engine.delete_instance(hostname)?;
-        events.push(ProfileEvent::DeleteCompleted);
+        events.push(ProvisionEvent::DeleteCompleted);
         Ok(())
     }
 
     fn prepare_profile(
         &self,
         profile: &Profile,
-        options: ExecutionOptions,
-        events: &mut Vec<ProfileEvent>,
+        options: RunOptions,
+        events: &mut Vec<ProvisionEvent>,
     ) -> anyhow::Result<()> {
         if let ImageSource::Distro { name } = &profile.image {
             environment::validate_wsl_distro_name(self.engine.as_ref(), name)?;
