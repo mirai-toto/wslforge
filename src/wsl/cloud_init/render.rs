@@ -57,5 +57,5 @@ pub fn render(raw: &str, profile: &Profile) -> anyhow::Result<String> {
 }
 
 #[cfg(test)]
-#[path = "render_tests.rs"]
+#[path = "../../../tests/unit/wsl/cloud_init/render_tests.rs"]
 mod render_tests;

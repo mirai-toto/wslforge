@@ -98,5 +98,5 @@ pub struct RootConfig {
 }
 
 #[cfg(test)]
-#[path = "model_tests.rs"]
+#[path = "../../tests/unit/config/model_tests.rs"]
 mod model_tests;

@@ -18,5 +18,5 @@ pub(super) fn load_cloud_init_source(source: &CloudInitInput) -> anyhow::Result<
 }
 
 #[cfg(test)]
-#[path = "load_tests.rs"]
+#[path = "../../../tests/unit/wsl/cloud_init/load_tests.rs"]
 mod load_tests;

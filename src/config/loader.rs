@@ -33,5 +33,5 @@ pub fn load_yaml(path: &Path) -> anyhow::Result<RootConfig> {
 }
 
 #[cfg(test)]
-#[path = "loader_tests.rs"]
+#[path = "../../tests/unit/config/loader_tests.rs"]
 mod loader_tests;

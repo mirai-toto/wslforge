@@ -63,10 +63,10 @@ winget install --id Microsoft.PowerShell --source winget
 
 ## ⚡ Quickstart
 
-Download the latest release binary from: 📦
+Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
-```text
-https://github.com/mirai-toto/wslforge/releases
+```sh
+curl -L -o wslforge.exe https://github.com/mirai-toto/wslforge/releases/download/<Version>/wslforge.exe
 ```
 
 Run it with your config: ✅
@@ -128,6 +128,21 @@ git config core.hooksPath .githooks
 ```
 
 The pre-commit hook runs `cargo fmt --all`, `cargo clippy --all-targets --all-features -- -D warnings`, `cargo check --all-targets --all-features`, and `cargo test --all-features`.
+
+You can run CI checks locally before pushing:
+
+```sh
+# Default checks (Docker target: ci-core)
+./scripts/run-local-ci.sh
+
+# Extended checks (Docker target: ci-all)
+./scripts/run-local-ci.sh --all
+```
+
+Container prerequisite: `docker`.
+
+All check logic lives in `scripts/ci-local.Dockerfile`. If the image build succeeds, checks passed.
+Intermediate targets are available for focused runs: `ci-rust-matrix`, `ci-rust-quality`, `ci-markdown`, `ci-typos`, `ci-security-audit`, `ci-coverage`, `ci-semantic-release`.
 
 ---
 
