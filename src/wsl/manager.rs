@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 use crate::config::{Config, ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::maintenance;
-use crate::wsl::validation::{config, environment};
+use crate::wsl::validation::{environment, profile};
 use crate::wsl::{cloud_init, helpers::path, Outcome, ProfileResult, ProvisionEvent, RunOptions};
 
 pub struct WslManager {
@@ -30,7 +30,7 @@ impl WslManager {
     }
 
     pub fn create_instance(&self, profile: &Profile, options: RunOptions) -> anyhow::Result<ProfileResult> {
-        config::validate_profile(profile)?;
+        profile::validate_profile(profile)?;
 
         let mut events = vec![ProvisionEvent::InstanceCheckStarted];
         let instance_exists = self.engine.instance_exists(&profile.hostname)?;
