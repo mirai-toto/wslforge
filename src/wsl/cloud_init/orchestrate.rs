@@ -1,6 +1,6 @@
-use crate::config::{CloudInitInput, Profile};
+use crate::config::{CloudInitSource, Profile};
 use crate::wsl::helpers::userprofile::resolve_userprofile_dir;
-use crate::wsl::model::ProfileEvent;
+use crate::wsl::model::ProvisionEvent;
 use std::path::PathBuf;
 
 use super::{copy_debug_to_current_dir, load::load_cloud_init_source, render, store, DebugCopyOutcome};
@@ -11,20 +11,20 @@ pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
     Ok(target_dir.join(format!("{}.user-data", hostname)))
 }
 
-pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<Vec<ProfileEvent>> {
+pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<Vec<ProvisionEvent>> {
     let mut events = Vec::new();
     let Some(source) = &profile.cloud_init else {
-        events.push(ProfileEvent::CloudInitNotConfigured);
+        events.push(ProvisionEvent::CloudInitNotConfigured);
         return Ok(events);
     };
 
     let content = match source {
-        CloudInitInput::File { path } => {
-            events.push(ProfileEvent::CloudInitSourceFile(path.clone()));
+        CloudInitSource::File { path } => {
+            events.push(ProvisionEvent::CloudInitSourceFile(path.clone()));
             load_cloud_init_source(source)?
         }
-        CloudInitInput::Inline { content } => {
-            events.push(ProfileEvent::CloudInitSourceInline);
+        CloudInitSource::Inline { content } => {
+            events.push(ProvisionEvent::CloudInitSourceInline);
             content.clone()
         }
     };
@@ -32,16 +32,16 @@ pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyh
 
     let target_file = cloud_init_target_file(&profile.hostname)?;
     if dry_run {
-        events.push(ProfileEvent::CloudInitDryRunTarget(target_file));
+        events.push(ProvisionEvent::CloudInitDryRunTarget(target_file));
         return Ok(events);
     }
 
     store(&target_file, &rendered)?;
-    events.push(ProfileEvent::CloudInitTargetWritten(target_file));
+    events.push(ProvisionEvent::CloudInitTargetWritten(target_file));
     if debug {
         match copy_debug_to_current_dir(&profile.hostname, &rendered) {
-            DebugCopyOutcome::Written(path) => events.push(ProfileEvent::CloudInitDebugCopyWritten(path)),
-            DebugCopyOutcome::Skipped(reason) => events.push(ProfileEvent::CloudInitDebugCopySkipped(reason)),
+            DebugCopyOutcome::Written(path) => events.push(ProvisionEvent::CloudInitDebugCopyWritten(path)),
+            DebugCopyOutcome::Skipped(reason) => events.push(ProvisionEvent::CloudInitDebugCopySkipped(reason)),
         }
     }
     Ok(events)

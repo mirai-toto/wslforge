@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-pub struct ExecutionOptions {
+pub struct RunOptions {
     pub dry_run: bool,
     pub debug: bool,
 }
@@ -14,7 +14,7 @@ pub enum Outcome {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProfileEvent {
+pub enum ProvisionEvent {
     InstanceCheckStarted,
     InstanceExists,
     InstanceMissing,
@@ -36,7 +36,7 @@ pub enum ProfileEvent {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ProfileReport {
+pub struct ProfileResult {
     pub outcome: Outcome,
-    pub events: Vec<ProfileEvent>,
+    pub events: Vec<ProvisionEvent>,
 }

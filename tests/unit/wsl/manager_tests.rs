@@ -1,7 +1,7 @@
 use super::WslManager;
 use crate::config::Profile;
 use crate::wsl::engine::WslEngine;
-use crate::wsl::{ExecutionOptions, Outcome, ProfileEvent};
+use crate::wsl::{Outcome, ProvisionEvent, RunOptions};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -126,13 +126,13 @@ override: false
     let manager = WslManager::new(Box::new(engine));
 
     let report = manager
-        .create_instance(&profile, ExecutionOptions::default())
+        .create_instance(&profile, RunOptions::default())
         .expect("create instance should return report");
 
     assert_eq!(report.outcome, Outcome::AlreadyExists);
     assert_eq!(
         report.events,
-        vec![ProfileEvent::InstanceCheckStarted, ProfileEvent::InstanceExists]
+        vec![ProvisionEvent::InstanceCheckStarted, ProvisionEvent::InstanceExists]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
 }
@@ -148,7 +148,7 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
     let report = manager
         .create_instance(
             &profile,
-            ExecutionOptions {
+            RunOptions {
                 dry_run: true,
                 debug: false,
             },
@@ -159,10 +159,10 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
     assert_eq!(
         report.events,
         vec![
-            ProfileEvent::InstanceCheckStarted,
-            ProfileEvent::InstanceMissing,
-            ProfileEvent::CloudInitNotConfigured,
-            ProfileEvent::CreateDryRun,
+            ProvisionEvent::InstanceCheckStarted,
+            ProvisionEvent::InstanceMissing,
+            ProvisionEvent::CloudInitNotConfigured,
+            ProvisionEvent::CreateDryRun,
         ]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
@@ -177,7 +177,7 @@ fn create_instance_returns_error_when_engine_create_fails() {
     let manager = WslManager::new(Box::new(engine));
 
     let err = manager
-        .create_instance(&profile, ExecutionOptions::default())
+        .create_instance(&profile, RunOptions::default())
         .expect_err("engine create failure should bubble up");
     assert!(err.to_string().contains("create from file failed"));
     assert_eq!(
@@ -197,7 +197,7 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
     let report = manager
         .create_instance(
             &profile,
-            ExecutionOptions {
+            RunOptions {
                 dry_run: true,
                 debug: false,
             },
@@ -208,13 +208,13 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
     assert_eq!(
         report.events,
         vec![
-            ProfileEvent::InstanceCheckStarted,
-            ProfileEvent::InstanceExists,
-            ProfileEvent::OverrideRequested,
-            ProfileEvent::CloudInitNotConfigured,
-            ProfileEvent::OverrideExistingInstance,
-            ProfileEvent::DeleteDryRun,
-            ProfileEvent::CreateDryRun,
+            ProvisionEvent::InstanceCheckStarted,
+            ProvisionEvent::InstanceExists,
+            ProvisionEvent::OverrideRequested,
+            ProvisionEvent::CloudInitNotConfigured,
+            ProvisionEvent::OverrideExistingInstance,
+            ProvisionEvent::DeleteDryRun,
+            ProvisionEvent::CreateDryRun,
         ]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
@@ -229,21 +229,21 @@ fn create_instance_override_existing_deletes_then_creates() {
     let manager = WslManager::new(Box::new(engine));
 
     let report = manager
-        .create_instance(&profile, ExecutionOptions::default())
+        .create_instance(&profile, RunOptions::default())
         .expect("override create should succeed");
 
     assert_eq!(report.outcome, Outcome::Created);
     assert_eq!(
         report.events,
         vec![
-            ProfileEvent::InstanceCheckStarted,
-            ProfileEvent::InstanceExists,
-            ProfileEvent::OverrideRequested,
-            ProfileEvent::CloudInitNotConfigured,
-            ProfileEvent::OverrideExistingInstance,
-            ProfileEvent::DeleteStarted,
-            ProfileEvent::DeleteCompleted,
-            ProfileEvent::CreateStarted,
+            ProvisionEvent::InstanceCheckStarted,
+            ProvisionEvent::InstanceExists,
+            ProvisionEvent::OverrideRequested,
+            ProvisionEvent::CloudInitNotConfigured,
+            ProvisionEvent::OverrideExistingInstance,
+            ProvisionEvent::DeleteStarted,
+            ProvisionEvent::DeleteCompleted,
+            ProvisionEvent::CreateStarted,
         ]
     );
     assert_eq!(
