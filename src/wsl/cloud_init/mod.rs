@@ -1,8 +1,58 @@
+//! Entry point for the cloud-init provisioning flow.
+//!
+//! `prepare_cloud_init` is the single function called by `WslManager` to drive
+//! the full load → render → store sequence. The submodules handle each step
+//! independently; this module wires them together and tracks provisioning events.
+
 mod load;
-mod orchestrate;
 mod render;
 mod store;
 
-pub use orchestrate::prepare_cloud_init;
-pub use render::render;
-pub use store::{copy_debug_to_current_dir, store, DebugCopyOutcome};
+use crate::config::{CloudInitSource, Profile};
+use crate::wsl::helpers::path::resolve_userprofile_dir;
+use crate::wsl::model::ProvisionEvent;
+use std::path::PathBuf;
+
+pub use store::DebugCopyOutcome;
+
+pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
+    let userprofile = resolve_userprofile_dir()?;
+    let target_dir = userprofile.join(".cloud-init");
+    Ok(target_dir.join(format!("{}.user-data", hostname)))
+}
+
+pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<Vec<ProvisionEvent>> {
+    let mut events = Vec::new();
+    let Some(source) = &profile.cloud_init else {
+        events.push(ProvisionEvent::CloudInitNotConfigured);
+        return Ok(events);
+    };
+
+    let content = match source {
+        CloudInitSource::File { path } => {
+            events.push(ProvisionEvent::CloudInitSourceFile(path.clone()));
+            load::load_cloud_init_source(source)?
+        }
+        CloudInitSource::Inline { content } => {
+            events.push(ProvisionEvent::CloudInitSourceInline);
+            content.clone()
+        }
+    };
+    let rendered = render::render(&content, profile)?;
+
+    let target_file = cloud_init_target_file(&profile.hostname)?;
+    if dry_run {
+        events.push(ProvisionEvent::CloudInitDryRunTarget(target_file));
+        return Ok(events);
+    }
+
+    store::store(&target_file, &rendered)?;
+    events.push(ProvisionEvent::CloudInitTargetWritten(target_file));
+    if debug {
+        match store::copy_debug_to_current_dir(&profile.hostname, &rendered) {
+            DebugCopyOutcome::Written(path) => events.push(ProvisionEvent::CloudInitDebugCopyWritten(path)),
+            DebugCopyOutcome::Skipped(reason) => events.push(ProvisionEvent::CloudInitDebugCopySkipped(reason)),
+        }
+    }
+    Ok(events)
+}
