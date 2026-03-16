@@ -1,9 +1,9 @@
 mod cloud_init;
 pub(crate) mod engine;
 pub(crate) mod helpers;
-pub(crate) mod maintenance;
 mod manager;
 mod model;
+pub(crate) mod setup;
 mod validation;
 
 pub use engine::EngineKind;

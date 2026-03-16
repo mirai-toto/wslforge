@@ -132,7 +132,7 @@ override: false
     assert_eq!(report.outcome, Outcome::AlreadyExists);
     assert_eq!(
         report.events,
-        vec![ProvisionEvent::InstanceCheckStarted, ProvisionEvent::InstanceExists]
+        vec![ProvisionEvent::InstanceCheckStarted, ProvisionEvent::InstanceFound]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
 }
@@ -160,8 +160,8 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
         report.events,
         vec![
             ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceMissing,
-            ProvisionEvent::CloudInitNotConfigured,
+            ProvisionEvent::InstanceNotFound,
+            ProvisionEvent::CloudInitSkipped,
             ProvisionEvent::CreateDryRun,
         ]
     );
@@ -209,10 +209,10 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
         report.events,
         vec![
             ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceExists,
+            ProvisionEvent::InstanceFound,
             ProvisionEvent::OverrideRequested,
-            ProvisionEvent::CloudInitNotConfigured,
-            ProvisionEvent::OverrideExistingInstance,
+            ProvisionEvent::CloudInitSkipped,
+            ProvisionEvent::OverrideStarted,
             ProvisionEvent::DeleteDryRun,
             ProvisionEvent::CreateDryRun,
         ]
@@ -237,10 +237,10 @@ fn create_instance_override_existing_deletes_then_creates() {
         report.events,
         vec![
             ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceExists,
+            ProvisionEvent::InstanceFound,
             ProvisionEvent::OverrideRequested,
-            ProvisionEvent::CloudInitNotConfigured,
-            ProvisionEvent::OverrideExistingInstance,
+            ProvisionEvent::CloudInitSkipped,
+            ProvisionEvent::OverrideStarted,
             ProvisionEvent::DeleteStarted,
             ProvisionEvent::DeleteCompleted,
             ProvisionEvent::CreateStarted,

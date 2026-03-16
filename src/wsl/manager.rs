@@ -6,8 +6,8 @@ use std::collections::BTreeMap;
 
 use crate::config::{Config, ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
-use crate::wsl::maintenance;
-use crate::wsl::validation::{config, environment};
+use crate::wsl::setup;
+use crate::wsl::validation::{environment, profile};
 use crate::wsl::{cloud_init, helpers::path, Outcome, ProfileResult, ProvisionEvent, RunOptions};
 
 pub struct WslManager {
@@ -25,19 +25,19 @@ impl WslManager {
 
     pub fn prepare_environment(&self, dry_run: bool) -> anyhow::Result<()> {
         self.validate_environment()?;
-        maintenance::environment::update_wsl_version(self.engine.as_ref(), dry_run)?;
+        setup::environment::update_wsl_version(self.engine.as_ref(), dry_run)?;
         Ok(())
     }
 
     pub fn create_instance(&self, profile: &Profile, options: RunOptions) -> anyhow::Result<ProfileResult> {
-        config::validate_profile(profile)?;
+        profile::validate_profile(profile)?;
 
         let mut events = vec![ProvisionEvent::InstanceCheckStarted];
         let instance_exists = self.engine.instance_exists(&profile.hostname)?;
         if instance_exists {
-            events.push(ProvisionEvent::InstanceExists);
+            events.push(ProvisionEvent::InstanceFound);
         } else {
-            events.push(ProvisionEvent::InstanceMissing);
+            events.push(ProvisionEvent::InstanceNotFound);
         }
 
         if profile.override_instance {
@@ -86,11 +86,11 @@ impl WslManager {
         events: &mut Vec<ProvisionEvent>,
     ) -> anyhow::Result<()> {
         if !instance_exists {
-            events.push(ProvisionEvent::DeleteSkippedMissing);
+            events.push(ProvisionEvent::DeleteSkipped);
             return Ok(());
         }
 
-        events.push(ProvisionEvent::OverrideExistingInstance);
+        events.push(ProvisionEvent::OverrideStarted);
         if options.dry_run {
             events.push(ProvisionEvent::DeleteDryRun);
             return Ok(());
