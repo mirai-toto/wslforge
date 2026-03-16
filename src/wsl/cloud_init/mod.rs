@@ -24,17 +24,17 @@ pub fn cloud_init_target_file(hostname: &str) -> anyhow::Result<PathBuf> {
 pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyhow::Result<Vec<ProvisionEvent>> {
     let mut events = Vec::new();
     let Some(source) = &profile.cloud_init else {
-        events.push(ProvisionEvent::CloudInitNotConfigured);
+        events.push(ProvisionEvent::CloudInitSkipped);
         return Ok(events);
     };
 
     let content = match source {
         CloudInitSource::File { path } => {
-            events.push(ProvisionEvent::CloudInitSourceFile(path.clone()));
+            events.push(ProvisionEvent::CloudInitSourceResolved(path.clone()));
             load::load_cloud_init_source(source)?
         }
         CloudInitSource::Inline { content } => {
-            events.push(ProvisionEvent::CloudInitSourceInline);
+            events.push(ProvisionEvent::CloudInitInlineLoaded);
             content.clone()
         }
     };
@@ -42,16 +42,16 @@ pub fn prepare_cloud_init(profile: &Profile, dry_run: bool, debug: bool) -> anyh
 
     let target_file = cloud_init_target_file(&profile.hostname)?;
     if dry_run {
-        events.push(ProvisionEvent::CloudInitDryRunTarget(target_file));
+        events.push(ProvisionEvent::CloudInitDryRunDeployed(target_file));
         return Ok(events);
     }
 
     store::store(&target_file, &rendered)?;
-    events.push(ProvisionEvent::CloudInitTargetWritten(target_file));
+    events.push(ProvisionEvent::CloudInitDeployed(target_file));
     if debug {
         match store::copy_debug_to_current_dir(&profile.hostname, &rendered) {
-            DebugCopyOutcome::Written(path) => events.push(ProvisionEvent::CloudInitDebugCopyWritten(path)),
-            DebugCopyOutcome::Skipped(reason) => events.push(ProvisionEvent::CloudInitDebugCopySkipped(reason)),
+            DebugCopyOutcome::Written(path) => events.push(ProvisionEvent::CloudInitDebugCopied(path)),
+            DebugCopyOutcome::Skipped(reason) => events.push(ProvisionEvent::CloudInitDebugSkipped(reason)),
         }
     }
     Ok(events)

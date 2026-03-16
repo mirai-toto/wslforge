@@ -35,9 +35,9 @@ impl WslManager {
         let mut events = vec![ProvisionEvent::InstanceCheckStarted];
         let instance_exists = self.engine.instance_exists(&profile.hostname)?;
         if instance_exists {
-            events.push(ProvisionEvent::InstanceExists);
+            events.push(ProvisionEvent::InstanceFound);
         } else {
-            events.push(ProvisionEvent::InstanceMissing);
+            events.push(ProvisionEvent::InstanceNotFound);
         }
 
         if profile.override_instance {
@@ -86,11 +86,11 @@ impl WslManager {
         events: &mut Vec<ProvisionEvent>,
     ) -> anyhow::Result<()> {
         if !instance_exists {
-            events.push(ProvisionEvent::DeleteSkippedMissing);
+            events.push(ProvisionEvent::DeleteSkipped);
             return Ok(());
         }
 
-        events.push(ProvisionEvent::OverrideExistingInstance);
+        events.push(ProvisionEvent::OverrideStarted);
         if options.dry_run {
             events.push(ProvisionEvent::DeleteDryRun);
             return Ok(());
