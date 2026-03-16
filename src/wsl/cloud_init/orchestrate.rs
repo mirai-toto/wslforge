@@ -1,5 +1,5 @@
 use crate::config::{CloudInitSource, Profile};
-use crate::wsl::helpers::userprofile::resolve_userprofile_dir;
+use crate::wsl::helpers::path::resolve_userprofile_dir;
 use crate::wsl::model::ProvisionEvent;
 use std::path::PathBuf;
 
