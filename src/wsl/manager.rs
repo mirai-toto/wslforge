@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 use crate::config::{Config, ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
-use crate::wsl::maintenance;
+use crate::wsl::setup;
 use crate::wsl::validation::{environment, profile};
 use crate::wsl::{cloud_init, helpers::path, Outcome, ProfileResult, ProvisionEvent, RunOptions};
 
@@ -25,7 +25,7 @@ impl WslManager {
 
     pub fn prepare_environment(&self, dry_run: bool) -> anyhow::Result<()> {
         self.validate_environment()?;
-        maintenance::environment::update_wsl_version(self.engine.as_ref(), dry_run)?;
+        setup::environment::update_wsl_version(self.engine.as_ref(), dry_run)?;
         Ok(())
     }
 
