@@ -16,6 +16,11 @@ A minimal tool to declaratively create and manage WSL instances.
 
 ✨ A clean, declarative way to create WSL instances from a single YAML config, with a focus on clarity and repeatability.
 
+`wslforge` does two things:
+
+1. **Manages WSL instances** — creates, configures, and optionally replaces instances from a YAML profile.
+2. **Templates cloud-init user-data with Jinja** — your `cloud-init` content (file or inline) is rendered as a [Jinja](https://jinja.palletsprojects.com/) template before being handed to WSL, giving you variables, conditionals, and filters inside your user-data.
+
 > Status: early/in-development. Some operations are still mock.
 
 ---
@@ -27,7 +32,7 @@ At a high level, the CLI orchestrates provisioning from your config, prepares `c
 Flow:
 
 1. `wslforge` CLI loads and validates the config file.
-2. The provisioner (`WslManager`) prepares the profile by validating image source and environment, then rendering and writing the `cloud-init` user-data file (or logging it in `dry-run`).
+2. The provisioner (`WslManager`) prepares the profile by validating image source and environment, then rendering and writing the `cloud-init` user-data file (or logging it in `dry-run`). User-data content is rendered as a Jinja template using profile values as context variables.
 3. The provisioner calls the WSL provider, which selects an engine: `CliEngine` for the `wsl.exe`-based flow or `ApiEngine` for the WSL API flow.
 4. The engine creates the instance and reporting summarizes outcomes.
 
@@ -208,6 +213,8 @@ profiles:
 
 Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline. These blocks live inside a profile.
 
+Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Profile fields are available as template variables under `profile.*` (e.g. `{{ profile.username }}`, `{{ profile.hostname }}`), and the hashed password is available as `{{ password_hash }}`.
+
 Cloud-init types:
 
 | Type     | Description                | Example                   |
@@ -280,6 +287,19 @@ Originally prototyped in **PowerShell**, but moved to **Rust** for long-term rel
 - A single executable is easier for users than running and trusting scripts
 - Strong typing and solid tooling make the app more reliable as it grows
 - Great ecosystem for CLI apps, config parsing, logging, and testing
+
+### Why not use an ISO image
+
+Installing from an ISO is a valid approach — and not only are the two not mutually exclusive, they are actually meant to be used together. The intended workflow combines both: use the profile and cloud-init config to build and configure an instance first, then export the result as a rootfs to use as a versioned base image. The config is the source of truth; the image is the distributable artifact.
+
+Keeping the instance definition as code — a small YAML profile and a cloud-init file — gives you:
+
+- **Reproducibility** — run the same config on any machine and get the same result, with or without a custom base image
+- **Transparency** — the full intent of the instance is readable in plain text, not locked inside an opaque image
+- **Version control** — track changes to your environment the same way you track changes to application code
+- **Composability** — profiles are easy to parameterise, share, and layer using Jinja templating
+
+The relationship mirrors Docker: the config and cloud-init are your Dockerfile, and the ISO is the image snapshot of the result.
 
 ### Why it uses cloud-init
 
