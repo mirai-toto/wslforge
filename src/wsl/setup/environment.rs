@@ -1,4 +1,5 @@
 use crate::wsl::engine::WslEngine;
+use crate::wsl::helpers::command_error;
 use log::info;
 
 pub fn update_wsl_version(engine: &dyn WslEngine, dry_run: bool) -> anyhow::Result<()> {
@@ -11,8 +12,6 @@ pub fn update_wsl_version(engine: &dyn WslEngine, dry_run: bool) -> anyhow::Resu
         info!("✅ WSL update completed");
         Ok(())
     } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("Failed to update WSL.\n{}\n{}", stdout.trim(), stderr.trim())
+        Err(command_error("Failed to update WSL", &output))
     }
 }

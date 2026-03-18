@@ -1,5 +1,5 @@
 use crate::config::{ImageSource, Instance};
-use crate::wsl::helpers::path;
+use crate::wsl::helpers::resolve_install_dir;
 use log::info;
 
 pub fn log_config_summary(instance_name: &str, instance: &Instance) {
@@ -31,7 +31,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
 }
 
 fn resolved_install_dir_display(instance: &Instance) -> String {
-    match path::resolve_install_dir(&instance.install_dir, &instance.hostname) {
+    match resolve_install_dir(&instance.install_dir, &instance.hostname) {
         Ok(path) => path.display().to_string(),
         Err(_) => instance.install_dir.join(&instance.hostname).display().to_string(),
     }

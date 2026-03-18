@@ -9,7 +9,7 @@ mod render;
 mod store;
 
 use crate::config::{CloudInitSource, Instance};
-use crate::wsl::helpers::path::resolve_userprofile_dir;
+use crate::wsl::helpers::resolve_userprofile_dir;
 use crate::wsl::model::Event;
 use std::path::PathBuf;
 

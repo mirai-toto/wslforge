@@ -6,9 +6,10 @@ use std::collections::BTreeMap;
 
 use crate::config::{Config, ImageSource, Instance};
 use crate::wsl::engine::WslEngine;
+use crate::wsl::helpers::{expand_path, resolve_install_dir};
 use crate::wsl::setup;
 use crate::wsl::validation::{environment, instance};
-use crate::wsl::{cloud_init, helpers::path, Event, InstanceResult, RunOptions, Status};
+use crate::wsl::{cloud_init, Event, InstanceResult, RunOptions, Status};
 
 pub struct WslManager {
     engine: Box<dyn WslEngine>,
@@ -120,8 +121,8 @@ impl WslManager {
     fn execute_create(&self, instance: &Instance) -> anyhow::Result<Status> {
         match &instance.image {
             ImageSource::File { path: rootfs_tar } => {
-                let install_dir = path::resolve_install_dir(&instance.install_dir, &instance.hostname)?;
-                let rootfs_tar = path::expand_path(rootfs_tar.as_path())?;
+                let install_dir = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
+                let rootfs_tar = expand_path(rootfs_tar.as_path())?;
                 self.engine
                     .create_from_file(&instance.hostname, &install_dir, &rootfs_tar)?;
             }
