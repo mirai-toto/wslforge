@@ -38,7 +38,7 @@ impl WslEngine for ApiEngine {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 
-    fn create_from_distro(&self, _distro_name: &str, _name: &str) -> anyhow::Result<()> {
+    fn create_from_distro(&self, _distro_name: &str, _instance_name: &str) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 }

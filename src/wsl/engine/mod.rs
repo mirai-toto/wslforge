@@ -20,5 +20,5 @@ pub trait WslEngine {
         install_dir: &std::path::Path,
         rootfs_tar: &std::path::Path,
     ) -> anyhow::Result<()>;
-    fn create_from_distro(&self, distro_name: &str, name: &str) -> anyhow::Result<()>;
+    fn create_from_distro(&self, distro_name: &str, instance_name: &str) -> anyhow::Result<()>;
 }

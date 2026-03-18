@@ -8,4 +8,4 @@ mod validation;
 
 pub use engine::EngineKind;
 pub use manager::WslManager;
-pub use model::{Event, ProfileResult, RunOptions, Status};
+pub use model::{Event, InstanceResult, RunOptions, Status};

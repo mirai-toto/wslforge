@@ -18,8 +18,8 @@ pub enum Event {
     InstanceCheckStarted,
     InstanceFound,
     InstanceNotFound,
-    OverrideRequested,
-    OverrideStarted,
+    OverrideEnabled,
+    OverrideTriggered,
     DeleteSkipped,
     DeleteDryRun,
     DeleteStarted,
@@ -36,7 +36,7 @@ pub enum Event {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ProfileResult {
+pub struct InstanceResult {
     pub outcome: Status,
     pub events: Vec<Event>,
 }

@@ -1,11 +1,11 @@
 mod loader;
 mod model;
 pub use loader::load_yaml;
-pub use model::{CloudInitSource, Config, ImageSource, Profile};
+pub use model::{CloudInitSource, Config, ImageSource, Instance};
 
 pub const EXAMPLE_CONFIG: &str = r#"─── Example Config ───────────────────────────────────────────────
 
-profiles:
+instances:
   UbuntuWslDev:
     override: true
     hostname: UbuntuWslDev

@@ -1,16 +1,16 @@
 #cloud-config
 ## template: jinja
-hostname: {{ profile.hostname }}
+hostname: {{ instance.hostname }}
 manage_etc_hosts: true
 
-{% if profile.http_proxy %}
+{% if instance.http_proxy %}
 apt:
-  http_proxy: "{{ profile.http_proxy }}"
-  https_proxy: "{{ profile.https_proxy }}"
+  http_proxy: "{{ instance.http_proxy }}"
+  https_proxy: "{{ instance.https_proxy }}"
 {% endif %}
 
 users:
-  - name: {{ profile.username }}
+  - name: {{ instance.username }}
     groups: sudo
     shell: /bin/bash
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
@@ -31,20 +31,20 @@ packages:
   - npm
 
 write_files:
-{% if profile.http_proxy %}
-  - path: /etc/profile.d/proxy.sh
+{% if instance.http_proxy %}
+  - path: /etc/instance.d/proxy.sh
     permissions: '0644'
     content: |
-      export http_proxy="{{ profile.http_proxy }}"
-      export https_proxy="{{ profile.https_proxy }}"
-      export no_proxy="{{ profile.no_proxy }}"
+      export http_proxy="{{ instance.http_proxy }}"
+      export https_proxy="{{ instance.https_proxy }}"
+      export no_proxy="{{ instance.no_proxy }}"
 {% endif %}
-{% if profile.http_proxy %}
+{% if instance.http_proxy %}
   - path: /etc/apt/apt.conf.d/95proxies
     permissions: '0644'
     content: |
-      Acquire::http::Proxy "{{ profile.http_proxy }}";
-      Acquire::https::Proxy "{{ profile.https_proxy }}";
+      Acquire::http::Proxy "{{ instance.http_proxy }}";
+      Acquire::https::Proxy "{{ instance.https_proxy }}";
 {% endif %}
   - path: /usr/lib/binfmt.d/WSLInterop.conf
     permissions: '0644'
@@ -60,24 +60,24 @@ write_files:
       [interop]
       appendWindowsPath = true
       [user]
-      default={{ profile.username }}
+      default={{ instance.username }}
 
 runcmd:
-{% if profile.http_proxy %}
-  - git config --system http.proxy "{{ profile.http_proxy }}"
-  - git config --system https.proxy "{{ profile.https_proxy }}"
+{% if instance.http_proxy %}
+  - git config --system http.proxy "{{ instance.http_proxy }}"
+  - git config --system https.proxy "{{ instance.https_proxy }}"
 {% endif %}
   - curl -fsSL https://get.docker.com | sh
-  - usermod -aG docker {{ profile.username }}
+  - usermod -aG docker {{ instance.username }}
   - systemctl enable docker
   - systemctl start docker
   - apt install -y docker-compose-plugin
   - snap install microk8s --classic
-  - usermod -a -G microk8s {{ profile.username }}
-  - mkdir -p /home/{{ profile.username }}/.kube
+  - usermod -a -G microk8s {{ instance.username }}
+  - mkdir -p /home/{{ instance.username }}/.kube
   - microk8s status --wait-ready
-  - microk8s config > /home/{{ profile.username }}/.kube/config
-  - chown -R {{ profile.username }}:{{ profile.username }} /home/{{ profile.username }}/.kube
+  - microk8s config > /home/{{ instance.username }}/.kube/config
+  - chown -R {{ instance.username }}:{{ instance.username }} /home/{{ instance.username }}/.kube
   - snap install kubectl --classic
 
-final_message: "✅ cloud-init finished on {{ profile.hostname }}."
+final_message: "✅ cloud-init finished on {{ instance.hostname }}."

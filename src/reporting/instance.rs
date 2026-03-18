@@ -1,7 +1,7 @@
-use crate::wsl::{Event, ProfileResult, Status};
+use crate::wsl::{Event, InstanceResult, Status};
 use log::info;
 
-pub fn log_create_report(report: &ProfileResult, hostname: &str) {
+pub fn log_create_report(report: &InstanceResult, hostname: &str) {
     for event in &report.events {
         log_create_event(event, hostname);
     }
@@ -19,8 +19,8 @@ fn log_create_event(event: &Event, hostname: &str) {
         Event::InstanceCheckStarted => info!("🔍 Checking if WSL instance '{}' exists...", hostname),
         Event::InstanceFound => info!("✅ WSL instance '{}' exists.", hostname),
         Event::InstanceNotFound => info!("ℹ️ WSL instance '{}' does not exist.", hostname),
-        Event::OverrideRequested => info!("⚠️ Override requested for WSL instance '{}'.", hostname),
-        Event::OverrideStarted => {
+        Event::OverrideEnabled => info!("⚠️ Override requested for WSL instance '{}'.", hostname),
+        Event::OverrideTriggered => {
             info!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname)
         }
         Event::DeleteSkipped => {
