@@ -43,15 +43,15 @@ impl WslManager {
 
         if instance.override_instance {
             events.push(Event::OverrideEnabled);
-            self.prepare_provision(instance, options, &mut events)?;
-            self.delete_instance(&instance.hostname, instance_exists, options, &mut events)?;
+            events.extend(self.prepare_provision(instance, options)?);
+            events.extend(self.delete_instance(&instance.hostname, instance_exists, options)?);
         } else if instance_exists {
             return Ok(InstanceResult {
                 outcome: Status::AlreadyExists,
                 events,
             });
         } else {
-            self.prepare_provision(instance, options, &mut events)?;
+            events.extend(self.prepare_provision(instance, options)?);
         }
 
         if options.dry_run {
@@ -84,38 +84,29 @@ impl WslManager {
         hostname: &str,
         instance_exists: bool,
         options: RunOptions,
-        events: &mut Vec<Event>,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<Vec<Event>> {
         if !instance_exists {
-            events.push(Event::DeleteSkipped);
-            return Ok(());
+            return Ok(vec![Event::DeleteSkipped]);
         }
 
-        events.push(Event::OverrideTriggered);
         if options.dry_run {
-            events.push(Event::DeleteDryRun);
-            return Ok(());
+            return Ok(vec![Event::OverrideTriggered, Event::DeleteDryRun]);
         }
 
-        events.push(Event::DeleteStarted);
         self.engine.delete_instance(hostname)?;
-        events.push(Event::DeleteCompleted);
-        Ok(())
+        Ok(vec![
+            Event::OverrideTriggered,
+            Event::DeleteStarted,
+            Event::DeleteCompleted,
+        ])
     }
 
-    fn prepare_provision(
-        &self,
-        instance: &Instance,
-        options: RunOptions,
-        events: &mut Vec<Event>,
-    ) -> anyhow::Result<()> {
+    fn prepare_provision(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<Vec<Event>> {
         if let ImageSource::Distro { name } = &instance.image {
             environment::validate_wsl_distro_name(self.engine.as_ref(), name)?;
         }
 
-        let cloud_init_events = cloud_init::prepare_cloud_init(instance, options.dry_run, options.debug)?;
-        events.extend(cloud_init_events);
-        Ok(())
+        cloud_init::prepare_cloud_init(instance, options.dry_run, options.debug)
     }
 
     fn execute_create(&self, instance: &Instance) -> anyhow::Result<Status> {
