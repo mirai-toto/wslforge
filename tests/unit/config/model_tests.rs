@@ -1,17 +1,17 @@
-use super::{CloudInitSource, ImageSource, Profile};
+use super::{CloudInitSource, ImageSource, Instance};
 use std::path::Path;
 
 #[test]
-fn profile_deserialization_applies_defaults() {
-    let profile: Profile = serde_yaml::from_str("{}\n").expect("deserialize profile");
+fn instance_deserialization_applies_defaults() {
+    let instance: Instance = serde_yaml::from_str("{}\n").expect("deserialize instance");
 
-    assert!(!profile.override_instance);
-    assert_eq!(profile.hostname, "UbuntuWSL");
-    assert_eq!(profile.username, "wsluser");
-    assert_eq!(profile.install_dir, Path::new("%userprofile%/VMs"));
-    assert!(profile.cloud_init.is_none());
+    assert!(!instance.override_instance);
+    assert_eq!(instance.hostname, "UbuntuWSL");
+    assert_eq!(instance.username, "wsluser");
+    assert_eq!(instance.install_dir, Path::new("%userprofile%/VMs"));
+    assert!(instance.cloud_init.is_none());
 
-    match profile.image {
+    match instance.image {
         ImageSource::Distro { name } => assert_eq!(name, "Ubuntu"),
         ImageSource::File { .. } => panic!("expected default distro image"),
     }

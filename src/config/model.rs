@@ -65,7 +65,7 @@ impl Default for ImageSource {
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub struct Profile {
+pub struct Instance {
     #[serde(default, rename = "override")]
     pub override_instance: bool,
     #[serde(default = "default_hostname")]
@@ -94,7 +94,7 @@ pub struct Profile {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
-    pub profiles: BTreeMap<String, Profile>,
+    pub instances: BTreeMap<String, Instance>,
 }
 
 #[cfg(test)]

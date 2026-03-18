@@ -1,4 +1,4 @@
-use crate::config::{Config, Profile};
+use crate::config::{Config, Instance};
 use anyhow::Context;
 use std::collections::BTreeMap;
 use std::{fs, path::Path};
@@ -16,17 +16,17 @@ pub fn load_yaml(path: &Path) -> anyhow::Result<Config> {
 
     match serde_yaml::from_str::<Config>(&raw) {
         Ok(cfg) => Ok(cfg),
-        Err(root_err) => match serde_yaml::from_str::<Profile>(&raw) {
-            Ok(profile) => {
-                let mut profiles = BTreeMap::new();
-                let name = profile.hostname.clone();
-                profiles.insert(name, profile);
-                Ok(Config { profiles })
+        Err(root_err) => match serde_yaml::from_str::<Instance>(&raw) {
+            Ok(instance) => {
+                let mut instances = BTreeMap::new();
+                let name = instance.hostname.clone();
+                instances.insert(name, instance);
+                Ok(Config { instances })
             }
-            Err(profile_err) => Err(anyhow::anyhow!(
-                "invalid yaml\n- profiles format error: {}\n- single-profile format error: {}\n\nExpected either:\n- profiles:\n    <name>:\n      <profile>\n- or a single profile object at the root",
+            Err(instance_err) => Err(anyhow::anyhow!(
+                "invalid yaml\n- instances format error: {}\n- single-instance format error: {}\n\nExpected either:\n- instances:\n    <name>:\n      <instance>\n- or a single instance object at the root",
                 format_yaml_error(path, &root_err),
-                format_yaml_error(path, &profile_err)
+                format_yaml_error(path, &instance_err)
             )),
         },
     }

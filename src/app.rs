@@ -8,13 +8,13 @@ use crate::{
     },
 };
 
-pub struct AppConfig<'a> {
+pub struct AppArgs<'a> {
     pub config_path: &'a Path,
     pub dry_run: bool,
     pub debug: bool,
 }
 
-pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
+pub fn run(cfg: AppArgs<'_>) -> anyhow::Result<()> {
     ensure_windows()?;
 
     let manager = WslManager::new(build_engine(EngineKind::Cli));
@@ -26,17 +26,17 @@ pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
     let config = config::load_yaml(cfg.config_path)?;
     log::debug!("📋 Loaded config from {}", cfg.config_path.display());
 
-    for (profile_name, profile) in &config.profiles {
-        reporting::log_config_summary(profile_name, profile);
+    for (instance_name, instance) in &config.instances {
+        reporting::log_config_summary(instance_name, instance);
     }
 
-    let create_reports_by_profile = manager.apply_config(&config, options)?;
+    let results = manager.apply_config(&config, options)?;
 
-    for (profile_name, profile) in &config.profiles {
-        let report = create_reports_by_profile
-            .get(profile_name)
-            .ok_or_else(|| anyhow::anyhow!("missing create report for profile '{profile_name}'"))?;
-        reporting::log_create_report(report, &profile.hostname);
+    for (instance_name, instance) in &config.instances {
+        let result = results
+            .get(instance_name)
+            .ok_or_else(|| anyhow::anyhow!("missing result for instance '{instance_name}'"))?;
+        reporting::log_create_report(result, &instance.hostname);
     }
 
     Ok(())

@@ -1,12 +1,12 @@
-use crate::config::{ImageSource, Profile};
+use crate::config::{ImageSource, Instance};
 use crate::wsl::helpers::path::expand_env_vars;
 
-pub fn validate_profile(profile: &Profile) -> anyhow::Result<()> {
-    validate_image_source(profile)
+pub fn validate_instance(instance: &Instance) -> anyhow::Result<()> {
+    validate_image_source(instance)
 }
 
-pub fn validate_image_source(profile: &Profile) -> anyhow::Result<()> {
-    if let ImageSource::File { path } = &profile.image {
+pub fn validate_image_source(instance: &Instance) -> anyhow::Result<()> {
+    if let ImageSource::File { path } = &instance.image {
         let expanded = expand_env_vars(&path.to_string_lossy())?;
         let expanded_path = std::path::PathBuf::from(expanded);
         if !expanded_path.exists() {

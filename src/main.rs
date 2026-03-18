@@ -11,7 +11,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     init_logger(args.verbose);
-    app::run(app::AppConfig {
+    app::run(app::AppArgs {
         config_path: &args.config,
         dry_run: args.dry_run,
         debug: args.debug,

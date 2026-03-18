@@ -77,9 +77,9 @@ impl WslEngine for CliEngine {
         Ok(())
     }
 
-    fn create_from_distro(&self, distro_name: &str, name: &str) -> anyhow::Result<()> {
+    fn create_from_distro(&self, distro_name: &str, instance_name: &str) -> anyhow::Result<()> {
         let mut cmd = Command::new("wsl.exe");
-        cmd.args(["--install", "-d", distro_name, "--name", name, "--no-launch"]);
+        cmd.args(["--install", "-d", distro_name, "--name", instance_name, "--no-launch"]);
 
         let status = cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit()).status()?;
         if !status.success() {

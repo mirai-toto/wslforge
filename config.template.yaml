@@ -1,4 +1,4 @@
-profiles:
+instances:
   UbuntuWslDev:
     override: true
     # --- Basic instance settings ---

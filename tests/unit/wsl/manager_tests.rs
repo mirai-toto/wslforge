@@ -1,7 +1,7 @@
 use super::WslManager;
-use crate::config::Profile;
+use crate::config::Instance;
 use crate::wsl::engine::WslEngine;
-use crate::wsl::{Outcome, ProvisionEvent, RunOptions};
+use crate::wsl::{Event, RunOptions, Status};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -65,16 +65,16 @@ impl WslEngine for FakeEngine {
         Ok(())
     }
 
-    fn create_from_distro(&self, distro_name: &str, name: &str) -> anyhow::Result<()> {
+    fn create_from_distro(&self, distro_name: &str, instance_name: &str) -> anyhow::Result<()> {
         self.calls
             .lock()
             .expect("lock calls")
-            .push(format!("create_from_distro:{distro_name}:{name}"));
+            .push(format!("create_from_distro:{distro_name}:{instance_name}"));
         Ok(())
     }
 }
 
-fn file_image_profile(image_path: &Path) -> Profile {
+fn file_image_instance(image_path: &Path) -> Instance {
     serde_yaml::from_str(&format!(
         r#"
 hostname: devbox
@@ -86,10 +86,10 @@ image:
 "#,
         image_path.display()
     ))
-    .expect("deserialize profile")
+    .expect("deserialize instance")
 }
 
-fn file_image_profile_with_override(image_path: &Path, override_instance: bool) -> Profile {
+fn file_image_instance_with_override(image_path: &Path, override_instance: bool) -> Instance {
     serde_yaml::from_str(&format!(
         r#"
 hostname: devbox
@@ -103,7 +103,7 @@ image:
         override_instance,
         image_path.display()
     ))
-    .expect("deserialize profile")
+    .expect("deserialize instance")
 }
 
 fn create_temp_tar_file(dir: &tempfile::TempDir) -> PathBuf {
@@ -114,26 +114,23 @@ fn create_temp_tar_file(dir: &tempfile::TempDir) -> PathBuf {
 
 #[test]
 fn create_instance_returns_already_exists_when_present_without_override() {
-    let profile: Profile = serde_yaml::from_str(
+    let instance: Instance = serde_yaml::from_str(
         r#"
 hostname: devbox
 username: devuser
 override: false
 "#,
     )
-    .expect("deserialize profile");
+    .expect("deserialize instance");
     let (engine, calls) = FakeEngine::new(true, false);
     let manager = WslManager::new(Box::new(engine));
 
     let report = manager
-        .create_instance(&profile, RunOptions::default())
+        .create_instance(&instance, RunOptions::default())
         .expect("create instance should return report");
 
-    assert_eq!(report.outcome, Outcome::AlreadyExists);
-    assert_eq!(
-        report.events,
-        vec![ProvisionEvent::InstanceCheckStarted, ProvisionEvent::InstanceFound]
-    );
+    assert_eq!(report.outcome, Status::AlreadyExists);
+    assert_eq!(report.events, vec![Event::InstanceCheckStarted, Event::InstanceFound]);
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
 }
 
@@ -141,13 +138,13 @@ override: false
 fn create_instance_dry_run_skips_engine_create_after_prepare() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
-    let profile = file_image_profile(&image_path);
+    let instance = file_image_instance(&image_path);
     let (engine, calls) = FakeEngine::new(false, false);
     let manager = WslManager::new(Box::new(engine));
 
     let report = manager
         .create_instance(
-            &profile,
+            &instance,
             RunOptions {
                 dry_run: true,
                 debug: false,
@@ -155,14 +152,14 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
         )
         .expect("dry run should succeed");
 
-    assert_eq!(report.outcome, Outcome::Skipped);
+    assert_eq!(report.outcome, Status::Skipped);
     assert_eq!(
         report.events,
         vec![
-            ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceNotFound,
-            ProvisionEvent::CloudInitSkipped,
-            ProvisionEvent::CreateDryRun,
+            Event::InstanceCheckStarted,
+            Event::InstanceNotFound,
+            Event::CloudInitSkipped,
+            Event::CreateDryRun,
         ]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
@@ -172,12 +169,12 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
 fn create_instance_returns_error_when_engine_create_fails() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
-    let profile = file_image_profile(&image_path);
+    let instance = file_image_instance(&image_path);
     let (engine, calls) = FakeEngine::new(false, true);
     let manager = WslManager::new(Box::new(engine));
 
     let err = manager
-        .create_instance(&profile, RunOptions::default())
+        .create_instance(&instance, RunOptions::default())
         .expect_err("engine create failure should bubble up");
     assert!(err.to_string().contains("create from file failed"));
     assert_eq!(
@@ -190,13 +187,13 @@ fn create_instance_returns_error_when_engine_create_fails() {
 fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
-    let profile = file_image_profile_with_override(&image_path, true);
+    let instance = file_image_instance_with_override(&image_path, true);
     let (engine, calls) = FakeEngine::new(true, false);
     let manager = WslManager::new(Box::new(engine));
 
     let report = manager
         .create_instance(
-            &profile,
+            &instance,
             RunOptions {
                 dry_run: true,
                 debug: false,
@@ -204,17 +201,17 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
         )
         .expect("dry run should succeed");
 
-    assert_eq!(report.outcome, Outcome::Skipped);
+    assert_eq!(report.outcome, Status::Skipped);
     assert_eq!(
         report.events,
         vec![
-            ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceFound,
-            ProvisionEvent::OverrideRequested,
-            ProvisionEvent::CloudInitSkipped,
-            ProvisionEvent::OverrideStarted,
-            ProvisionEvent::DeleteDryRun,
-            ProvisionEvent::CreateDryRun,
+            Event::InstanceCheckStarted,
+            Event::InstanceFound,
+            Event::OverrideEnabled,
+            Event::CloudInitSkipped,
+            Event::OverrideTriggered,
+            Event::DeleteDryRun,
+            Event::CreateDryRun,
         ]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
@@ -224,26 +221,26 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
 fn create_instance_override_existing_deletes_then_creates() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
-    let profile = file_image_profile_with_override(&image_path, true);
+    let instance = file_image_instance_with_override(&image_path, true);
     let (engine, calls) = FakeEngine::new(true, false);
     let manager = WslManager::new(Box::new(engine));
 
     let report = manager
-        .create_instance(&profile, RunOptions::default())
+        .create_instance(&instance, RunOptions::default())
         .expect("override create should succeed");
 
-    assert_eq!(report.outcome, Outcome::Created);
+    assert_eq!(report.outcome, Status::Created);
     assert_eq!(
         report.events,
         vec![
-            ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceFound,
-            ProvisionEvent::OverrideRequested,
-            ProvisionEvent::CloudInitSkipped,
-            ProvisionEvent::OverrideStarted,
-            ProvisionEvent::DeleteStarted,
-            ProvisionEvent::DeleteCompleted,
-            ProvisionEvent::CreateStarted,
+            Event::InstanceCheckStarted,
+            Event::InstanceFound,
+            Event::OverrideEnabled,
+            Event::CloudInitSkipped,
+            Event::OverrideTriggered,
+            Event::DeleteStarted,
+            Event::DeleteCompleted,
+            Event::CreateStarted,
         ]
     );
     assert_eq!(
