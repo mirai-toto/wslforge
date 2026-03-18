@@ -1,7 +1,7 @@
 use super::WslManager;
 use crate::config::Profile;
 use crate::wsl::engine::WslEngine;
-use crate::wsl::{Outcome, ProvisionEvent, RunOptions};
+use crate::wsl::{Event, RunOptions, Status};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
@@ -129,10 +129,10 @@ override: false
         .create_instance(&profile, RunOptions::default())
         .expect("create instance should return report");
 
-    assert_eq!(report.outcome, Outcome::AlreadyExists);
+    assert_eq!(report.outcome, Status::AlreadyExists);
     assert_eq!(
         report.events,
-        vec![ProvisionEvent::InstanceCheckStarted, ProvisionEvent::InstanceFound]
+        vec![Event::InstanceCheckStarted, Event::InstanceFound]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
 }
@@ -155,14 +155,14 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
         )
         .expect("dry run should succeed");
 
-    assert_eq!(report.outcome, Outcome::Skipped);
+    assert_eq!(report.outcome, Status::Skipped);
     assert_eq!(
         report.events,
         vec![
-            ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceNotFound,
-            ProvisionEvent::CloudInitSkipped,
-            ProvisionEvent::CreateDryRun,
+            Event::InstanceCheckStarted,
+            Event::InstanceNotFound,
+            Event::CloudInitSkipped,
+            Event::CreateDryRun,
         ]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
@@ -204,17 +204,17 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
         )
         .expect("dry run should succeed");
 
-    assert_eq!(report.outcome, Outcome::Skipped);
+    assert_eq!(report.outcome, Status::Skipped);
     assert_eq!(
         report.events,
         vec![
-            ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceFound,
-            ProvisionEvent::OverrideRequested,
-            ProvisionEvent::CloudInitSkipped,
-            ProvisionEvent::OverrideStarted,
-            ProvisionEvent::DeleteDryRun,
-            ProvisionEvent::CreateDryRun,
+            Event::InstanceCheckStarted,
+            Event::InstanceFound,
+            Event::OverrideRequested,
+            Event::CloudInitSkipped,
+            Event::OverrideStarted,
+            Event::DeleteDryRun,
+            Event::CreateDryRun,
         ]
     );
     assert_eq!(calls.lock().expect("lock calls").as_slice(), ["instance_exists:devbox"]);
@@ -232,18 +232,18 @@ fn create_instance_override_existing_deletes_then_creates() {
         .create_instance(&profile, RunOptions::default())
         .expect("override create should succeed");
 
-    assert_eq!(report.outcome, Outcome::Created);
+    assert_eq!(report.outcome, Status::Created);
     assert_eq!(
         report.events,
         vec![
-            ProvisionEvent::InstanceCheckStarted,
-            ProvisionEvent::InstanceFound,
-            ProvisionEvent::OverrideRequested,
-            ProvisionEvent::CloudInitSkipped,
-            ProvisionEvent::OverrideStarted,
-            ProvisionEvent::DeleteStarted,
-            ProvisionEvent::DeleteCompleted,
-            ProvisionEvent::CreateStarted,
+            Event::InstanceCheckStarted,
+            Event::InstanceFound,
+            Event::OverrideRequested,
+            Event::CloudInitSkipped,
+            Event::OverrideStarted,
+            Event::DeleteStarted,
+            Event::DeleteCompleted,
+            Event::CreateStarted,
         ]
     );
     assert_eq!(

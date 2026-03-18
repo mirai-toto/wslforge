@@ -8,7 +8,7 @@ use crate::config::{Config, ImageSource, Profile};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::setup;
 use crate::wsl::validation::{environment, profile};
-use crate::wsl::{cloud_init, helpers::path, Outcome, ProfileResult, ProvisionEvent, RunOptions};
+use crate::wsl::{cloud_init, helpers::path, Event, ProfileResult, RunOptions, Status};
 
 pub struct WslManager {
     engine: Box<dyn WslEngine>,
@@ -32,21 +32,21 @@ impl WslManager {
     pub fn create_instance(&self, profile: &Profile, options: RunOptions) -> anyhow::Result<ProfileResult> {
         profile::validate_profile(profile)?;
 
-        let mut events = vec![ProvisionEvent::InstanceCheckStarted];
+        let mut events = vec![Event::InstanceCheckStarted];
         let instance_exists = self.engine.instance_exists(&profile.hostname)?;
         if instance_exists {
-            events.push(ProvisionEvent::InstanceFound);
+            events.push(Event::InstanceFound);
         } else {
-            events.push(ProvisionEvent::InstanceNotFound);
+            events.push(Event::InstanceNotFound);
         }
 
         if profile.override_instance {
-            events.push(ProvisionEvent::OverrideRequested);
+            events.push(Event::OverrideRequested);
             self.prepare_profile(profile, options, &mut events)?;
             self.delete_instance(&profile.hostname, instance_exists, options, &mut events)?;
         } else if instance_exists {
             return Ok(ProfileResult {
-                outcome: Outcome::AlreadyExists,
+                outcome: Status::AlreadyExists,
                 events,
             });
         } else {
@@ -54,14 +54,14 @@ impl WslManager {
         }
 
         if options.dry_run {
-            events.push(ProvisionEvent::CreateDryRun);
+            events.push(Event::CreateDryRun);
             return Ok(ProfileResult {
-                outcome: Outcome::Skipped,
+                outcome: Status::Skipped,
                 events,
             });
         }
 
-        events.push(ProvisionEvent::CreateStarted);
+        events.push(Event::CreateStarted);
         let outcome = self.create_profile(profile)?;
         Ok(ProfileResult { outcome, events })
     }
@@ -83,22 +83,22 @@ impl WslManager {
         hostname: &str,
         instance_exists: bool,
         options: RunOptions,
-        events: &mut Vec<ProvisionEvent>,
+        events: &mut Vec<Event>,
     ) -> anyhow::Result<()> {
         if !instance_exists {
-            events.push(ProvisionEvent::DeleteSkipped);
+            events.push(Event::DeleteSkipped);
             return Ok(());
         }
 
-        events.push(ProvisionEvent::OverrideStarted);
+        events.push(Event::OverrideStarted);
         if options.dry_run {
-            events.push(ProvisionEvent::DeleteDryRun);
+            events.push(Event::DeleteDryRun);
             return Ok(());
         }
 
-        events.push(ProvisionEvent::DeleteStarted);
+        events.push(Event::DeleteStarted);
         self.engine.delete_instance(hostname)?;
-        events.push(ProvisionEvent::DeleteCompleted);
+        events.push(Event::DeleteCompleted);
         Ok(())
     }
 
@@ -106,7 +106,7 @@ impl WslManager {
         &self,
         profile: &Profile,
         options: RunOptions,
-        events: &mut Vec<ProvisionEvent>,
+        events: &mut Vec<Event>,
     ) -> anyhow::Result<()> {
         if let ImageSource::Distro { name } = &profile.image {
             environment::validate_wsl_distro_name(self.engine.as_ref(), name)?;
@@ -117,7 +117,7 @@ impl WslManager {
         Ok(())
     }
 
-    fn create_profile(&self, profile: &Profile) -> anyhow::Result<Outcome> {
+    fn create_profile(&self, profile: &Profile) -> anyhow::Result<Status> {
         match &profile.image {
             ImageSource::File { path: rootfs_tar } => {
                 let install_dir = path::resolve_install_dir(&profile.install_dir, &profile.hostname)?;
@@ -129,7 +129,7 @@ impl WslManager {
                 self.engine.create_from_distro(name, &profile.hostname)?;
             }
         }
-        Ok(Outcome::Created)
+        Ok(Status::Created)
     }
 }
 

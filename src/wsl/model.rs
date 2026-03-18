@@ -7,14 +7,14 @@ pub struct RunOptions {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Outcome {
+pub enum Status {
     Created,
     AlreadyExists,
     Skipped,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ProvisionEvent {
+pub enum Event {
     InstanceCheckStarted,
     InstanceFound,
     InstanceNotFound,
@@ -37,6 +37,6 @@ pub enum ProvisionEvent {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ProfileResult {
-    pub outcome: Outcome,
-    pub events: Vec<ProvisionEvent>,
+    pub outcome: Status,
+    pub events: Vec<Event>,
 }

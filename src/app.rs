@@ -8,13 +8,13 @@ use crate::{
     },
 };
 
-pub struct AppConfig<'a> {
+pub struct AppArgs<'a> {
     pub config_path: &'a Path,
     pub dry_run: bool,
     pub debug: bool,
 }
 
-pub fn run(cfg: AppConfig<'_>) -> anyhow::Result<()> {
+pub fn run(cfg: AppArgs<'_>) -> anyhow::Result<()> {
     ensure_windows()?;
 
     let manager = WslManager::new(build_engine(EngineKind::Cli));
