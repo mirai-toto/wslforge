@@ -1,5 +1,5 @@
 use crate::config::Instance;
-use crate::wsl::helpers::crypto::hash_password_sha512;
+use crate::wsl::helpers::hash_password_sha512;
 use minijinja::Environment;
 use serde::Serialize;
 

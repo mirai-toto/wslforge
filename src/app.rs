@@ -51,7 +51,7 @@ fn ensure_windows() -> anyhow::Result<()> {
 
 fn build_engine(kind: EngineKind) -> Box<dyn WslEngine> {
     match kind {
-        EngineKind::Cli => Box::new(CliEngine::new()),
-        EngineKind::Api => Box::new(ApiEngine::new()),
+        EngineKind::Cli => Box::new(CliEngine),
+        EngineKind::Api => Box::new(ApiEngine),
     }
 }

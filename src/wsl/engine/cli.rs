@@ -1,13 +1,9 @@
 use crate::wsl::engine::WslEngine;
+use crate::wsl::helpers::command_error;
 use std::process::{Command, Stdio};
 
+#[derive(Default)]
 pub struct CliEngine;
-
-impl CliEngine {
-    pub fn new() -> Self {
-        Self
-    }
-}
 
 impl WslEngine for CliEngine {
     fn status(&self) -> anyhow::Result<std::process::Output> {
@@ -35,14 +31,7 @@ impl WslEngine for CliEngine {
         let output = Command::new("wsl.exe").args(["--unregister", name]).output()?;
 
         if !output.status.success() {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!(
-                "wsl.exe --unregister failed with status {}\n{}\n{}",
-                output.status,
-                stdout.trim(),
-                stderr.trim()
-            );
+            return Err(command_error("wsl.exe --unregister failed", &output));
         }
         Ok(())
     }
@@ -65,14 +54,7 @@ impl WslEngine for CliEngine {
 
         let output = cmd.output()?;
         if !output.status.success() {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            anyhow::bail!(
-                "wsl.exe --import failed with status {}\n{}\n{}",
-                output.status,
-                stdout.trim(),
-                stderr.trim()
-            );
+            return Err(command_error("wsl.exe --import failed", &output));
         }
         Ok(())
     }

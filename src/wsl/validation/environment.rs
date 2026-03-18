@@ -1,4 +1,5 @@
 use crate::wsl::engine::WslEngine;
+use crate::wsl::helpers::command_error;
 use encoding_rs::UTF_16LE;
 use log::info;
 use std::process::Command;
@@ -15,9 +16,7 @@ pub fn validate_wsl_installed(engine: &dyn WslEngine) -> anyhow::Result<()> {
         info!("✅ WSL is installed");
         Ok(())
     } else {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        anyhow::bail!("WSL is not installed.\n{}\n{}", stdout.trim(), stderr.trim())
+        Err(command_error("WSL is not installed", &output))
     }
 }
 
@@ -75,12 +74,10 @@ fn is_windows_feature_enabled(feature_name: &str) -> anyhow::Result<bool> {
         .output()?;
 
     if !output.status.success() {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        anyhow::bail!(
-            "dism.exe failed for feature '{feature_name}' with status {}\n{}",
-            output.status,
-            stdout.trim(),
-        );
+        return Err(command_error(
+            &format!("dism.exe failed for feature '{feature_name}'"),
+            &output,
+        ));
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);

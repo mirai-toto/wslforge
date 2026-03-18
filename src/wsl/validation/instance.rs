@@ -1,5 +1,5 @@
 use crate::config::{ImageSource, Instance};
-use crate::wsl::helpers::path::expand_env_vars;
+use crate::wsl::helpers::expand_env_vars;
 
 pub fn validate_instance(instance: &Instance) -> anyhow::Result<()> {
     validate_image_source(instance)
@@ -23,6 +23,7 @@ pub fn validate_image_source(instance: &Instance) -> anyhow::Result<()> {
 }
 
 fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
+    const VALID_EXTENSIONS: &[&str] = &[".tar", ".tar.gz", ".tgz", ".tar.xz"];
     let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
-    name.ends_with(".tar") || name.ends_with(".tar.gz") || name.ends_with(".tgz") || name.ends_with(".tar.xz")
+    VALID_EXTENSIONS.iter().any(|ext| name.ends_with(ext))
 }

@@ -1,12 +1,7 @@
 use crate::wsl::engine::WslEngine;
 
+#[derive(Default)]
 pub struct ApiEngine;
-
-impl ApiEngine {
-    pub fn new() -> Self {
-        Self
-    }
-}
 
 impl WslEngine for ApiEngine {
     fn status(&self) -> anyhow::Result<std::process::Output> {

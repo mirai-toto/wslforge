@@ -1,5 +1,5 @@
 use crate::config::CloudInitSource;
-use crate::wsl::helpers::path::expand_env_vars;
+use crate::wsl::helpers::expand_env_vars;
 use std::path::PathBuf;
 
 pub(super) fn load_cloud_init_source(source: &CloudInitSource) -> anyhow::Result<String> {
