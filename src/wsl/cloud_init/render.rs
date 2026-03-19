@@ -2,34 +2,22 @@ use crate::config::Instance;
 use crate::wsl::helpers::hash_password_sha512;
 use minijinja::Environment;
 use serde::Serialize;
+use std::collections::HashMap;
 
 #[derive(Serialize)]
-struct CloudInitRenderContext {
-    instance: CloudInitRenderInstance,
-    password_hash: Option<String>,
-}
-
-#[derive(Serialize)]
-struct CloudInitRenderInstance {
-    override_instance: bool,
-    hostname: String,
-    username: String,
-    http_proxy: Option<String>,
-    https_proxy: Option<String>,
+struct CloudInitRenderProxy {
+    http: Option<String>,
+    https: Option<String>,
     no_proxy: Option<String>,
 }
 
-impl From<&Instance> for CloudInitRenderInstance {
-    fn from(instance: &Instance) -> Self {
-        Self {
-            override_instance: instance.override_instance,
-            hostname: instance.hostname.clone(),
-            username: instance.username.clone(),
-            http_proxy: instance.http_proxy.as_ref().map(ToString::to_string),
-            https_proxy: instance.https_proxy.as_ref().map(ToString::to_string),
-            no_proxy: instance.no_proxy.clone(),
-        }
-    }
+#[derive(Serialize)]
+struct CloudInitRenderContext {
+    hostname: String,
+    username: String,
+    password_hash: Option<String>,
+    proxy: Option<CloudInitRenderProxy>,
+    vars: HashMap<String, String>,
 }
 
 pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
@@ -47,8 +35,15 @@ pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
     };
 
     let context: CloudInitRenderContext = CloudInitRenderContext {
-        instance: instance.into(),
+        hostname: instance.hostname.clone(),
+        username: instance.username.clone(),
         password_hash,
+        proxy: instance.proxy.as_ref().map(|p| CloudInitRenderProxy {
+            http: p.http.as_ref().map(ToString::to_string),
+            https: p.https.as_ref().map(ToString::to_string),
+            no_proxy: p.no_proxy.clone(),
+        }),
+        vars: instance.vars.clone(),
     };
 
     template

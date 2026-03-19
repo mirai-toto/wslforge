@@ -14,14 +14,13 @@ override: true
     .expect("deserialize instance");
 
     let output = render(
-        "hostname={{ instance.hostname }}\nuser={{ instance.username }}\noverride={{ instance.override_instance }}\nhash={{ password_hash }}",
+        "hostname={{ hostname }}\nuser={{ username }}\nhash={{ password_hash }}",
         &instance,
     )
     .expect("render template");
 
     assert!(output.contains("hostname=devbox"));
     assert!(output.contains("user=devuser"));
-    assert!(output.contains("override=true"));
     assert!(output.contains("hash="));
 }
 
