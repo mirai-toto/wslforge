@@ -3,7 +3,7 @@ use log::LevelFilter;
 use wslforge::{app, cli::Args, config};
 
 fn main() -> anyhow::Result<()> {
-    let args = Args::parse();
+    let args: Args = Args::parse();
 
     if args.print_config {
         println!("{}", config::EXAMPLE_CONFIG);
@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn init_logger(verbosity: u8) {
-    let level = match verbosity {
+    let level: LevelFilter = match verbosity {
         0 => LevelFilter::Warn,
         1 => LevelFilter::Info,
         _ => LevelFilter::Debug,

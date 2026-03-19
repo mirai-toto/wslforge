@@ -7,8 +7,8 @@ pub fn validate_instance(instance: &Instance) -> anyhow::Result<()> {
 
 pub fn validate_image_source(instance: &Instance) -> anyhow::Result<()> {
     if let ImageSource::File { path } = &instance.image {
-        let expanded = expand_env_vars(&path.to_string_lossy())?;
-        let expanded_path = std::path::PathBuf::from(expanded);
+        let expanded: String = expand_env_vars(&path.to_string_lossy())?;
+        let expanded_path: std::path::PathBuf = std::path::PathBuf::from(expanded);
         if !expanded_path.exists() {
             anyhow::bail!("image file not found: {}", expanded_path.display());
         }
@@ -24,6 +24,6 @@ pub fn validate_image_source(instance: &Instance) -> anyhow::Result<()> {
 
 fn is_likely_rootfs_archive(path: &std::path::Path) -> bool {
     const VALID_EXTENSIONS: &[&str] = &[".tar", ".tar.gz", ".tgz", ".tar.xz"];
-    let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
+    let name: String = path.file_name().and_then(|n| n.to_str()).unwrap_or("").to_lowercase();
     VALID_EXTENSIONS.iter().any(|ext| name.ends_with(ext))
 }

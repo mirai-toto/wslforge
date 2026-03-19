@@ -1,10 +1,12 @@
+use std::collections::BTreeMap;
 use std::path::Path;
 
 use crate::{
-    config, reporting,
+    config::{self, Config},
+    reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
-        EngineKind, RunOptions, WslManager,
+        EngineKind, InstanceResult, RunOptions, WslManager,
     },
 };
 
@@ -17,26 +19,26 @@ pub struct AppArgs<'a> {
 pub fn run(cfg: AppArgs<'_>) -> anyhow::Result<()> {
     ensure_windows()?;
 
-    let manager = WslManager::new(build_engine(EngineKind::Cli));
-    let options = RunOptions {
+    let manager: WslManager = WslManager::new(build_engine(EngineKind::Cli));
+    let options: RunOptions = RunOptions {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };
 
-    let config = config::load_yaml(cfg.config_path)?;
+    let config: Config = config::load_yaml(cfg.config_path)?;
     log::debug!("📋 Loaded config from {}", cfg.config_path.display());
 
     for (instance_name, instance) in &config.instances {
         reporting::log_config_summary(instance_name, instance);
     }
 
-    let results = manager.apply_config(&config, options)?;
+    let results: BTreeMap<String, InstanceResult> = manager.apply_config(&config, options)?;
 
-    for (instance_name, instance) in &config.instances {
-        let result = results
+    for instance_name in config.instances.keys() {
+        let result: &InstanceResult = results
             .get(instance_name)
             .ok_or_else(|| anyhow::anyhow!("missing result for instance '{instance_name}'"))?;
-        reporting::log_create_report(result, &instance.hostname);
+        result.log();
     }
 
     Ok(())

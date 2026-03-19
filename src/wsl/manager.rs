@@ -33,8 +33,8 @@ impl WslManager {
     pub fn create_instance(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<InstanceResult> {
         instance::validate_instance(instance)?;
 
-        let mut events = vec![Event::InstanceCheckStarted];
-        let instance_exists = self.engine.instance_exists(&instance.hostname)?;
+        let mut events: Vec<Event> = vec![Event::InstanceCheckStarted];
+        let instance_exists: bool = self.engine.instance_exists(&instance.hostname)?;
         if instance_exists {
             events.push(Event::InstanceFound);
         } else {
@@ -47,6 +47,7 @@ impl WslManager {
             events.extend(self.delete_instance(&instance.hostname, instance_exists, options)?);
         } else if instance_exists {
             return Ok(InstanceResult {
+                hostname: instance.hostname.clone(),
                 outcome: Status::AlreadyExists,
                 events,
             });
@@ -57,22 +58,27 @@ impl WslManager {
         if options.dry_run {
             events.push(Event::CreateDryRun);
             return Ok(InstanceResult {
+                hostname: instance.hostname.clone(),
                 outcome: Status::Skipped,
                 events,
             });
         }
 
         events.push(Event::CreateStarted);
-        let outcome = self.execute_create(instance)?;
-        Ok(InstanceResult { outcome, events })
+        let outcome: Status = self.execute_create(instance)?;
+        Ok(InstanceResult {
+            hostname: instance.hostname.clone(),
+            outcome,
+            events,
+        })
     }
 
     pub fn apply_config(&self, root: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
         self.prepare_environment(options.dry_run)?;
 
-        let mut results = BTreeMap::new();
+        let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
         for (instance_name, instance) in &root.instances {
-            let result = self.create_instance(instance, options)?;
+            let result: InstanceResult = self.create_instance(instance, options)?;
             results.insert(instance_name.clone(), result);
         }
 
@@ -112,8 +118,8 @@ impl WslManager {
     fn execute_create(&self, instance: &Instance) -> anyhow::Result<Status> {
         match &instance.image {
             ImageSource::File { path: rootfs_tar } => {
-                let install_dir = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
-                let rootfs_tar = expand_path(rootfs_tar.as_path())?;
+                let install_dir: std::path::PathBuf = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
+                let rootfs_tar: std::path::PathBuf = expand_path(rootfs_tar.as_path())?;
                 self.engine
                     .create_from_file(&instance.hostname, &install_dir, &rootfs_tar)?;
             }

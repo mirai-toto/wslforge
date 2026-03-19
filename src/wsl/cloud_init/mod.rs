@@ -22,13 +22,12 @@ pub fn user_data_path(hostname: &str) -> anyhow::Result<PathBuf> {
 }
 
 pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> anyhow::Result<Vec<Event>> {
-    let mut events = Vec::new();
     let Some(source) = &instance.cloud_init else {
-        events.push(Event::CloudInitSkipped);
-        return Ok(events);
+        return Ok(vec![Event::CloudInitSkipped]);
     };
+    let mut events: Vec<Event> = Vec::new();
 
-    let content = match source {
+    let content: String = match source {
         CloudInitSource::File { path } => {
             events.push(Event::CloudInitSourceResolved(path.clone()));
             load::load_cloud_init_source(source)?
@@ -38,9 +37,9 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
             content.clone()
         }
     };
-    let rendered = render::render(&content, instance)?;
+    let rendered: String = render::render(&content, instance)?;
 
-    let target_file = user_data_path(&instance.hostname)?;
+    let target_file: PathBuf = user_data_path(&instance.hostname)?;
     if dry_run {
         events.push(Event::CloudInitDryRunDeployed(target_file));
         return Ok(events);
