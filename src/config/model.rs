@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fmt;
 use std::path::PathBuf;
 use url::Url;
@@ -57,6 +57,17 @@ impl fmt::Display for CloudInitSource {
     }
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Proxy {
+    #[serde(default)]
+    pub http: Option<Url>,
+    #[serde(default)]
+    pub https: Option<Url>,
+    #[serde(default)]
+    pub no_proxy: Option<String>,
+}
+
 impl Default for ImageSource {
     fn default() -> Self {
         ImageSource::Distro { name: default_distro() }
@@ -76,11 +87,9 @@ pub struct Instance {
     pub password: Option<String>,
 
     #[serde(default)]
-    pub http_proxy: Option<Url>,
+    pub proxy: Option<Proxy>,
     #[serde(default)]
-    pub https_proxy: Option<Url>,
-    #[serde(default)]
-    pub no_proxy: Option<String>,
+    pub vars: HashMap<String, String>,
 
     #[serde(default = "default_install_dir")]
     pub install_dir: PathBuf,

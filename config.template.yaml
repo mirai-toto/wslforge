@@ -7,9 +7,15 @@ instances:
     password: root
 
     # --- Network (all optional) ---
-    http_proxy:
-    https_proxy:
-    no_proxy:
+    # proxy:
+    #   http: http://proxy.example.com:3128
+    #   https: http://proxy.example.com:3128
+    #   no_proxy: localhost,127.0.0.1
+
+    # --- Custom variables (passed into cloud-init template) ---
+    # vars:
+    #   my_key: my_value
+    #   another: whatever
 
     # --- Paths ---
     install_dir: "%userprofile%/VMs"

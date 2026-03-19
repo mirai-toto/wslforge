@@ -22,11 +22,19 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
         }
     }
 
-    if let Some(proxy) = &instance.http_proxy {
-        info!("🌐 HTTP proxy: {}", proxy);
+    if let Some(proxy) = &instance.proxy {
+        if let Some(http) = &proxy.http {
+            info!("🌐 HTTP proxy: {}", http);
+        }
+        if let Some(https) = &proxy.https {
+            info!("🔐 HTTPS proxy: {}", https);
+        }
+        if let Some(no_proxy) = &proxy.no_proxy {
+            info!("🚫 No proxy: {}", no_proxy);
+        }
     }
-    if let Some(proxy) = &instance.https_proxy {
-        info!("🔐 HTTPS proxy: {}", proxy);
+    if !instance.vars.is_empty() {
+        info!("📝 Vars: {:?}", instance.vars);
     }
 }
 
