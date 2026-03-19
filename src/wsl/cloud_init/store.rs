@@ -7,9 +7,7 @@ pub enum DebugCopyOutcome {
 }
 
 pub fn store(target_file: &Path, rendered: &str) -> anyhow::Result<()> {
-    let target_dir = target_file
-        .parent()
-        .ok_or_else(|| anyhow::anyhow!("cloud-init target missing parent directory"))?;
+    let target_dir = target_file.parent().expect("user-data path always has a parent");
     std::fs::create_dir_all(target_dir)?;
     std::fs::write(target_file, rendered)?;
     Ok(())

@@ -14,22 +14,17 @@ fn format_yaml_error(path: &Path, err: &serde_yaml::Error) -> String {
 pub fn load_yaml(path: &Path) -> anyhow::Result<Config> {
     let raw = fs::read_to_string(path).with_context(|| format!("unable to read config file: {}", path.display()))?;
 
-    match serde_yaml::from_str::<Config>(&raw) {
-        Ok(cfg) => Ok(cfg),
-        Err(root_err) => match serde_yaml::from_str::<Instance>(&raw) {
-            Ok(instance) => {
-                let mut instances = BTreeMap::new();
-                let name = instance.hostname.clone();
-                instances.insert(name, instance);
-                Ok(Config { instances })
-            }
-            Err(instance_err) => Err(anyhow::anyhow!(
+    serde_yaml::from_str::<Config>(&raw).or_else(|root_err| {
+        serde_yaml::from_str::<Instance>(&raw)
+            .map(|instance| Config {
+                instances: BTreeMap::from([(instance.hostname.clone(), instance)]),
+            })
+            .map_err(|instance_err| anyhow::anyhow!(
                 "invalid yaml\n- instances format error: {}\n- single-instance format error: {}\n\nExpected either:\n- instances:\n    <name>:\n      <instance>\n- or a single instance object at the root",
                 format_yaml_error(path, &root_err),
                 format_yaml_error(path, &instance_err)
-            )),
-        },
-    }
+            ))
+    })
 }
 
 #[cfg(test)]

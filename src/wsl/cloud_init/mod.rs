@@ -22,11 +22,10 @@ pub fn user_data_path(hostname: &str) -> anyhow::Result<PathBuf> {
 }
 
 pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> anyhow::Result<Vec<Event>> {
-    let mut events = Vec::new();
     let Some(source) = &instance.cloud_init else {
-        events.push(Event::CloudInitSkipped);
-        return Ok(events);
+        return Ok(vec![Event::CloudInitSkipped]);
     };
+    let mut events = Vec::new();
 
     let content = match source {
         CloudInitSource::File { path } => {

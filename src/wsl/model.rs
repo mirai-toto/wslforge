@@ -1,3 +1,4 @@
+use log::info;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -35,8 +36,57 @@ pub enum Event {
     CloudInitDebugSkipped(String),
 }
 
+impl Event {
+    pub fn describe(&self, hostname: &str) -> String {
+        match self {
+            Event::InstanceCheckStarted => format!("🔍 Checking if WSL instance '{}' exists...", hostname),
+            Event::InstanceFound => format!("✅ WSL instance '{}' exists.", hostname),
+            Event::InstanceNotFound => format!("ℹ️ WSL instance '{}' does not exist.", hostname),
+            Event::OverrideEnabled => format!("⚠️ Override requested for WSL instance '{}'.", hostname),
+            Event::OverrideTriggered => {
+                format!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname)
+            }
+            Event::DeleteSkipped => format!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname),
+            Event::DeleteDryRun => format!("🧪 Dry run: WSL instance '{}' would be deleted", hostname),
+            Event::DeleteStarted => format!("🧹 Deleting existing WSL instance '{}'", hostname),
+            Event::DeleteCompleted => format!("✅ WSL instance '{}' deleted successfully.", hostname),
+            Event::CreateDryRun => format!("🧪 Dry run: WSL instance '{}' would be created", hostname),
+            Event::CreateStarted => format!("🚀 Creating WSL instance '{}'", hostname),
+            Event::CloudInitSkipped => "☁️ Cloud-init: not configured".to_string(),
+            Event::CloudInitSourceResolved(path) => format!("☁️ Cloud-init source: {}", path.display()),
+            Event::CloudInitInlineLoaded => "☁️ Cloud-init source: inline content".to_string(),
+            Event::CloudInitDryRunDeployed(path) => {
+                format!("🧪 Dry run: cloud-init target would be created at: {}", path.display())
+            }
+            Event::CloudInitDeployed(path) => format!("☁️ Cloud-init target: {}", path.display()),
+            Event::CloudInitDebugCopied(path) => format!("☁️ Cloud-init debug copy: {}", path.display()),
+            Event::CloudInitDebugSkipped(reason) => format!("☁️ Cloud-init debug copy skipped ({reason})"),
+        }
+    }
+}
+
+impl Status {
+    pub fn describe(&self, hostname: &str) -> String {
+        match self {
+            Status::Created => format!("✅ WSL instance '{}' created successfully.", hostname),
+            Status::AlreadyExists => format!("ℹ️ WSL instance '{}' already exists.", hostname),
+            Status::Skipped => format!("ℹ️ WSL instance '{}' was skipped.", hostname),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InstanceResult {
+    pub hostname: String,
     pub outcome: Status,
     pub events: Vec<Event>,
+}
+
+impl InstanceResult {
+    pub fn log(&self) {
+        for event in &self.events {
+            info!("{}", event.describe(&self.hostname));
+        }
+        info!("{}", self.outcome.describe(&self.hostname));
+    }
 }

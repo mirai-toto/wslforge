@@ -1,6 +1,6 @@
 use crate::wsl::engine::WslEngine;
 
-#[derive(Default)]
+/// Placeholder for a future WSL API-based engine. All methods are unimplemented.
 pub struct ApiEngine;
 
 impl WslEngine for ApiEngine {

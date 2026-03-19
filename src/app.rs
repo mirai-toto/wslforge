@@ -32,11 +32,11 @@ pub fn run(cfg: AppArgs<'_>) -> anyhow::Result<()> {
 
     let results = manager.apply_config(&config, options)?;
 
-    for (instance_name, instance) in &config.instances {
+    for instance_name in config.instances.keys() {
         let result = results
             .get(instance_name)
             .ok_or_else(|| anyhow::anyhow!("missing result for instance '{instance_name}'"))?;
-        reporting::log_create_report(result, &instance.hostname);
+        result.log();
     }
 
     Ok(())

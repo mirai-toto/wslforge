@@ -47,6 +47,7 @@ impl WslManager {
             events.extend(self.delete_instance(&instance.hostname, instance_exists, options)?);
         } else if instance_exists {
             return Ok(InstanceResult {
+                hostname: instance.hostname.clone(),
                 outcome: Status::AlreadyExists,
                 events,
             });
@@ -57,6 +58,7 @@ impl WslManager {
         if options.dry_run {
             events.push(Event::CreateDryRun);
             return Ok(InstanceResult {
+                hostname: instance.hostname.clone(),
                 outcome: Status::Skipped,
                 events,
             });
@@ -64,7 +66,11 @@ impl WslManager {
 
         events.push(Event::CreateStarted);
         let outcome = self.execute_create(instance)?;
-        Ok(InstanceResult { outcome, events })
+        Ok(InstanceResult {
+            hostname: instance.hostname.clone(),
+            outcome,
+            events,
+        })
     }
 
     pub fn apply_config(&self, root: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
