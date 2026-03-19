@@ -33,20 +33,20 @@ impl From<&Instance> for CloudInitRenderInstance {
 }
 
 pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
-    let mut env = Environment::new();
+    let mut env: Environment<'_> = Environment::new();
     env.add_template("cloud-init.user-data", raw)
         .map_err(|e| anyhow::anyhow!("cloud-init template parse error: {e}"))?;
 
-    let template = env
+    let template: minijinja::Template<'_, '_> = env
         .get_template("cloud-init.user-data")
         .map_err(|e| anyhow::anyhow!("cloud-init template load error: {e}"))?;
 
-    let password_hash = match instance.password.as_deref() {
+    let password_hash: Option<String> = match instance.password.as_deref() {
         Some(password) => Some(hash_password_sha512(password)?),
         None => None,
     };
 
-    let context = CloudInitRenderContext {
+    let context: CloudInitRenderContext = CloudInitRenderContext {
         instance: instance.into(),
         password_hash,
     };

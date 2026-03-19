@@ -11,7 +11,7 @@ pub fn check_environment(engine: &dyn WslEngine) -> anyhow::Result<()> {
 }
 
 pub fn validate_wsl_installed(engine: &dyn WslEngine) -> anyhow::Result<()> {
-    let output = engine.status()?;
+    let output: std::process::Output = engine.status()?;
     if output.status.success() {
         info!("✅ WSL is installed");
         Ok(())
@@ -21,7 +21,7 @@ pub fn validate_wsl_installed(engine: &dyn WslEngine) -> anyhow::Result<()> {
 }
 
 pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
-    let mut disabled = Vec::new();
+    let mut disabled: Vec<&str> = Vec::new();
     for feature_name in feature_names {
         if is_windows_feature_enabled(feature_name)? {
             info!("✅ {feature_name} is enabled");
@@ -43,13 +43,13 @@ pub fn validate_wsl_distro_name(engine: &dyn WslEngine, name: &str) -> anyhow::R
 }
 
 fn is_valid_wsl_distro_name(engine: &dyn WslEngine, name: &str) -> anyhow::Result<bool> {
-    let output = engine.list_online_distros()?;
+    let output: std::process::Output = engine.list_online_distros()?;
 
     if !output.status.success() {
         anyhow::bail!("wsl.exe --list --online failed with status {}", output.status);
     }
 
-    let (text, _, _) = UTF_16LE.decode(&output.stdout);
+    let (text, _, _): (std::borrow::Cow<'_, str>, &encoding_rs::Encoding, bool) = UTF_16LE.decode(&output.stdout);
 
     let ids: Vec<String> = text
         .lines()
@@ -64,7 +64,7 @@ fn is_valid_wsl_distro_name(engine: &dyn WslEngine, name: &str) -> anyhow::Resul
 }
 
 fn is_windows_feature_enabled(feature_name: &str) -> anyhow::Result<bool> {
-    let output = Command::new("dism.exe")
+    let output: std::process::Output = Command::new("dism.exe")
         .args([
             "/English",
             "/online",
@@ -80,6 +80,6 @@ fn is_windows_feature_enabled(feature_name: &str) -> anyhow::Result<bool> {
         ));
     }
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stdout: std::borrow::Cow<'_, str> = String::from_utf8_lossy(&output.stdout);
     Ok(stdout.lines().any(|line| line.trim() == "State : Enabled"))
 }

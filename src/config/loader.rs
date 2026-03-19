@@ -12,7 +12,8 @@ fn format_yaml_error(path: &Path, err: &serde_yaml::Error) -> String {
 }
 
 pub fn load_yaml(path: &Path) -> anyhow::Result<Config> {
-    let raw = fs::read_to_string(path).with_context(|| format!("unable to read config file: {}", path.display()))?;
+    let raw: String =
+        fs::read_to_string(path).with_context(|| format!("unable to read config file: {}", path.display()))?;
 
     serde_yaml::from_str::<Config>(&raw).or_else(|root_err| {
         serde_yaml::from_str::<Instance>(&raw)

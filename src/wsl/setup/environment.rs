@@ -7,7 +7,7 @@ pub fn update_wsl_version(engine: &dyn WslEngine, dry_run: bool) -> anyhow::Resu
         info!("🧪 Dry run: WSL update would be performed");
         return Ok(());
     }
-    let output = engine.update()?;
+    let output: std::process::Output = engine.update()?;
     if output.status.success() {
         info!("✅ WSL update completed");
         Ok(())

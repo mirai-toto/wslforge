@@ -7,20 +7,20 @@ pub enum DebugCopyOutcome {
 }
 
 pub fn store(target_file: &Path, rendered: &str) -> anyhow::Result<()> {
-    let target_dir = target_file.parent().expect("user-data path always has a parent");
+    let target_dir: &Path = target_file.parent().expect("user-data path always has a parent");
     std::fs::create_dir_all(target_dir)?;
     std::fs::write(target_file, rendered)?;
     Ok(())
 }
 
 pub fn copy_debug_to_current_dir(hostname: &str, rendered: &str) -> DebugCopyOutcome {
-    let debug_dir = match std::env::current_dir() {
+    let debug_dir: PathBuf = match std::env::current_dir() {
         Ok(dir) => dir,
         Err(err) => {
             return DebugCopyOutcome::Skipped(format!("cwd error: {err}"));
         }
     };
-    let debug_path = debug_dir.join(format!("cloud-init.{}.user-data", hostname));
+    let debug_path: PathBuf = debug_dir.join(format!("cloud-init.{}.user-data", hostname));
     if let Err(err) = std::fs::write(&debug_path, rendered) {
         DebugCopyOutcome::Skipped(format!("write error: {err}"))
     } else {
