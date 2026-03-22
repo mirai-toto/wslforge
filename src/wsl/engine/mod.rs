@@ -11,7 +11,6 @@ pub trait WslEngine {
     fn status(&self) -> anyhow::Result<std::process::Output>;
     fn update(&self) -> anyhow::Result<std::process::Output>;
     fn list_online_distros(&self) -> anyhow::Result<std::process::Output>;
-
     fn instance_exists(&self, name: &str) -> anyhow::Result<bool>;
     fn delete_instance(&self, name: &str) -> anyhow::Result<()>;
     fn create_from_file(
@@ -21,4 +20,12 @@ pub trait WslEngine {
         rootfs_tar: &std::path::Path,
     ) -> anyhow::Result<()>;
     fn create_from_distro(&self, distro_name: &str, instance_name: &str) -> anyhow::Result<()>;
+    fn write_file(
+        &self,
+        instance_name: &str,
+        dest: &str,
+        content: &[u8],
+        owner: Option<&str>,
+        mode: Option<&str>,
+    ) -> anyhow::Result<()>;
 }

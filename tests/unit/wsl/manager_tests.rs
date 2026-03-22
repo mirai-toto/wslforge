@@ -72,6 +72,21 @@ impl WslEngine for FakeEngine {
             .push(format!("create_from_distro:{distro_name}:{instance_name}"));
         Ok(())
     }
+
+    fn write_file(
+        &self,
+        instance_name: &str,
+        dest: &str,
+        _content: &[u8],
+        _owner: Option<&str>,
+        _mode: Option<&str>,
+    ) -> anyhow::Result<()> {
+        self.calls
+            .lock()
+            .expect("lock calls")
+            .push(format!("write_file:{instance_name}:{dest}"));
+        Ok(())
+    }
 }
 
 fn file_image_instance(image_path: &Path) -> Instance {
