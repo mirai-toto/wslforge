@@ -66,6 +66,7 @@ impl WslManager {
 
         events.push(Event::CreateStarted);
         let outcome: Status = self.execute_create(instance)?;
+        events.extend(self.execute_file_transfers(instance)?);
         Ok(InstanceResult {
             hostname: instance.hostname.clone(),
             outcome,
@@ -113,6 +114,25 @@ impl WslManager {
         }
 
         cloud_init::prepare_cloud_init(instance, options.dry_run, options.debug)
+    }
+
+    fn execute_file_transfers(&self, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+        let mut events: Vec<Event> = Vec::new();
+        for transfer in &instance.files {
+            let src: std::path::PathBuf = expand_path(&transfer.src)?;
+            events.push(Event::FileTransferStarted(src.clone()));
+            let content: Vec<u8> =
+                std::fs::read(&src).map_err(|e| anyhow::anyhow!("failed to read '{}': {e}", src.display()))?;
+            self.engine.write_file(
+                &instance.hostname,
+                &transfer.dest,
+                &content,
+                transfer.owner.as_deref(),
+                transfer.mode.as_deref(),
+            )?;
+            events.push(Event::FileTransferCompleted(transfer.dest.clone()));
+        }
+        Ok(events)
     }
 
     fn execute_create(&self, instance: &Instance) -> anyhow::Result<Status> {

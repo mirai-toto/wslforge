@@ -68,6 +68,17 @@ pub struct Proxy {
     pub no_proxy: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FileTransfer {
+    pub src: PathBuf,
+    pub dest: String,
+    #[serde(default)]
+    pub owner: Option<String>,
+    #[serde(default)]
+    pub mode: Option<String>,
+}
+
 impl Default for ImageSource {
     fn default() -> Self {
         ImageSource::Distro { name: default_distro() }
@@ -90,6 +101,8 @@ pub struct Instance {
     pub proxy: Option<Proxy>,
     #[serde(default)]
     pub vars: HashMap<String, String>,
+    #[serde(default)]
+    pub files: Vec<FileTransfer>,
 
     #[serde(default = "default_install_dir")]
     pub install_dir: PathBuf,

@@ -1,5 +1,6 @@
 use crate::wsl::engine::WslEngine;
 use crate::wsl::helpers::command_error;
+use std::io::Write;
 use std::process::{Command, Stdio};
 
 #[derive(Default)]
@@ -66,6 +67,45 @@ impl WslEngine for CliEngine {
         let status: std::process::ExitStatus = cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit()).status()?;
         if !status.success() {
             anyhow::bail!("wsl.exe --install failed with status {}", status);
+        }
+        Ok(())
+    }
+
+    fn write_file(
+        &self,
+        instance_name: &str,
+        dest: &str,
+        content: &[u8],
+        owner: Option<&str>,
+        mode: Option<&str>,
+    ) -> anyhow::Result<()> {
+        let parent: String = std::path::Path::new(dest)
+            .parent()
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_default();
+
+        let mut script: Vec<String> = Vec::new();
+        if !parent.is_empty() {
+            script.push(format!("mkdir -p '{parent}'"));
+        }
+        script.push(format!("cat > '{dest}'"));
+        if let Some(o) = owner {
+            script.push(format!("chown '{o}' '{dest}'"));
+        }
+        if let Some(m) = mode {
+            script.push(format!("chmod '{m}' '{dest}'"));
+        }
+
+        let mut child = Command::new("wsl.exe")
+            .args(["-d", instance_name, "--", "bash", "-c", &script.join(" && ")])
+            .stdin(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()?;
+        child.stdin.take().expect("stdin configured").write_all(content)?;
+
+        let output: std::process::Output = child.wait_with_output()?;
+        if !output.status.success() {
+            return Err(command_error(&format!("failed to write '{dest}'"), &output));
         }
         Ok(())
     }

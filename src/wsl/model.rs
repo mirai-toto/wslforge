@@ -34,6 +34,8 @@ pub enum Event {
     CloudInitDeployed(PathBuf),
     CloudInitDebugCopied(PathBuf),
     CloudInitDebugSkipped(String),
+    FileTransferStarted(PathBuf),
+    FileTransferCompleted(String),
 }
 
 impl Event {
@@ -61,6 +63,8 @@ impl Event {
             Event::CloudInitDeployed(path) => format!("☁️ Cloud-init target: {}", path.display()),
             Event::CloudInitDebugCopied(path) => format!("☁️ Cloud-init debug copy: {}", path.display()),
             Event::CloudInitDebugSkipped(reason) => format!("☁️ Cloud-init debug copy skipped ({reason})"),
+            Event::FileTransferStarted(src) => format!("📋 Transferring file: {}", src.display()),
+            Event::FileTransferCompleted(dest) => format!("✅ File transferred to: {dest}"),
         }
     }
 }

@@ -17,6 +17,13 @@ instances:
     #   my_key: my_value
     #   another: whatever
 
+    # --- File transfers (copied into the instance after creation) ---
+    # files:
+    #   - src: "%USERPROFILE%/certs/company.crt"
+    #     dest: /usr/local/share/ca-certificates/company.crt
+    #     owner: root         # optional
+    #     mode: "644"         # optional
+
     # --- Paths ---
     install_dir: "%userprofile%/VMs"
     # Cloud-init user-data source (optional)
