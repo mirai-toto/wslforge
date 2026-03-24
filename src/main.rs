@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use clap::Parser;
+use console::style;
 use log::LevelFilter;
 use wslforge::{app, cli::Args, config, wizard};
 
@@ -30,17 +31,24 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     match explicit {
         Some(path) => {
             let cfg = config::load_yaml(path)?;
-            log::debug!("Loaded config from {}", path.display());
+            eprintln!("{}", style(format!("📄 Loaded config from '{}'", path.display())).dim());
             Ok(cfg)
         }
         None => {
             if default_path.exists() {
-                log::warn!(
-                    "No --config flag given; using '{}' found in current directory.",
-                    default_path.display()
+                eprintln!(
+                    "{}",
+                    style(format!(
+                        "⚠️  No --config given, using '{}' found in current directory.",
+                        default_path.display()
+                    ))
+                    .yellow()
                 );
                 let cfg = config::load_yaml(default_path)?;
-                log::debug!("Loaded config from {}", default_path.display());
+                eprintln!(
+                    "{}",
+                    style(format!("📄 Loaded config from '{}'", default_path.display())).dim()
+                );
                 Ok(cfg)
             } else {
                 wizard::run()

@@ -1,40 +1,57 @@
+use console::style;
+
 use crate::config::{ImageSource, Instance};
 use crate::wsl::helpers::resolve_install_dir;
-use log::info;
 
 pub fn log_config_summary(instance_name: &str, instance: &Instance) {
-    info!("Instance: {}", instance_name);
-    info!("Override: {}", instance.override_instance);
-    info!("Hostname: {}", instance.hostname);
-    info!("User: {}", instance.username);
-    info!("Install dir: {}", resolved_install_dir_display(instance));
-    match &instance.cloud_init {
-        Some(source) => info!("Cloud-init: {}", source),
-        None => info!("Cloud-init: not configured"),
-    }
+    let image = image_label(&instance.image);
+    let cloud_init = cloud_init_label(&instance.cloud_init);
 
-    match &instance.image {
-        ImageSource::Distro { name } => {
-            info!("Using WSL distro '{}'", name);
-        }
-        ImageSource::File { path } => {
-            info!("Using image file {:?}", path);
-        }
-    }
-
+    eprintln!("{}", style(format!("📋 Instance '{instance_name}'")).bold());
+    let field = |key: &str, val: &str| eprintln!("   {}  {}", style(format!("{key:<12}")).dim(), val);
+    field("hostname", &instance.hostname);
+    field("user", &instance.username);
+    field("override", &instance.override_instance.to_string());
+    field("install dir", &resolved_install_dir_display(instance));
+    field("image", &image);
+    field("cloud-init", &cloud_init);
     if let Some(proxy) = &instance.proxy {
-        if let Some(http) = &proxy.http {
-            info!("HTTP proxy: {}", http);
+        if let Some(v) = &proxy.http {
+            field("proxy http", v.as_ref());
         }
-        if let Some(https) = &proxy.https {
-            info!("HTTPS proxy: {}", https);
+        if let Some(v) = &proxy.https {
+            field("proxy https", v.as_ref());
         }
-        if let Some(no_proxy) = &proxy.no_proxy {
-            info!("No proxy: {}", no_proxy);
+        if let Some(v) = &proxy.no_proxy {
+            field("no proxy", v);
         }
     }
     if !instance.vars.is_empty() {
-        info!("Vars: {:?}", instance.vars);
+        field("vars", &format!("{:?}", instance.vars));
+    }
+    if !instance.files.is_empty() {
+        field("files", &format!("{} transfer(s)", instance.files.len()));
+    }
+    eprintln!();
+
+    log::debug!(
+        "config loaded: instance={instance_name} user={} image={image} override={} cloud-init={cloud_init}",
+        instance.username,
+        instance.override_instance,
+    );
+}
+
+fn image_label(image: &ImageSource) -> String {
+    match image {
+        ImageSource::Distro { name } => format!("{name} (distro)"),
+        ImageSource::File { path } => format!("{} (file)", path.display()),
+    }
+}
+
+fn cloud_init_label(cloud_init: &Option<crate::config::CloudInitSource>) -> String {
+    match cloud_init {
+        Some(source) => source.to_string(),
+        None => "not configured".to_string(),
     }
 }
 
