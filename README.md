@@ -155,29 +155,29 @@ Intermediate targets are available for focused runs: `ci-rust-matrix`, `ci-rust-
 
 The configuration is intentionally small. Most fields are optional, and you can grow into advanced options as needed.
 
-The top-level config is now a `profiles` map, where each key is a profile name:
+The top-level config is an `instances` map, where each key is an instance name:
 
 ```yaml
-profiles:
-  MyProfile:
-    hostname: MyProfile
+instances:
+  MyInstance:
+    hostname: MyInstance
     username: wsluser
 ```
 
-Note: a single-profile file without `profiles:` is still accepted for backward compatibility, but the recommended format is the `profiles` map.
+Note: a bare instance object at the root (without `instances:`) is still accepted for backward compatibility, but the recommended format is the `instances` map.
 
-Core fields (per profile):
+Core fields (per instance):
 
-| Field         | Description                               | Example                    | Mandatory |
-| ------------- | ----------------------------------------- | -------------------------- | --------- |
-| `override`    | Replace existing instance if it exists    | `true`                     | ➖        |
-| `hostname`    | WSL instance name                         | `UbuntuWslDev`             | ✅        |
-| `username`    | Default user                              | `wsluser`                  | ✅        |
-| `password`    | Optional password (hashed for cloud-init) | `root`                     | ➖        |
-| `install_dir` | Target install directory                  | `%userprofile%/VMs`        | ✅        |
-| `http_proxy`  | HTTP proxy URL                            | `http://proxy.local:8080`  | ➖        |
-| `https_proxy` | HTTPS proxy URL                           | `https://proxy.local:8443` | ➖        |
-| `no_proxy`    | Comma-separated proxy bypass list         | `localhost,127.0.0.1`      | ➖        |
+| Field              | Description                               | Example                   | Default             |
+| ------------------ | ----------------------------------------- | ------------------------- | ------------------- |
+| `override`         | Replace existing instance if it exists    | `true`                    | `false`             |
+| `hostname`         | WSL instance name                         | `UbuntuWslDev`            | `UbuntuWSL`         |
+| `username`         | Default user                              | `wsluser`                 | `wsluser`           |
+| `password`         | Optional password (hashed for cloud-init) | `root`                    | —                   |
+| `install_dir`      | Target install directory                  | `%userprofile%/VMs`       | `%userprofile%/VMs` |
+| `proxy.http`       | HTTP proxy URL                            | `http://proxy.local:8080` | —                   |
+| `proxy.https`      | HTTPS proxy URL                           | `http://proxy.local:8080` | —                   |
+| `proxy.no_proxy`   | Comma-separated proxy bypass list         | `localhost,127.0.0.1`     | —                   |
 
 Related sections:
 
@@ -187,16 +187,12 @@ Related sections:
 Example `config.yaml` with a file-based cloud-init and an official distro:
 
 ```yaml
-profiles:
+instances:
   UbuntuWslDev:
     override: true
     hostname: UbuntuWslDev
     username: wsluser
     password: root
-
-    http_proxy: null
-    https_proxy: null
-    no_proxy: null
 
     install_dir: "%userprofile%/VMs"
 
@@ -211,9 +207,9 @@ profiles:
 
 ### Cloud init
 
-Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline. These blocks live inside a profile.
+Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline. These blocks live inside an instance.
 
-Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Profile fields are available as template variables under `profile.*` (e.g. `{{ profile.username }}`, `{{ profile.hostname }}`), and the hashed password is available as `{{ password_hash }}`.
+Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Instance fields are available as direct template variables (e.g. `{{ username }}`, `{{ hostname }}`), and the hashed password is available as `{{ password_hash }}`. Proxy fields are available as `{{ proxy.http }}`, `{{ proxy.https }}`, `{{ proxy.no_proxy }}`. Custom variables defined under `vars:` are accessible as `{{ vars.my_key }}`.
 
 Cloud-init types:
 
@@ -243,7 +239,7 @@ cloud_init:
 
 ### Image Sources
 
-Pick where the root filesystem comes from: an official WSL distro or a local rootfs archive. These blocks live inside a profile.
+Pick where the root filesystem comes from: an official WSL distro or a local rootfs archive. These blocks live inside an instance.
 
 Image types:
 
