@@ -1,4 +1,7 @@
 use std::collections::BTreeMap;
+use std::time::Duration;
+
+use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::{
     config::Config,
@@ -23,23 +26,39 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };
-
     let config: Config = cfg.config;
 
     for (instance_name, instance) in &config.instances {
         reporting::log_config_summary(instance_name, instance);
     }
 
-    let results: BTreeMap<String, InstanceResult> = manager.apply_config(&config, options)?;
+    manager.prepare_environment(options.dry_run)?;
 
-    for instance_name in config.instances.keys() {
-        let result: &InstanceResult = results
-            .get(instance_name)
-            .ok_or_else(|| anyhow::anyhow!("missing result for instance '{instance_name}'"))?;
+    let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
+    for (instance_name, instance) in &config.instances {
+        let pb = spinner(format!("Provisioning '{instance_name}'..."));
+        let result = manager.create_instance(instance, options)?;
+        pb.finish_and_clear();
         result.log();
+        results.insert(instance_name.clone(), result);
     }
 
+    reporting::print_summary(&results);
+
     Ok(())
+}
+
+fn spinner(msg: String) -> ProgressBar {
+    let pb = ProgressBar::new_spinner();
+    pb.set_style(
+        ProgressStyle::default_spinner()
+            .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
+            .template("{spinner:.cyan} {msg}")
+            .unwrap(),
+    );
+    pb.set_message(msg);
+    pb.enable_steady_tick(Duration::from_millis(80));
+    pb
 }
 
 fn ensure_windows() -> anyhow::Result<()> {
