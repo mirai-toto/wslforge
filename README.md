@@ -99,13 +99,15 @@ Need more details for troubleshooting? Increase verbosity: 🧰
 
 Common flags:
 
-| Flag             | Description                             | Default       |
-| ---------------- | --------------------------------------- | ------------- |
-| `--config`       | Path to YAML config file                | `config.yaml` |
-| `--dry-run`      | Show what would be done without changes | `false`       |
-| `--debug`        | Enable extra debug output and write artifacts to the current directory (e.g. `cloud-init.<hostname>.user-data`) | `false`       |
-| `--print-example-config` | Print a minimal example config and exit | `false`       |
-| `-v`, `-vv`      | Increase verbosity                      | `0`           |
+| Flag                     | Description                                   | Default       |
+| ------------------------ | --------------------------------------------- | ------------- |
+| `--config`               | Path to YAML config file                      | `config.yaml` |
+| `--dry-run`              | Show what would be done without changes       | `false`       |
+| `--debug`                | Enable extra debug output and write artifacts | `false`       |
+| `--print-example-config` | Print a minimal example config and exit       | `false`       |
+| `-v`, `-vv`              | Increase verbosity                            | `0`           |
+
+The `--debug` flag writes the rendered cloud-init user-data to the current directory as `cloud-init.<hostname>.user-data`.
 
 Print a minimal example config:
 
@@ -168,16 +170,16 @@ Note: a bare instance object at the root (without `instances:`) is still accepte
 
 Core fields (per instance):
 
-| Field              | Description                               | Example                   | Default             |
-| ------------------ | ----------------------------------------- | ------------------------- | ------------------- |
-| `override`         | Replace existing instance if it exists    | `true`                    | `false`             |
-| `hostname`         | WSL instance name                         | `UbuntuWslDev`            | `UbuntuWSL`         |
-| `username`         | Default user                              | `wsluser`                 | `wsluser`           |
-| `password`         | Optional password (hashed for cloud-init) | `root`                    | —                   |
-| `install_dir`      | Target install directory                  | `%userprofile%/VMs`       | `%userprofile%/VMs` |
-| `proxy.http`       | HTTP proxy URL                            | `http://proxy.local:8080` | —                   |
-| `proxy.https`      | HTTPS proxy URL                           | `http://proxy.local:8080` | —                   |
-| `proxy.no_proxy`   | Comma-separated proxy bypass list         | `localhost,127.0.0.1`     | —                   |
+| Field            | Description                               | Example                   | Default             |
+| ---------------- | ----------------------------------------- | ------------------------- | ------------------- |
+| `override`       | Replace existing instance if it exists    | `true`                    | `false`             |
+| `hostname`       | WSL instance name                         | `UbuntuWslDev`            | `UbuntuWSL`         |
+| `username`       | Default user                              | `wsluser`                 | `wsluser`           |
+| `password`       | Optional password (hashed for cloud-init) | `root`                    | —                   |
+| `install_dir`    | Target install directory                  | `%userprofile%/VMs`       | `%userprofile%/VMs` |
+| `proxy.http`     | HTTP proxy URL                            | `http://proxy.local:8080` | —                   |
+| `proxy.https`    | HTTPS proxy URL                           | `http://proxy.local:8080` | —                   |
+| `proxy.no_proxy` | Comma-separated proxy bypass list         | `localhost,127.0.0.1`     | —                   |
 
 Related sections:
 
