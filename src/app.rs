@@ -1,8 +1,7 @@
 use std::collections::BTreeMap;
-use std::path::Path;
 
 use crate::{
-    config::{self, Config},
+    config::Config,
     reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
@@ -10,13 +9,13 @@ use crate::{
     },
 };
 
-pub struct AppArgs<'a> {
-    pub config_path: &'a Path,
+pub struct AppArgs {
+    pub config: Config,
     pub dry_run: bool,
     pub debug: bool,
 }
 
-pub fn run(cfg: AppArgs<'_>) -> anyhow::Result<()> {
+pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
     ensure_windows()?;
 
     let manager: WslManager = WslManager::new(build_engine(EngineKind::Cli));
@@ -25,8 +24,7 @@ pub fn run(cfg: AppArgs<'_>) -> anyhow::Result<()> {
         debug: cfg.debug,
     };
 
-    let config: Config = config::load_yaml(cfg.config_path)?;
-    log::debug!("📋 Loaded config from {}", cfg.config_path.display());
+    let config: Config = cfg.config;
 
     for (instance_name, instance) in &config.instances {
         reporting::log_config_summary(instance_name, instance);
