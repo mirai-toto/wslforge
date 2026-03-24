@@ -1,11 +1,8 @@
 use std::collections::BTreeMap;
-use std::time::Duration;
-
-use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::{
     config::Config,
-    reporting,
+    display, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
         EngineKind, InstanceResult, RunOptions, WslManager,
@@ -36,29 +33,16 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
 
     let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
     for (instance_name, instance) in &config.instances {
-        let pb = spinner(format!("Provisioning '{instance_name}'..."));
+        let pb = display::spinner(format!("Provisioning '{instance_name}'..."));
         let result = manager.create_instance(instance, options)?;
         pb.finish_and_clear();
         result.log();
         results.insert(instance_name.clone(), result);
     }
 
-    reporting::print_summary(&results);
+    display::print_summary(&results);
 
     Ok(())
-}
-
-fn spinner(msg: String) -> ProgressBar {
-    let pb = ProgressBar::new_spinner();
-    pb.set_style(
-        ProgressStyle::default_spinner()
-            .tick_strings(&["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"])
-            .template("{spinner:.cyan} {msg}")
-            .unwrap(),
-    );
-    pb.set_message(msg);
-    pb.enable_steady_tick(Duration::from_millis(80));
-    pb
 }
 
 fn ensure_windows() -> anyhow::Result<()> {
