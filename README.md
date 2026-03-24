@@ -71,7 +71,7 @@ winget install --id Microsoft.PowerShell --source winget
 Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
 ```sh
-curl -L -o wslforge.exe https://github.com/mirai-toto/wslforge/releases/download/v1.7.0/wslforge.exe
+curl -L -o wslforge.exe https://github.com/mirai-toto/wslforge/releases/download/v1.8.0/wslforge.exe
 ```
 
 Run it with your config: ✅
