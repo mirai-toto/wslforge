@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 
 use crate::{
     config::Config,
-    reporting,
+    display, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
         EngineKind, InstanceResult, RunOptions, WslManager,
@@ -23,21 +23,24 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };
-
     let config: Config = cfg.config;
 
     for (instance_name, instance) in &config.instances {
         reporting::log_config_summary(instance_name, instance);
     }
 
-    let results: BTreeMap<String, InstanceResult> = manager.apply_config(&config, options)?;
+    manager.prepare_environment(options.dry_run)?;
 
-    for instance_name in config.instances.keys() {
-        let result: &InstanceResult = results
-            .get(instance_name)
-            .ok_or_else(|| anyhow::anyhow!("missing result for instance '{instance_name}'"))?;
+    let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
+    for (instance_name, instance) in &config.instances {
+        let pb = display::spinner(format!("Provisioning '{instance_name}'..."));
+        let result = manager.create_instance(instance, options)?;
+        pb.finish_and_clear();
         result.log();
+        results.insert(instance_name.clone(), result);
     }
+
+    display::print_summary(&results);
 
     Ok(())
 }

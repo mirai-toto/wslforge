@@ -22,13 +22,14 @@ url = { version = "2", features = ["serde"] }
 serde_yaml = "0.9"
 log = "0.4"
 env_logger = "0.11"
-owo-colors = "4"
 encoding_rs = "0.8"
 shellexpand = "3"
 expand_str = "0.1"
 minijinja = "1"
 sha-crypt = { version = "0.5", features = ["rand"] }
 dialoguer = "0.12.0"
+indicatif = "0.18.4"
+comfy-table = "7.2.2"
 
 [dev-dependencies]
 tempfile = "3"
