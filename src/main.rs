@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    init_logger(args.verbose);
+    init_logger(args.verbose, args.log_file.as_deref())?;
 
     let loaded = resolve_config(args.config.as_deref())?;
     app::run(app::AppArgs {
@@ -30,7 +30,7 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     match explicit {
         Some(path) => {
             let cfg = config::load_yaml(path)?;
-            log::debug!("📋 Loaded config from {}", path.display());
+            log::debug!("Loaded config from {}", path.display());
             Ok(cfg)
         }
         None => {
@@ -40,7 +40,7 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
                     default_path.display()
                 );
                 let cfg = config::load_yaml(default_path)?;
-                log::debug!("📋 Loaded config from {}", default_path.display());
+                log::debug!("Loaded config from {}", default_path.display());
                 Ok(cfg)
             } else {
                 wizard::run()
@@ -49,15 +49,35 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     }
 }
 
-fn init_logger(verbosity: u8) {
-    let level: LevelFilter = match verbosity {
+fn init_logger(verbosity: u8, log_file: Option<&Path>) -> anyhow::Result<()> {
+    let stderr_level: LevelFilter = match verbosity {
         0 => LevelFilter::Warn,
         1 => LevelFilter::Info,
         _ => LevelFilter::Debug,
     };
 
-    env_logger::Builder::new()
-        .filter_level(level)
-        .format_timestamp(None)
-        .init();
+    let stderr_dispatch = fern::Dispatch::new()
+        .level(stderr_level)
+        .format(|out, message, _record| out.finish(format_args!("{message}")))
+        .chain(std::io::stderr());
+
+    let mut base = fern::Dispatch::new().chain(stderr_dispatch);
+
+    if let Some(path) = log_file {
+        let file_dispatch = fern::Dispatch::new()
+            .level(LevelFilter::Debug)
+            .format(|out, message, record| {
+                out.finish(format_args!(
+                    "[{}] [{:<5}] {}",
+                    chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                    record.level(),
+                    message
+                ))
+            })
+            .chain(fern::log_file(path)?);
+        base = base.chain(file_dispatch);
+    }
+
+    base.apply()?;
+    Ok(())
 }

@@ -1,36 +1,51 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
+use console::style;
 use dialoguer::{Confirm, Input, Password};
 use url::Url;
 
 use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
 
 pub fn run() -> anyhow::Result<Config> {
-    eprintln!("No config file found. Let's configure your WSL instance.\n");
+    eprintln!(
+        "{}",
+        style("⚒️  No config file found. Let's configure your WSL instance.").bold()
+    );
+    eprintln!();
+
+    eprintln!(
+        "{}",
+        style("── Instance ─────────────────────────────────────────").dim()
+    );
 
     let hostname: String = Input::new()
-        .with_prompt("hostname")
+        .with_prompt(style("🏷️  hostname").cyan().bold().to_string())
         .default("UbuntuWSL".into())
         .interact_text()?;
 
     let username: String = Input::new()
-        .with_prompt("username")
+        .with_prompt(style("👤 username").cyan().bold().to_string())
         .default("wsluser".into())
         .interact_text()?;
 
     let password: String = Password::new()
-        .with_prompt("password (blank to skip)")
+        .with_prompt(style("🔑 password (blank to skip)").cyan().bold().to_string())
         .allow_empty_password(true)
         .interact()?;
 
     let override_instance: bool = Confirm::new()
-        .with_prompt("override existing instance?")
+        .with_prompt(style("♻️  override existing instance?").cyan().bold().to_string())
         .default(false)
         .interact()?;
 
+    eprintln!(
+        "{}",
+        style("── Proxy ────────────────────────────────────────────").dim()
+    );
+
     let proxy = if Confirm::new()
-        .with_prompt("configure proxy?")
+        .with_prompt(style("🌐 configure proxy?").cyan().bold().to_string())
         .default(false)
         .interact()?
     {
@@ -39,8 +54,18 @@ pub fn run() -> anyhow::Result<Config> {
         None
     };
 
+    eprintln!(
+        "{}",
+        style("── Cloud-init ───────────────────────────────────────").dim()
+    );
+
     let cloud_init_path: String = Input::new()
-        .with_prompt("cloud-init file path (blank to skip)")
+        .with_prompt(
+            style("☁️  cloud-init file path (blank to skip)")
+                .cyan()
+                .bold()
+                .to_string(),
+        )
         .allow_empty(true)
         .interact_text()?;
 
@@ -52,7 +77,14 @@ pub fn run() -> anyhow::Result<Config> {
         })
     };
 
+    eprintln!(
+        "{}",
+        style("── Image ────────────────────────────────────────────").dim()
+    );
+
     let image = prompt_image()?;
+
+    eprintln!();
 
     let instance = Instance {
         override_instance,
@@ -74,18 +106,25 @@ pub fn run() -> anyhow::Result<Config> {
 
 fn prompt_image() -> anyhow::Result<ImageSource> {
     let use_file: bool = Confirm::new()
-        .with_prompt("use a local rootfs file instead of a distro?")
+        .with_prompt(
+            style("🗂️  use a local rootfs file instead of a distro?")
+                .cyan()
+                .bold()
+                .to_string(),
+        )
         .default(false)
         .interact()?;
 
     if use_file {
-        let path: String = Input::new().with_prompt("rootfs file path").interact_text()?;
+        let path: String = Input::new()
+            .with_prompt(style("🗂️  rootfs file path").cyan().bold().to_string())
+            .interact_text()?;
         Ok(ImageSource::File {
             path: PathBuf::from(path),
         })
     } else {
         let name: String = Input::new()
-            .with_prompt("distro name")
+            .with_prompt(style("🐧 distro name").cyan().bold().to_string())
             .default("Ubuntu".into())
             .interact_text()?;
         Ok(ImageSource::Distro { name })
@@ -94,7 +133,7 @@ fn prompt_image() -> anyhow::Result<ImageSource> {
 
 fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     let http: String = Input::new()
-        .with_prompt("proxy http (blank to skip)")
+        .with_prompt(style("🌐 proxy http (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
@@ -105,7 +144,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     let http_url = Url::parse(&http).map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
 
     let https: String = Input::new()
-        .with_prompt("proxy https (blank to skip)")
+        .with_prompt(style("🔒 proxy https (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
@@ -116,7 +155,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     };
 
     let no_proxy: String = Input::new()
-        .with_prompt("proxy no_proxy (blank to skip)")
+        .with_prompt(style("🚫 proxy no_proxy (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 

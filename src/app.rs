@@ -33,7 +33,7 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
 
     let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
     for (instance_name, instance) in &config.instances {
-        let pb = display::spinner(format!("Provisioning '{instance_name}'..."));
+        let pb = display::spinner(format!("🔧 Creating '{instance_name}'..."));
         let result = manager.create_instance(instance, options)?;
         pb.finish_and_clear();
         result.log();

@@ -27,6 +27,10 @@ pub struct Args {
     #[arg(short, long, action = ArgAction::Count)]
     pub verbose: u8,
 
+    /// Write logs to a file at the given path (always at debug level with timestamps)
+    #[arg(long, value_hint = ValueHint::FilePath)]
+    pub log_file: Option<PathBuf>,
+
     /// Print a minimal example config to stdout and exit
     #[arg(long)]
     pub print_example_config: bool,
