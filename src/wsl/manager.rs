@@ -66,12 +66,15 @@ impl WslManager {
 
         events.push(Event::CreateStarted);
         let outcome: Status = self.execute_create(instance)?;
-        events.extend(self.execute_file_transfers(instance)?);
         Ok(InstanceResult {
             hostname: instance.hostname.clone(),
             outcome,
             events,
         })
+    }
+
+    pub fn transfer_files(&self, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+        self.execute_file_transfers(instance)
     }
 
     pub fn apply_config(&self, root: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
