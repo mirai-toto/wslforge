@@ -194,6 +194,11 @@ instances:
     username: wsluser
     password: root
 
+    proxy:
+      http: http://proxy.local:8080
+      https: http://proxy.local:8080
+      no_proxy: localhost,127.0.0.1
+
     install_dir: "%userprofile%/VMs"
 
     cloud_init:
