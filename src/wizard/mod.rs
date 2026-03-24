@@ -47,7 +47,9 @@ pub fn run() -> anyhow::Result<Config> {
     let cloud_init = if cloud_init_path.is_empty() {
         None
     } else {
-        Some(CloudInitSource::File { path: PathBuf::from(cloud_init_path) })
+        Some(CloudInitSource::File {
+            path: PathBuf::from(cloud_init_path),
+        })
     };
 
     let image = prompt_image()?;
@@ -77,10 +79,10 @@ fn prompt_image() -> anyhow::Result<ImageSource> {
         .interact()?;
 
     if use_file {
-        let path: String = Input::new()
-            .with_prompt("rootfs file path")
-            .interact_text()?;
-        Ok(ImageSource::File { path: PathBuf::from(path) })
+        let path: String = Input::new().with_prompt("rootfs file path").interact_text()?;
+        Ok(ImageSource::File {
+            path: PathBuf::from(path),
+        })
     } else {
         let name: String = Input::new()
             .with_prompt("distro name")
@@ -100,8 +102,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
         return Ok(None);
     }
 
-    let http_url = Url::parse(&http)
-        .map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
+    let http_url = Url::parse(&http).map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
 
     let https: String = Input::new()
         .with_prompt("proxy https (blank to skip)")

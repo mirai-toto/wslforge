@@ -103,14 +103,14 @@ Common flags:
 | ---------------- | --------------------------------------- | ------------- |
 | `--config`       | Path to YAML config file                | `config.yaml` |
 | `--dry-run`      | Show what would be done without changes | `false`       |
-| `--debug`        | Enable extra debug output and artifacts | `false`       |
-| `--print-config` | Print a minimal example config and exit | `false`       |
+| `--debug`        | Enable extra debug output and write artifacts to the current directory (e.g. `cloud-init.<hostname>.user-data`) | `false`       |
+| `--print-example-config` | Print a minimal example config and exit | `false`       |
 | `-v`, `-vv`      | Increase verbosity                      | `0`           |
 
 Print a minimal example config:
 
 ```sh
-./wslforge --print-config
+./wslforge --print-example-config
 ```
 
 ---
@@ -153,7 +153,7 @@ Intermediate targets are available for focused runs: `ci-rust-matrix`, `ci-rust-
 
 ## 🧩 Configuration
 
-The configuration is intentionally small. Most fields are optional, and you can grow into advanced options as needed.
+The configuration is intentionally small. All fields are optional and have sensible defaults, so you can start with a minimal config and grow into advanced options as needed.
 
 The top-level config is an `instances` map, where each key is an instance name:
 
