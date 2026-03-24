@@ -41,30 +41,30 @@ pub enum Event {
 impl Event {
     pub fn describe(&self, hostname: &str) -> String {
         match self {
-            Event::InstanceCheckStarted => format!("🔍 Checking if WSL instance '{}' exists...", hostname),
-            Event::InstanceFound => format!("✅ WSL instance '{}' exists.", hostname),
-            Event::InstanceNotFound => format!("ℹ️ WSL instance '{}' does not exist.", hostname),
-            Event::OverrideEnabled => format!("⚠️ Override requested for WSL instance '{}'.", hostname),
+            Event::InstanceCheckStarted => format!("Checking if WSL instance '{}' exists...", hostname),
+            Event::InstanceFound => format!("WSL instance '{}' exists.", hostname),
+            Event::InstanceNotFound => format!("WSL instance '{}' does not exist.", hostname),
+            Event::OverrideEnabled => format!("Override requested for WSL instance '{}'.", hostname),
             Event::OverrideTriggered => {
-                format!("⚠️ WSL instance '{}' already exists and will be overridden.", hostname)
+                format!("WSL instance '{}' already exists and will be overridden.", hostname)
             }
-            Event::DeleteSkipped => format!("ℹ️ WSL instance '{}' does not exist. Skipping delete.", hostname),
-            Event::DeleteDryRun => format!("🧪 Dry run: WSL instance '{}' would be deleted", hostname),
-            Event::DeleteStarted => format!("🧹 Deleting existing WSL instance '{}'", hostname),
-            Event::DeleteCompleted => format!("✅ WSL instance '{}' deleted successfully.", hostname),
-            Event::CreateDryRun => format!("🧪 Dry run: WSL instance '{}' would be created", hostname),
-            Event::CreateStarted => format!("🚀 Creating WSL instance '{}'", hostname),
-            Event::CloudInitSkipped => "☁️ Cloud-init: not configured".to_string(),
-            Event::CloudInitSourceResolved(path) => format!("☁️ Cloud-init source: {}", path.display()),
-            Event::CloudInitInlineLoaded => "☁️ Cloud-init source: inline content".to_string(),
+            Event::DeleteSkipped => format!("WSL instance '{}' does not exist. Skipping delete.", hostname),
+            Event::DeleteDryRun => format!("Dry run: WSL instance '{}' would be deleted", hostname),
+            Event::DeleteStarted => format!("Deleting existing WSL instance '{}'", hostname),
+            Event::DeleteCompleted => format!("WSL instance '{}' deleted successfully.", hostname),
+            Event::CreateDryRun => format!("Dry run: WSL instance '{}' would be created", hostname),
+            Event::CreateStarted => format!("Creating WSL instance '{}'", hostname),
+            Event::CloudInitSkipped => "Cloud-init: not configured".to_string(),
+            Event::CloudInitSourceResolved(path) => format!("Cloud-init source: {}", path.display()),
+            Event::CloudInitInlineLoaded => "Cloud-init source: inline content".to_string(),
             Event::CloudInitDryRunDeployed(path) => {
-                format!("🧪 Dry run: cloud-init target would be created at: {}", path.display())
+                format!("Dry run: cloud-init target would be created at: {}", path.display())
             }
-            Event::CloudInitDeployed(path) => format!("☁️ Cloud-init target: {}", path.display()),
-            Event::CloudInitDebugCopied(path) => format!("☁️ Cloud-init debug copy: {}", path.display()),
-            Event::CloudInitDebugSkipped(reason) => format!("☁️ Cloud-init debug copy skipped ({reason})"),
-            Event::FileTransferStarted(src) => format!("📋 Transferring file: {}", src.display()),
-            Event::FileTransferCompleted(dest) => format!("✅ File transferred to: {dest}"),
+            Event::CloudInitDeployed(path) => format!("Cloud-init target: {}", path.display()),
+            Event::CloudInitDebugCopied(path) => format!("Cloud-init debug copy: {}", path.display()),
+            Event::CloudInitDebugSkipped(reason) => format!("Cloud-init debug copy skipped ({reason})"),
+            Event::FileTransferStarted(src) => format!("Transferring file: {}", src.display()),
+            Event::FileTransferCompleted(dest) => format!("File transferred to: {dest}"),
         }
     }
 }
@@ -72,9 +72,9 @@ impl Event {
 impl Status {
     pub fn describe(&self, hostname: &str) -> String {
         match self {
-            Status::Created => format!("✅ WSL instance '{}' created successfully.", hostname),
-            Status::AlreadyExists => format!("ℹ️ WSL instance '{}' already exists.", hostname),
-            Status::Skipped => format!("ℹ️ WSL instance '{}' was skipped.", hostname),
+            Status::Created => format!("WSL instance '{}' created successfully.", hostname),
+            Status::AlreadyExists => format!("WSL instance '{}' already exists.", hostname),
+            Status::Skipped => format!("WSL instance '{}' was skipped.", hostname),
         }
     }
 }
