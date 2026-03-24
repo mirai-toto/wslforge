@@ -26,6 +26,7 @@ RUN npm install -g \
       @semantic-release/commit-analyzer \
       @semantic-release/release-notes-generator \
       @semantic-release/exec \
+      @semantic-release/git \
       @semantic-release/github
 
 WORKDIR /work
