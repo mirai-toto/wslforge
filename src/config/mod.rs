@@ -1,15 +1,20 @@
 mod loader;
 mod model;
 pub use loader::load_yaml;
-pub use model::{CloudInitSource, Config, ImageSource, Instance};
+pub use model::{CloudInitSource, Config, ImageSource, Instance, Proxy};
 
-pub const EXAMPLE_CONFIG: &str = r#"─── Example Config ───────────────────────────────────────────────
+pub const EXAMPLE_CONFIG: &str = r#"# ─── Example Config ───────────────────────────────────────────────
 
 instances:
   UbuntuWslDev:
     override: true
     hostname: UbuntuWslDev
     username: wsluser
+    password: <PASSWORD>
+    # proxy:
+    #   http: http://proxy.local:8080
+    #   https: http://proxy.local:8080
+    #   no_proxy: localhost,127.0.0.1
     cloud_init:
       type: inline
       content: |
@@ -21,7 +26,8 @@ instances:
       type: distro
       name: Ubuntu
 
-─── Tips ─────────────────────────────────────────────────────────
-• Use `--print-config` to print this example.
-• Use `--config` to point to your YAML file.
+# ─── Tips ─────────────────────────────────────────────────────────
+# Use --print-example-config to print this example.
+# Redirect to a file:  wslforge --print-example-config > config.yaml
+# Use --config to point to your YAML file.
 "#;

@@ -11,15 +11,15 @@ use crate::config;
     after_help = config::EXAMPLE_CONFIG
 )]
 pub struct Args {
-    /// Path to YAML configuration file
-    #[arg(short, long, value_hint = ValueHint::FilePath, default_value = "config.yaml")]
-    pub config: PathBuf,
+    /// Path to YAML configuration file (defaults to config.yaml in current directory)
+    #[arg(short, long, value_hint = ValueHint::FilePath)]
+    pub config: Option<PathBuf>,
 
     /// Show what would be done without creating the instance
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Enable extra debug output and artifacts
+    /// Enable extra debug output and write artifacts to the current directory (e.g. cloud-init.<hostname>.user-data)
     #[arg(long)]
     pub debug: bool,
 
@@ -29,5 +29,5 @@ pub struct Args {
 
     /// Print a minimal example config to stdout and exit
     #[arg(long)]
-    pub print_config: bool,
+    pub print_example_config: bool,
 }
