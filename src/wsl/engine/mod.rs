@@ -27,6 +27,7 @@ pub trait WslEngine {
         content: &[u8],
         owner: Option<&str>,
         mode: Option<&str>,
+        shell: &str,
     ) -> anyhow::Result<()>;
-    fn run_script(&self, instance_name: &str, script: &str) -> anyhow::Result<()>;
+    fn run_script(&self, instance_name: &str, script: &str, shell: &str) -> anyhow::Result<()>;
 }

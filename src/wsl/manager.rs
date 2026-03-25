@@ -11,6 +11,8 @@ use crate::wsl::setup;
 use crate::wsl::validation::{environment, instance};
 use crate::wsl::{cloud_init, Event, InstanceResult, RunOptions, Status};
 
+const DEFAULT_SHELL: &str = "sh";
+
 pub struct WslManager {
     engine: Box<dyn WslEngine>,
 }
@@ -125,6 +127,7 @@ impl WslManager {
     }
 
     fn execute_file_transfers(&self, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+        let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
         let mut events: Vec<Event> = Vec::new();
         for transfer in &instance.files {
             let src: std::path::PathBuf = expand_path(&transfer.src)?;
@@ -137,6 +140,7 @@ impl WslManager {
                 &content,
                 transfer.owner.as_deref(),
                 transfer.mode.as_deref(),
+                shell,
             )?;
             events.push(Event::FileTransferCompleted(transfer.dest.clone()));
         }
@@ -144,10 +148,11 @@ impl WslManager {
     }
 
     fn execute_scripts(&self, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+        let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
         let mut events: Vec<Event> = Vec::new();
-        for script in &instance.scripts {
+        for script in &instance.scripts.run {
             events.push(Event::ScriptStarted(script.clone()));
-            self.engine.run_script(&instance.hostname, script)?;
+            self.engine.run_script(&instance.hostname, script, shell)?;
             events.push(Event::ScriptCompleted(script.clone()));
         }
         Ok(events)

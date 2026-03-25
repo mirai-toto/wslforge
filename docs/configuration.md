@@ -26,7 +26,7 @@ Note: a bare instance object at the root (without `instances:`) is still accepte
 | `image`       | Image source (distro or file/URL)         | see [Image Sources](#image-sources) | distro: Ubuntu      |
 | `cloud_init`  | Cloud-init user-data (file or inline)     | see [Cloud Init](#cloud-init)       | —                   |
 | `files`       | Files to copy into the instance           | see [Files](#files)                 | —                   |
-| `scripts`     | Bash commands to run after create         | see [Scripts](#scripts)             | —                   |
+| `scripts`     | Commands to run after create              | see [Scripts](#scripts)             | —                   |
 
 Example `config.yaml` with a file-based cloud-init and an official distro:
 
@@ -154,12 +154,25 @@ files:
 
 ## Scripts
 
-Run bash commands inside the instance after creation. Runs after file transfers.
+Run commands inside the instance after creation. Runs after file transfers.
 
 ```yaml
 scripts:
-  - "systemctl enable my-service"
-  - "systemctl start my-service"
+  run:
+    - "systemctl enable my-service"
+    - "systemctl start my-service"
 ```
 
-Each entry is passed to `bash -c` inside the instance.
+| Field   | Description                                       | Default |
+| ------- | ------------------------------------------------- | ------- |
+| `run`   | List of commands to execute                       | —       |
+| `shell` | Shell used to run commands (e.g. `bash`, `sh`)    | `sh`    |
+
+Each entry is passed to `<shell> -c` inside the instance. The default shell is `sh`, which works on any distro including Alpine-based images. Override to `bash` if your scripts require it:
+
+```yaml
+scripts:
+  shell: bash
+  run:
+    - "source /etc/profile && my-bash-script"
+```

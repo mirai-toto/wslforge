@@ -112,6 +112,15 @@ impl Default for ImageSource {
     }
 }
 
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ScriptConfig {
+    #[serde(default)]
+    pub shell: Option<String>,
+    #[serde(default)]
+    pub run: Vec<String>,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Instance {
@@ -131,7 +140,7 @@ pub struct Instance {
     #[serde(default)]
     pub files: Vec<FileTransfer>,
     #[serde(default)]
-    pub scripts: Vec<String>,
+    pub scripts: ScriptConfig,
 
     #[serde(default = "default_install_dir")]
     pub install_dir: PathBuf,

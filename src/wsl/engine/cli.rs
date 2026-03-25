@@ -78,6 +78,7 @@ impl WslEngine for CliEngine {
         content: &[u8],
         owner: Option<&str>,
         mode: Option<&str>,
+        shell: &str,
     ) -> anyhow::Result<()> {
         let parent: String = std::path::Path::new(dest)
             .parent()
@@ -97,7 +98,7 @@ impl WslEngine for CliEngine {
         }
 
         let mut child = Command::new("wsl.exe")
-            .args(["-d", instance_name, "--", "bash", "-c", &script.join(" && ")])
+            .args(["-d", instance_name, "--", shell, "-c", &script.join(" && ")])
             .stdin(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()?;
@@ -110,9 +111,9 @@ impl WslEngine for CliEngine {
         Ok(())
     }
 
-    fn run_script(&self, instance_name: &str, script: &str) -> anyhow::Result<()> {
+    fn run_script(&self, instance_name: &str, script: &str, shell: &str) -> anyhow::Result<()> {
         let output: std::process::Output = Command::new("wsl.exe")
-            .args(["-d", instance_name, "--", "bash", "-c", script])
+            .args(["-d", instance_name, "--", shell, "-c", script])
             .output()?;
         if !output.status.success() {
             return Err(command_error(&format!("script failed in '{instance_name}'"), &output));

@@ -25,6 +25,7 @@ instances:
       type: file
       path: "https://github.com/sakai135/wsl-vpnkit/releases/latest/download/wsl-vpnkit.tar.gz"
     scripts:
-      - "cat /app/wsl-vpnkit.service | tee /etc/systemd/system/wsl-vpnkit.service"
-      - "systemctl enable wsl-vpnkit"
-      - "systemctl start wsl-vpnkit"
+      run:
+        - "cat /app/wsl-vpnkit.service | tee /etc/systemd/system/wsl-vpnkit.service"
+        - "systemctl enable wsl-vpnkit"
+        - "systemctl start wsl-vpnkit"
