@@ -18,6 +18,11 @@ instances:
     #   another: whatever
 
     # --- File transfers (copied into the instance after creation) ---
+    files:
+      - src: "motd.txt"
+        dest: /etc/motd
+        mode: "644"
+    # Advanced example: inject a CA certificate
     # files:
     #   - src: "%USERPROFILE%/certs/company.crt"
     #     dest: /usr/local/share/ca-certificates/company.crt

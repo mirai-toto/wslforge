@@ -1,11 +1,13 @@
 use std::collections::BTreeMap;
 
+use console::style;
+
 use crate::{
     config::Config,
     display, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
-        EngineKind, InstanceResult, RunOptions, WslManager,
+        EngineKind, InstanceResult, RunOptions, Status, WslManager,
     },
 };
 
@@ -33,9 +35,16 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
 
     let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
     for (instance_name, instance) in &config.instances {
-        let pb = display::spinner(format!("Provisioning '{instance_name}'..."));
-        let result = manager.create_instance(instance, options)?;
-        pb.finish_and_clear();
+        eprintln!("{}", style(format!("🔧 Creating '{instance_name}'...")).bold());
+        let mut result = manager.create_instance(instance, options)?;
+
+        if result.outcome == Status::Created && !instance.files.is_empty() {
+            let pb = display::spinner(format!("📂 Transferring {} file(s)...", instance.files.len()));
+            let transfer_events = manager.transfer_files(instance)?;
+            pb.finish_and_clear();
+            result.events.extend(transfer_events);
+        }
+
         result.log();
         results.insert(instance_name.clone(), result);
     }

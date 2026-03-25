@@ -1,6 +1,7 @@
 use std::path::Path;
 
 use clap::Parser;
+use console::style;
 use log::LevelFilter;
 use wslforge::{app, cli::Args, config, wizard};
 
@@ -12,7 +13,7 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    init_logger(args.verbose);
+    init_logger(args.log_file.as_deref())?;
 
     let loaded = resolve_config(args.config.as_deref())?;
     app::run(app::AppArgs {
@@ -30,17 +31,24 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     match explicit {
         Some(path) => {
             let cfg = config::load_yaml(path)?;
-            log::debug!("📋 Loaded config from {}", path.display());
+            eprintln!("{}", style(format!("📄 Loaded config from '{}'", path.display())).dim());
             Ok(cfg)
         }
         None => {
             if default_path.exists() {
-                log::warn!(
-                    "No --config flag given; using '{}' found in current directory.",
-                    default_path.display()
+                eprintln!(
+                    "{}",
+                    style(format!(
+                        "⚠️  No --config given, using '{}' found in current directory.",
+                        default_path.display()
+                    ))
+                    .yellow()
                 );
                 let cfg = config::load_yaml(default_path)?;
-                log::debug!("📋 Loaded config from {}", default_path.display());
+                eprintln!(
+                    "{}",
+                    style(format!("📄 Loaded config from '{}'", default_path.display())).dim()
+                );
                 Ok(cfg)
             } else {
                 wizard::run()
@@ -49,15 +57,24 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     }
 }
 
-fn init_logger(verbosity: u8) {
-    let level: LevelFilter = match verbosity {
-        0 => LevelFilter::Warn,
-        1 => LevelFilter::Info,
-        _ => LevelFilter::Debug,
-    };
+fn init_logger(log_file: Option<&Path>) -> anyhow::Result<()> {
+    let mut base = fern::Dispatch::new().level(LevelFilter::Off);
 
-    env_logger::Builder::new()
-        .filter_level(level)
-        .format_timestamp(None)
-        .init();
+    if let Some(path) = log_file {
+        let file_dispatch = fern::Dispatch::new()
+            .level(LevelFilter::Debug)
+            .format(|out, message, record| {
+                out.finish(format_args!(
+                    "[{}] [{:<5}] {}",
+                    chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
+                    record.level(),
+                    message
+                ))
+            })
+            .chain(fern::log_file(path)?);
+        base = base.chain(file_dispatch);
+    }
+
+    base.apply()?;
+    Ok(())
 }

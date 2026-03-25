@@ -1,7 +1,6 @@
 use crate::wsl::engine::WslEngine;
 use crate::wsl::helpers::command_error;
 use encoding_rs::UTF_16LE;
-use log::info;
 use std::process::Command;
 
 pub fn check_environment(engine: &dyn WslEngine) -> anyhow::Result<()> {
@@ -13,7 +12,7 @@ pub fn check_environment(engine: &dyn WslEngine) -> anyhow::Result<()> {
 pub fn validate_wsl_installed(engine: &dyn WslEngine) -> anyhow::Result<()> {
     let output: std::process::Output = engine.status()?;
     if output.status.success() {
-        info!("✅ WSL is installed");
+        eprintln!("✅ WSL is installed");
         Ok(())
     } else {
         Err(command_error("WSL is not installed", &output))
@@ -24,7 +23,7 @@ pub fn validate_windows_features(feature_names: &[&str]) -> anyhow::Result<()> {
     let mut disabled: Vec<&str> = Vec::new();
     for feature_name in feature_names {
         if is_windows_feature_enabled(feature_name)? {
-            info!("✅ {feature_name} is enabled");
+            eprintln!("✅ {feature_name} is enabled");
         } else {
             disabled.push(*feature_name);
         }
