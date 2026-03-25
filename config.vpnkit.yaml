@@ -1,0 +1,26 @@
+instances:
+  UbuntuWslDev:
+    override: true
+    hostname: UbuntuWslDev
+    username: wsluser
+    password: root
+    install_dir: "%userprofile%/VMs"
+    files:
+      - src: "motd.txt"
+        dest: /etc/motd
+        mode: "644"
+    cloud_init:
+      type: file
+      path: "cloud-init.yaml.j2"
+    image:
+      type: distro
+      name: Ubuntu
+
+  wsl-vpnkit:
+    override: false
+    hostname: wsl-vpnkit
+    username: root
+    install_dir: "%userprofile%/VMs"
+    image:
+      type: file
+      path: "%USERPROFILE%/Downloads/wsl-vpnkit.tar.gz"
