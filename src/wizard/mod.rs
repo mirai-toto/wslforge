@@ -76,12 +76,12 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
 
     let default_username = std::env::var("USERNAME").unwrap_or_else(|_| "wsluser".into());
     let username: String = Input::new()
-        .with_prompt(style("👤 username").cyan().bold().to_string())
+        .with_prompt(style("👤  username").cyan().bold().to_string())
         .default(default_username)
         .interact_text()?;
 
     let password: String = Password::new()
-        .with_prompt(style("🔑 password (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🔑  password (blank to skip)").cyan().bold().to_string())
         .with_confirmation(
             style("🔑 confirm password").cyan().bold().to_string(),
             "passwords do not match, please try again",
@@ -100,7 +100,7 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     );
 
     let proxy = if Confirm::new()
-        .with_prompt(style("🌐 configure proxy?").cyan().bold().to_string())
+        .with_prompt(style("🌐  configure proxy?").cyan().bold().to_string())
         .default(false)
         .interact()?
     {
@@ -162,7 +162,7 @@ fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
 
 fn prompt_image() -> anyhow::Result<ImageSource> {
     let name: String = Input::new()
-        .with_prompt(style("🐧 distro name (e.g. Ubuntu, Debian)").cyan().bold().to_string())
+        .with_prompt(style("🐧  distro name (e.g. Ubuntu, Debian)").cyan().bold().to_string())
         .default("Ubuntu".into())
         .interact_text()?;
 
@@ -185,7 +185,7 @@ fn prompt_image() -> anyhow::Result<ImageSource> {
 
 fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     let http: String = Input::new()
-        .with_prompt(style("🌐 proxy http (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🌐  proxy http (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
@@ -196,7 +196,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     let http_url = Url::parse(&http).map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
 
     let https: String = Input::new()
-        .with_prompt(style("🔒 proxy https (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🔒  proxy https (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
@@ -207,7 +207,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     };
 
     let no_proxy: String = Input::new()
-        .with_prompt(style("🚫 proxy no_proxy (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🚫  proxy no_proxy (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
