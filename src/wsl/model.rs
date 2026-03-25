@@ -29,6 +29,7 @@ pub enum Event {
     CreateDryRun,
     CreateStarted,
     CloudInitSkipped,
+    CloudInitDefaultGenerated,
     CloudInitSourceResolved(PathBuf),
     CloudInitInlineLoaded,
     CloudInitDryRunDeployed(PathBuf),
@@ -60,6 +61,7 @@ impl Event {
             Event::CreateDryRun => format!("Dry run: WSL instance '{}' would be created", hostname),
             Event::CreateStarted => format!("Creating WSL instance '{}'", hostname),
             Event::CloudInitSkipped => "Cloud-init: not configured".to_string(),
+            Event::CloudInitDefaultGenerated => "Cloud-init: no config provided, using generated default".to_string(),
             Event::CloudInitSourceResolved(path) => format!("Cloud-init source: {}", path.display()),
             Event::CloudInitInlineLoaded => "Cloud-init source: inline content".to_string(),
             Event::CloudInitDryRunDeployed(path) => {

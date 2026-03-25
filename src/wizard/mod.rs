@@ -143,7 +143,7 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
 fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
     let path: String = Input::new()
         .with_prompt(
-            style("☁️  cloud-init file path (blank to skip)")
+            style("☁️  cloud-init file path (blank to generate default)")
                 .cyan()
                 .bold()
                 .to_string(),
