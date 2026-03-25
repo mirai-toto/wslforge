@@ -14,6 +14,63 @@ pub fn run() -> anyhow::Result<Config> {
     );
     eprintln!();
 
+    let (hostname, instance) = prompt_instance()?;
+
+    eprintln!();
+    print_summary(&hostname, &instance);
+
+    let confirmed = Confirm::new()
+        .with_prompt(style("🚀 ready to provision — proceed?").cyan().bold().to_string())
+        .default(true)
+        .interact()?;
+
+    if !confirmed {
+        eprintln!("{}", style("Aborted.").yellow());
+        std::process::exit(0);
+    }
+
+    Ok(Config {
+        instances: BTreeMap::from([(hostname, instance)]),
+    })
+}
+
+fn print_summary(hostname: &str, instance: &Instance) {
+    eprintln!(
+        "{}",
+        style("── Summary ──────────────────────────────────────────").dim()
+    );
+    eprintln!("  hostname    : {}", style(hostname).cyan());
+    eprintln!("  username    : {}", style(&instance.username).cyan());
+    eprintln!(
+        "  password    : {}",
+        style(if instance.password.is_some() { "set" } else { "none" }).cyan()
+    );
+    eprintln!("  override    : {}", style(instance.override_instance).cyan());
+    eprintln!("  install_dir : {}", style(instance.install_dir.display()).cyan());
+    eprintln!(
+        "  image       : {}",
+        style(match &instance.image {
+            ImageSource::Distro { name } => format!("distro: {name}"),
+            ImageSource::File { path } => format!("file: {path}"),
+        })
+        .cyan()
+    );
+    eprintln!(
+        "  cloud-init  : {}",
+        style(match &instance.cloud_init {
+            Some(ci) => format!("{ci}"),
+            None => "none".into(),
+        })
+        .cyan()
+    );
+    eprintln!(
+        "  proxy       : {}",
+        style(if instance.proxy.is_some() { "configured" } else { "none" }).cyan()
+    );
+    eprintln!();
+}
+
+fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     eprintln!(
         "{}",
         style("── Instance ─────────────────────────────────────────").dim()
@@ -31,6 +88,10 @@ pub fn run() -> anyhow::Result<Config> {
 
     let password: String = Password::new()
         .with_prompt(style("🔑 password (blank to skip)").cyan().bold().to_string())
+        .with_confirmation(
+            style("🔑 confirm password").cyan().bold().to_string(),
+            "passwords do not match, please try again",
+        )
         .allow_empty_password(true)
         .interact()?;
 
@@ -59,23 +120,7 @@ pub fn run() -> anyhow::Result<Config> {
         style("── Cloud-init ───────────────────────────────────────").dim()
     );
 
-    let cloud_init_path: String = Input::new()
-        .with_prompt(
-            style("☁️  cloud-init file path (blank to skip)")
-                .cyan()
-                .bold()
-                .to_string(),
-        )
-        .allow_empty(true)
-        .interact_text()?;
-
-    let cloud_init = if cloud_init_path.is_empty() {
-        None
-    } else {
-        Some(CloudInitSource::File {
-            path: PathBuf::from(cloud_init_path),
-        })
-    };
+    let cloud_init = prompt_cloud_init()?;
 
     eprintln!(
         "{}",
@@ -83,8 +128,6 @@ pub fn run() -> anyhow::Result<Config> {
     );
 
     let image = prompt_image()?;
-
-    eprintln!();
 
     let instance = Instance {
         override_instance,
@@ -100,9 +143,27 @@ pub fn run() -> anyhow::Result<Config> {
         image,
     };
 
-    Ok(Config {
-        instances: BTreeMap::from([(hostname, instance)]),
-    })
+    Ok((hostname, instance))
+}
+
+fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
+    let path: String = Input::new()
+        .with_prompt(
+            style("☁️  cloud-init file path (blank to skip)")
+                .cyan()
+                .bold()
+                .to_string(),
+        )
+        .allow_empty(true)
+        .interact_text()?;
+
+    if path.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(CloudInitSource::File {
+            path: PathBuf::from(path),
+        }))
+    }
 }
 
 fn prompt_image() -> anyhow::Result<ImageSource> {
