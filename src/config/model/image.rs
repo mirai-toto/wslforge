@@ -1,4 +1,5 @@
 use serde::Deserialize;
+use std::fmt;
 
 use super::source::SourcePath;
 
@@ -16,6 +17,15 @@ pub enum ImageSource {
     File {
         path: SourcePath,
     },
+}
+
+impl fmt::Display for ImageSource {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ImageSource::Distro { name } => write!(f, "distro: {name}"),
+            ImageSource::File { path } => write!(f, "file: {path}"),
+        }
+    }
 }
 
 impl Default for ImageSource {

@@ -47,14 +47,7 @@ fn print_summary(hostname: &str, instance: &Instance) {
     );
     eprintln!("  override    : {}", style(instance.override_instance).cyan());
     eprintln!("  install_dir : {}", style(instance.install_dir.display()).cyan());
-    eprintln!(
-        "  image       : {}",
-        style(match &instance.image {
-            ImageSource::Distro { name } => format!("distro: {name}"),
-            ImageSource::File { path } => format!("file: {path}"),
-        })
-        .cyan()
-    );
+    eprintln!("  image       : {}", style(&instance.image).cyan());
     eprintln!(
         "  cloud-init  : {}",
         style(match &instance.cloud_init {
