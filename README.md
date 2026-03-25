@@ -44,7 +44,7 @@ winget install --id Microsoft.PowerShell --source winget
 Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
 ```sh
-curl -L -o wslforge.exe https://github.com/mirai-toto/wslforge/releases/download/v1.12.0/wslforge.exe
+curl -L -o wslforge.exe https://github.com/mirai-toto/wslforge/releases/download/v1.12.1/wslforge.exe
 ```
 
 No config yet? Just run `wslforge` and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
