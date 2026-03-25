@@ -17,6 +17,7 @@ tag = false
 [dependencies]
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
 serde = { version = "1", features = ["derive"] }
 url = { version = "2", features = ["serde"] }
 serde_yaml = "0.9"

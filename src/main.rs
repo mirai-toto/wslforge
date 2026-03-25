@@ -1,8 +1,10 @@
 use std::path::Path;
 
-use clap::Parser;
+use clap::{CommandFactory, Parser};
+use clap_complete::generate;
 use console::style;
 use log::LevelFilter;
+use std::io;
 use wslforge::{app, cli::Args, config, wizard};
 
 fn main() -> anyhow::Result<()> {
@@ -10,6 +12,11 @@ fn main() -> anyhow::Result<()> {
 
     if args.print_example_config {
         println!("{}", config::EXAMPLE_CONFIG);
+        return Ok(());
+    }
+
+    if let Some(shell) = args.generate_completion {
+        generate(shell, &mut Args::command(), "wslforge", &mut io::stdout());
         return Ok(());
     }
 
