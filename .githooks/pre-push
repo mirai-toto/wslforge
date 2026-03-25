@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "🔍 Running local CI before push..."
+exec ./scripts/run-local-ci.sh --all

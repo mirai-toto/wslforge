@@ -46,5 +46,5 @@ fn render_reports_template_parse_errors() {
     let instance: Instance = serde_yaml::from_str("{}\n").expect("deserialize instance");
 
     let err = render("{{", &instance).expect_err("invalid template should fail");
-    assert!(err.to_string().contains("cloud-init template parse error"));
+    assert!(err.to_string().contains("cloud-init template error"));
 }

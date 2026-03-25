@@ -1,3 +1,4 @@
+use crate::config::SourcePath;
 use sha_crypt::{sha512_simple, Sha512Params, ROUNDS_DEFAULT};
 use std::path::{Path, PathBuf};
 
@@ -31,6 +32,35 @@ pub(crate) fn resolve_userprofile_dir() -> anyhow::Result<PathBuf> {
         return Ok(PathBuf::from(path));
     }
     anyhow::bail!("USERPROFILE is not set; cannot place cloud-init user-data")
+}
+
+pub(crate) enum ResolvedPath {
+    Local(PathBuf),
+    Temp(tempfile::TempPath),
+}
+
+impl ResolvedPath {
+    pub(crate) fn as_path(&self) -> &Path {
+        match self {
+            ResolvedPath::Local(p) => p.as_path(),
+            ResolvedPath::Temp(t) => t.as_ref(),
+        }
+    }
+}
+
+pub(crate) fn resolve_source_path(path: &SourcePath) -> anyhow::Result<ResolvedPath> {
+    match path {
+        SourcePath::Local(p) => Ok(ResolvedPath::Local(expand_path(p)?)),
+        SourcePath::Remote(url) => {
+            let response = ureq::get(url.as_str())
+                .call()
+                .map_err(|e| anyhow::anyhow!("failed to download '{}': {e}", url))?;
+            let mut tmp = tempfile::NamedTempFile::new()?;
+            std::io::copy(&mut response.into_reader(), tmp.as_file_mut())?;
+            // Close the file handle so wsl.exe --import can open the file on Windows.
+            Ok(ResolvedPath::Temp(tmp.into_temp_path()))
+        }
+    }
 }
 
 pub(crate) fn command_error(description: &str, output: &std::process::Output) -> anyhow::Error {

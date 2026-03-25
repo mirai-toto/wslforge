@@ -30,7 +30,7 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
     let content: String = match source {
         CloudInitSource::File { path } => {
             events.push(Event::CloudInitSourceResolved(path.clone()));
-            load::load_cloud_init_source(source)?
+            load::load_cloud_init_source(path)?
         }
         CloudInitSource::Inline { content } => {
             events.push(Event::CloudInitInlineLoaded);

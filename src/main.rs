@@ -28,33 +28,25 @@ fn main() -> anyhow::Result<()> {
 fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     let default_path = Path::new("config.yaml");
 
-    match explicit {
-        Some(path) => {
-            let cfg = config::load_yaml(path)?;
-            eprintln!("{}", style(format!("📄 Loaded config from '{}'", path.display())).dim());
-            Ok(cfg)
+    let path = match explicit {
+        Some(path) => path,
+        None if default_path.exists() => {
+            eprintln!(
+                "{}",
+                style(format!(
+                    "⚠️  No --config given, using '{}' found in current directory.",
+                    default_path.display()
+                ))
+                .yellow()
+            );
+            default_path
         }
-        None => {
-            if default_path.exists() {
-                eprintln!(
-                    "{}",
-                    style(format!(
-                        "⚠️  No --config given, using '{}' found in current directory.",
-                        default_path.display()
-                    ))
-                    .yellow()
-                );
-                let cfg = config::load_yaml(default_path)?;
-                eprintln!(
-                    "{}",
-                    style(format!("📄 Loaded config from '{}'", default_path.display())).dim()
-                );
-                Ok(cfg)
-            } else {
-                wizard::run()
-            }
-        }
-    }
+        None => return wizard::run(),
+    };
+
+    let cfg = config::load_yaml(path)?;
+    eprintln!("{}", style(format!("📄 Loaded config from '{}'", path.display())).dim());
+    Ok(cfg)
 }
 
 fn init_logger(log_file: Option<&Path>) -> anyhow::Result<()> {
