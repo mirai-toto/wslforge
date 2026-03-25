@@ -32,6 +32,5 @@ comfy-table = "7.2.2"
 console = "0.16.3"
 fern = "0.7.1"
 chrono = { version = "0.4.44", features = ["clock"] }
-
-[dev-dependencies]
+ureq = "2"
 tempfile = "3"

@@ -1,4 +1,4 @@
-use crate::config::{ImageSource, Instance};
+use crate::config::{ImageSource, Instance, SourcePath};
 use crate::wsl::helpers::expand_env_vars;
 
 pub fn validate_instance(instance: &Instance) -> anyhow::Result<()> {
@@ -7,7 +7,11 @@ pub fn validate_instance(instance: &Instance) -> anyhow::Result<()> {
 
 pub fn validate_image_source(instance: &Instance) -> anyhow::Result<()> {
     if let ImageSource::File { path } = &instance.image {
-        let expanded: String = expand_env_vars(&path.to_string_lossy())?;
+        let local = match path {
+            SourcePath::Remote(_) => return Ok(()),
+            SourcePath::Local(p) => p,
+        };
+        let expanded: String = expand_env_vars(&local.to_string_lossy())?;
         let expanded_path: std::path::PathBuf = std::path::PathBuf::from(expanded);
         if !expanded_path.exists() {
             anyhow::bail!("image file not found: {}", expanded_path.display());

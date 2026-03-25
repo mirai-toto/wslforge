@@ -24,6 +24,33 @@ fn default_distro() -> String {
     "Ubuntu".into()
 }
 
+#[derive(Debug, Clone)]
+pub enum SourcePath {
+    Local(PathBuf),
+    Remote(Url),
+}
+
+impl<'de> Deserialize<'de> for SourcePath {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let s = String::deserialize(deserializer)?;
+        if let Ok(url) = Url::parse(&s) {
+            if matches!(url.scheme(), "http" | "https") {
+                return Ok(SourcePath::Remote(url));
+            }
+        }
+        Ok(SourcePath::Local(PathBuf::from(s)))
+    }
+}
+
+impl fmt::Display for SourcePath {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SourcePath::Local(p) => write!(f, "{}", p.display()),
+            SourcePath::Remote(u) => write!(f, "{u}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ImageSource {
@@ -32,7 +59,7 @@ pub enum ImageSource {
         name: String,
     },
     File {
-        path: PathBuf,
+        path: SourcePath,
     },
 }
 
@@ -103,6 +130,8 @@ pub struct Instance {
     pub vars: HashMap<String, String>,
     #[serde(default)]
     pub files: Vec<FileTransfer>,
+    #[serde(default)]
+    pub scripts: Vec<String>,
 
     #[serde(default = "default_install_dir")]
     pub install_dir: PathBuf,

@@ -32,6 +32,9 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
     if !instance.files.is_empty() {
         field("files", &format!("{} transfer(s)", instance.files.len()));
     }
+    if !instance.scripts.is_empty() {
+        field("scripts", &format!("{} script(s)", instance.scripts.len()));
+    }
     eprintln!();
 
     log::debug!(
@@ -45,7 +48,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
 fn image_label(image: &ImageSource) -> String {
     match image {
         ImageSource::Distro { name } => format!("{name} (distro)"),
-        ImageSource::File { path } => format!("{} (file)", path.display()),
+        ImageSource::File { path } => format!("{path} (file)"),
     }
 }
 

@@ -23,4 +23,8 @@ instances:
     install_dir: "%userprofile%/VMs"
     image:
       type: file
-      path: "%USERPROFILE%/Downloads/wsl-vpnkit.tar.gz"
+      path: "https://github.com/sakai135/wsl-vpnkit/releases/latest/download/wsl-vpnkit.tar.gz"
+    scripts:
+      - "cat /app/wsl-vpnkit.service | tee /etc/systemd/system/wsl-vpnkit.service"
+      - "systemctl enable wsl-vpnkit"
+      - "systemctl start wsl-vpnkit"

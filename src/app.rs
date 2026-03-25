@@ -45,6 +45,13 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
             result.events.extend(transfer_events);
         }
 
+        if result.outcome == Status::Created && !instance.scripts.is_empty() {
+            let pb = display::spinner(format!("⚙️  Running {} script(s)...", instance.scripts.len()));
+            let script_events = manager.run_scripts(instance)?;
+            pb.finish_and_clear();
+            result.events.extend(script_events);
+        }
+
         result.log();
         results.insert(instance_name.clone(), result);
     }

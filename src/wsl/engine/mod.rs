@@ -28,4 +28,5 @@ pub trait WslEngine {
         owner: Option<&str>,
         mode: Option<&str>,
     ) -> anyhow::Result<()>;
+    fn run_script(&self, instance_name: &str, script: &str) -> anyhow::Result<()>;
 }

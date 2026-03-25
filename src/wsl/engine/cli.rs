@@ -109,4 +109,14 @@ impl WslEngine for CliEngine {
         }
         Ok(())
     }
+
+    fn run_script(&self, instance_name: &str, script: &str) -> anyhow::Result<()> {
+        let output: std::process::Output = Command::new("wsl.exe")
+            .args(["-d", instance_name, "--", "bash", "-c", script])
+            .output()?;
+        if !output.status.success() {
+            return Err(command_error(&format!("script failed in '{instance_name}'"), &output));
+        }
+        Ok(())
+    }
 }
