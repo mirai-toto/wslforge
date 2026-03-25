@@ -14,3 +14,10 @@ pub fn spinner(msg: String) -> ProgressBar {
     pb.enable_steady_tick(Duration::from_millis(80));
     pb
 }
+
+pub fn with_spinner<T>(msg: String, f: impl FnOnce() -> T) -> T {
+    let pb = spinner(msg);
+    let result = f();
+    pb.finish_and_clear();
+    result
+}

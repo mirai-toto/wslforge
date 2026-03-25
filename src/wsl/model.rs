@@ -6,11 +6,13 @@ pub struct RunOptions {
     pub debug: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Status {
     Created,
+    Recreated,
     AlreadyExists,
     Skipped,
+    Failed(String),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -80,8 +82,10 @@ impl Status {
     pub fn describe(&self, hostname: &str) -> String {
         match self {
             Status::Created => format!("WSL instance '{}' created successfully.", hostname),
+            Status::Recreated => format!("WSL instance '{}' recreated successfully.", hostname),
             Status::AlreadyExists => format!("WSL instance '{}' already exists.", hostname),
             Status::Skipped => format!("WSL instance '{}' was skipped.", hostname),
+            Status::Failed(e) => format!("WSL instance '{}' failed: {e}", hostname),
         }
     }
 }

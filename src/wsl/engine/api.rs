@@ -44,11 +44,12 @@ impl WslEngine for ApiEngine {
         _content: &[u8],
         _owner: Option<&str>,
         _mode: Option<&str>,
+        _shell: &str,
     ) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 
-    fn run_script(&self, _instance_name: &str, _script: &str) -> anyhow::Result<()> {
+    fn run_script(&self, _instance_name: &str, _script: &str, _shell: &str) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 }

@@ -32,8 +32,8 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
     if !instance.files.is_empty() {
         field("files", &format!("{} transfer(s)", instance.files.len()));
     }
-    if !instance.scripts.is_empty() {
-        field("scripts", &format!("{} script(s)", instance.scripts.len()));
+    if !instance.scripts.run.is_empty() {
+        field("scripts", &format!("{} script(s)", instance.scripts.run.len()));
     }
     eprintln!();
 

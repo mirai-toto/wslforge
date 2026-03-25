@@ -14,10 +14,12 @@ pub fn print_summary(results: &BTreeMap<String, InstanceResult>) {
     ]);
 
     for (name, result) in results {
-        let (status_str, color) = match result.outcome {
-            Status::Created => ("✅ Created", Color::Green),
-            Status::AlreadyExists => ("⚠️  Already exists", Color::Yellow),
-            Status::Skipped => ("🔍 Skipped (dry run)", Color::Cyan),
+        let (status_str, color) = match &result.outcome {
+            Status::Created => ("✅ Created".to_string(), Color::Green),
+            Status::Recreated => ("♻️  Recreated".to_string(), Color::Blue),
+            Status::AlreadyExists => ("⚠️  Already exists".to_string(), Color::Yellow),
+            Status::Skipped => ("🔍 Skipped (dry run)".to_string(), Color::Cyan),
+            Status::Failed(e) => (format!("❌ Failed: {e}"), Color::Red),
         };
         table.add_row(vec![
             Cell::new(name),

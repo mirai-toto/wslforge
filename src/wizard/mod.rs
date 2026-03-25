@@ -94,7 +94,7 @@ pub fn run() -> anyhow::Result<Config> {
         proxy,
         vars: Default::default(),
         files: vec![],
-        scripts: vec![],
+        scripts: Default::default(),
         install_dir: PathBuf::from("%userprofile%/VMs"),
         cloud_init,
         image,

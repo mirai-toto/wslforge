@@ -80,6 +80,7 @@ impl WslEngine for FakeEngine {
         _content: &[u8],
         _owner: Option<&str>,
         _mode: Option<&str>,
+        _shell: &str,
     ) -> anyhow::Result<()> {
         self.calls
             .lock()
@@ -88,7 +89,7 @@ impl WslEngine for FakeEngine {
         Ok(())
     }
 
-    fn run_script(&self, instance_name: &str, script: &str) -> anyhow::Result<()> {
+    fn run_script(&self, instance_name: &str, script: &str, _shell: &str) -> anyhow::Result<()> {
         self.calls
             .lock()
             .expect("lock calls")
@@ -252,7 +253,7 @@ fn create_instance_override_existing_deletes_then_creates() {
         .create_instance(&instance, RunOptions::default())
         .expect("override create should succeed");
 
-    assert_eq!(report.outcome, Status::Created);
+    assert_eq!(report.outcome, Status::Recreated);
     assert_eq!(
         report.events,
         vec![
