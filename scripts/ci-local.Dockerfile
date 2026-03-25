@@ -21,6 +21,8 @@ RUN rustup toolchain install beta nightly \
 RUN cargo install --locked cargo-audit cargo-llvm-cov typos-cli
 
 RUN npm install -g \
+      @commitlint/cli \
+      @commitlint/config-conventional \
       markdownlint-cli2 \
       semantic-release \
       @semantic-release/commit-analyzer \
@@ -49,8 +51,12 @@ RUN cargo +stable doc --no-deps
 # Compatibility alias used by scripts/run-local-ci.sh default target
 FROM ci-rust-quality AS ci-core
 
+# Commit message linting
+FROM ci-core AS ci-commitlint
+RUN commitlint --from "$(git merge-base HEAD main)"
+
 # Markdown linting
-FROM ci-core AS ci-markdown
+FROM ci-commitlint AS ci-markdown
 RUN git ls-files '*.md' | xargs -r markdownlint-cli2
 
 # Typo checks
