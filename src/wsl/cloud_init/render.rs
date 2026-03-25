@@ -21,18 +21,9 @@ struct CloudInitRenderContext {
 }
 
 pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
-    let mut env: Environment<'_> = Environment::new();
-    env.add_template("cloud-init.user-data", raw)
-        .map_err(|e| anyhow::anyhow!("cloud-init template parse error: {e}"))?;
+    let env: Environment<'_> = Environment::new();
 
-    let template: minijinja::Template<'_, '_> = env
-        .get_template("cloud-init.user-data")
-        .map_err(|e| anyhow::anyhow!("cloud-init template load error: {e}"))?;
-
-    let password_hash: Option<String> = match instance.password.as_deref() {
-        Some(password) => Some(hash_password_sha512(password)?),
-        None => None,
-    };
+    let password_hash = instance.password.as_deref().map(hash_password_sha512).transpose()?;
 
     let context: CloudInitRenderContext = CloudInitRenderContext {
         hostname: instance.hostname.clone(),
@@ -46,9 +37,8 @@ pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
         vars: instance.vars.clone(),
     };
 
-    template
-        .render(context)
-        .map_err(|e| anyhow::anyhow!("cloud-init template render error: {e}"))
+    env.render_str(raw, context)
+        .map_err(|e| anyhow::anyhow!("cloud-init template error: {e}"))
 }
 
 #[cfg(test)]

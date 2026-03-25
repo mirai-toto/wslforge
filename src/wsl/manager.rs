@@ -165,7 +165,8 @@ impl WslManager {
                 if matches!(path, SourcePath::Remote(_)) {
                     events.push(Event::ImageDownloadCompleted);
                 }
-                self.engine.create_from_file(&instance.hostname, &install_dir, resolved.as_path())?;
+                self.engine
+                    .create_from_file(&instance.hostname, &install_dir, resolved.as_path())?;
             }
             ImageSource::Distro { name } => {
                 self.engine.create_from_distro(name, &instance.hostname)?;
