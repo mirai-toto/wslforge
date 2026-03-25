@@ -61,7 +61,7 @@ RUN git ls-files '*.md' | xargs -r markdownlint-cli2
 
 # Typo checks
 FROM ci-markdown AS ci-typos
-RUN git ls-files | xargs -r typos
+RUN typos
 
 # Security audit
 FROM ci-typos AS ci-security-audit

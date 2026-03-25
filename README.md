@@ -10,7 +10,7 @@ A minimal tool to declaratively create and manage WSL instances.
 ### WSL instance manager
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![build release artifacts](https://github.com/mirai-toto/wslforge/actions/workflows/build.yml/badge.svg)](https://github.com/mirai-toto/wslforge/actions/workflows/build.yml)
+[![build release artifacts](https://github.com/mirai-toto/wslforge/actions/workflows/build-windows.yml/badge.svg)](https://github.com/mirai-toto/wslforge/actions/workflows/build-windows.yml)
 [![Latest Release](https://img.shields.io/github/v/release/mirai-toto/wslforge)](https://github.com/mirai-toto/wslforge/releases)
 [![Rust](https://img.shields.io/badge/built%20with-Rust-orange?logo=rust)](https://www.rust-lang.org/)
 
@@ -40,6 +40,8 @@ winget install --id Microsoft.PowerShell --source winget
 ---
 
 ## ⚡ Quickstart
+
+![wslforge installation demo](./docs/assets/demo.gif)
 
 Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
