@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 use crate::config::{Config, ImageSource, Instance, SourcePath};
 use crate::wsl::engine::WslEngine;
-use crate::wsl::helpers::{expand_path, resolve_install_dir};
+use crate::wsl::helpers::{expand_path, resolve_install_dir, resolve_source_path};
 use crate::wsl::setup;
 use crate::wsl::validation::{environment, instance};
 use crate::wsl::{cloud_init, Event, InstanceResult, RunOptions, Status};
@@ -65,7 +65,8 @@ impl WslManager {
         }
 
         events.push(Event::CreateStarted);
-        let outcome: Status = self.execute_create(instance)?;
+        let (outcome, create_events) = self.execute_create(instance)?;
+        events.extend(create_events);
         Ok(InstanceResult {
             hostname: instance.hostname.clone(),
             outcome,
@@ -152,31 +153,25 @@ impl WslManager {
         Ok(events)
     }
 
-    fn execute_create(&self, instance: &Instance) -> anyhow::Result<Status> {
+    fn execute_create(&self, instance: &Instance) -> anyhow::Result<(Status, Vec<Event>)> {
+        let mut events: Vec<Event> = Vec::new();
         match &instance.image {
             ImageSource::File { path } => {
-                let install_dir: std::path::PathBuf = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
-                let rootfs_tar: std::path::PathBuf = match path {
-                    SourcePath::Local(p) => expand_path(p)?,
-                    SourcePath::Remote(url) => {
-                        let response = ureq::get(url.as_str())
-                            .call()
-                            .map_err(|e| anyhow::anyhow!("failed to download '{}': {e}", url))?;
-                        let mut tmp = tempfile::NamedTempFile::new()?;
-                        std::io::copy(&mut response.into_reader(), tmp.as_file_mut())?;
-                        let path = tmp.path().to_path_buf();
-                        self.engine.create_from_file(&instance.hostname, &install_dir, &path)?;
-                        return Ok(Status::Created);
-                    }
-                };
-                self.engine
-                    .create_from_file(&instance.hostname, &install_dir, &rootfs_tar)?;
+                let install_dir = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
+                if matches!(path, SourcePath::Remote(_)) {
+                    events.push(Event::ImageDownloadStarted);
+                }
+                let resolved = resolve_source_path(path)?;
+                if matches!(path, SourcePath::Remote(_)) {
+                    events.push(Event::ImageDownloadCompleted);
+                }
+                self.engine.create_from_file(&instance.hostname, &install_dir, resolved.as_path())?;
             }
             ImageSource::Distro { name } => {
                 self.engine.create_from_distro(name, &instance.hostname)?;
             }
         }
-        Ok(Status::Created)
+        Ok((Status::Created, events))
     }
 }
 

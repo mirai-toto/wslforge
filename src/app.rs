@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use console::style;
 
 use crate::{
-    config::Config,
+    config::{Config, ImageSource, SourcePath},
     display, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
@@ -36,7 +36,10 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
     let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
     for (instance_name, instance) in &config.instances {
         eprintln!("{}", style(format!("🔧 Creating '{instance_name}'...")).bold());
+        let is_remote = matches!(&instance.image, ImageSource::File { path: SourcePath::Remote(_) });
+        let pb = is_remote.then(|| display::spinner("⬇️  Downloading image...".to_string()));
         let mut result = manager.create_instance(instance, options)?;
+        if let Some(pb) = pb { pb.finish_and_clear(); }
 
         if result.outcome == Status::Created && !instance.files.is_empty() {
             let pb = display::spinner(format!("📂 Transferring {} file(s)...", instance.files.len()));
