@@ -253,7 +253,7 @@ fn create_instance_override_existing_deletes_then_creates() {
         .create_instance(&instance, RunOptions::default())
         .expect("override create should succeed");
 
-    assert_eq!(report.outcome, Status::Created);
+    assert_eq!(report.outcome, Status::Recreated);
     assert_eq!(
         report.events,
         vec![

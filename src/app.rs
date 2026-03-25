@@ -50,16 +50,30 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
 
         if result.outcome == Status::Created && !instance.files.is_empty() {
             let pb = display::spinner(format!("📂 Transferring {} file(s)...", instance.files.len()));
-            let transfer_events = manager.transfer_files(instance)?;
-            pb.finish_and_clear();
-            result.events.extend(transfer_events);
+            match manager.transfer_files(instance) {
+                Ok(events) => {
+                    pb.finish_and_clear();
+                    result.events.extend(events);
+                }
+                Err(e) => {
+                    pb.finish_and_clear();
+                    result.outcome = Status::Failed(e.to_string());
+                }
+            }
         }
 
         if result.outcome == Status::Created && !instance.scripts.run.is_empty() {
             let pb = display::spinner(format!("⚙️  Running {} script(s)...", instance.scripts.run.len()));
-            let script_events = manager.run_scripts(instance)?;
-            pb.finish_and_clear();
-            result.events.extend(script_events);
+            match manager.run_scripts(instance) {
+                Ok(events) => {
+                    pb.finish_and_clear();
+                    result.events.extend(events);
+                }
+                Err(e) => {
+                    pb.finish_and_clear();
+                    result.outcome = Status::Failed(e.to_string());
+                }
+            }
         }
 
         result.log();

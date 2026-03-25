@@ -43,6 +43,7 @@ impl WslManager {
             events.push(Event::InstanceNotFound);
         }
 
+        let was_overridden = instance.override_instance && instance_exists;
         if instance.override_instance {
             events.push(Event::OverrideEnabled);
             events.extend(self.prepare_provision(instance, options)?);
@@ -67,11 +68,15 @@ impl WslManager {
         }
 
         events.push(Event::CreateStarted);
-        let (outcome, create_events) = self.execute_create(instance)?;
+        let (_, create_events) = self.execute_create(instance)?;
         events.extend(create_events);
         Ok(InstanceResult {
             hostname: instance.hostname.clone(),
-            outcome,
+            outcome: if was_overridden {
+                Status::Recreated
+            } else {
+                Status::Created
+            },
             events,
         })
     }
