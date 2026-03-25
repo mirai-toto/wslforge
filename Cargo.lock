@@ -1461,7 +1461,7 @@ checksum = "9edde0db4769d2dc68579893f2306b26c6ecfbe0ef499b013d731b7b9247e0b9"
 
 [[package]]
 name = "wslforge"
-version = "1.11.0"
+version = "1.12.0"
 dependencies = [
  "anyhow",
  "chrono",
