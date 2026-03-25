@@ -1,13 +1,9 @@
-use std::collections::BTreeMap;
-
-use console::style;
-
 use crate::{
-    config::{Config, ImageSource, SourcePath},
+    config::Config,
     display, reporting,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
-        EngineKind, InstanceResult, RunOptions, Status, WslManager,
+        EngineKind, RunOptions, WslManager,
     },
 };
 
@@ -25,61 +21,12 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
     };
-    let config: Config = cfg.config;
 
-    for (instance_name, instance) in &config.instances {
+    for (instance_name, instance) in &cfg.config.instances {
         reporting::log_config_summary(instance_name, instance);
     }
 
-    manager.prepare_environment(options.dry_run)?;
-
-    let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
-    for (instance_name, instance) in &config.instances {
-        eprintln!("{}", style(format!("🔧 Creating '{instance_name}'...")).bold());
-        let is_remote = matches!(
-            &instance.image,
-            ImageSource::File {
-                path: SourcePath::Remote(_)
-            }
-        );
-        let pb = is_remote.then(|| display::spinner("⬇️  Downloading image...".to_string()));
-        let mut result = manager.create_instance(instance, options)?;
-        if let Some(pb) = pb {
-            pb.finish_and_clear();
-        }
-
-        if result.outcome == Status::Created && !instance.files.is_empty() {
-            let pb = display::spinner(format!("📂 Transferring {} file(s)...", instance.files.len()));
-            match manager.transfer_files(instance) {
-                Ok(events) => {
-                    pb.finish_and_clear();
-                    result.events.extend(events);
-                }
-                Err(e) => {
-                    pb.finish_and_clear();
-                    result.outcome = Status::Failed(e.to_string());
-                }
-            }
-        }
-
-        if result.outcome == Status::Created && !instance.scripts.run.is_empty() {
-            let pb = display::spinner(format!("⚙️  Running {} script(s)...", instance.scripts.run.len()));
-            match manager.run_scripts(instance) {
-                Ok(events) => {
-                    pb.finish_and_clear();
-                    result.events.extend(events);
-                }
-                Err(e) => {
-                    pb.finish_and_clear();
-                    result.outcome = Status::Failed(e.to_string());
-                }
-            }
-        }
-
-        result.log();
-        results.insert(instance_name.clone(), result);
-    }
-
+    let results = manager.provision_all(&cfg.config, options)?;
     display::print_summary(&results);
 
     Ok(())
