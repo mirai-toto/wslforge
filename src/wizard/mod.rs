@@ -5,7 +5,7 @@ use console::style;
 use dialoguer::{Confirm, Input, Password};
 use url::Url;
 
-use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy, SourcePath};
+use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
 
 pub fn run() -> anyhow::Result<Config> {
     eprintln!(
@@ -106,28 +106,24 @@ pub fn run() -> anyhow::Result<Config> {
 }
 
 fn prompt_image() -> anyhow::Result<ImageSource> {
+    let name: String = Input::new()
+        .with_prompt(style("🐧 distro name (e.g. Ubuntu, Debian)").cyan().bold().to_string())
+        .default("Ubuntu".into())
+        .interact_text()?;
+
     let use_file: bool = Confirm::new()
-        .with_prompt(
-            style("🗂️  use a local rootfs file instead of a distro?")
-                .cyan()
-                .bold()
-                .to_string(),
-        )
+        .with_prompt(style("🗂️  use a rootfs file or URL instead?").cyan().bold().to_string())
         .default(false)
         .interact()?;
 
     if use_file {
         let path: String = Input::new()
-            .with_prompt(style("🗂️  rootfs file path").cyan().bold().to_string())
+            .with_prompt(style("🗂️  rootfs path or URL").cyan().bold().to_string())
             .interact_text()?;
         Ok(ImageSource::File {
-            path: SourcePath::Local(PathBuf::from(path)),
+            path: path.parse().unwrap(),
         })
     } else {
-        let name: String = Input::new()
-            .with_prompt(style("🐧 distro name").cyan().bold().to_string())
-            .default("Ubuntu".into())
-            .interact_text()?;
         Ok(ImageSource::Distro { name })
     }
 }
