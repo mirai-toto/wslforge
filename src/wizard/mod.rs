@@ -74,9 +74,10 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
         .default("UbuntuWSL".into())
         .interact_text()?;
 
+    let default_username = std::env::var("USERNAME").unwrap_or_else(|_| "wsluser".into());
     let username: String = Input::new()
         .with_prompt(style("👤 username").cyan().bold().to_string())
-        .default("wsluser".into())
+        .default(default_username)
         .interact_text()?;
 
     let password: String = Password::new()
