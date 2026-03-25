@@ -1,0 +1,30 @@
+instances:
+  UbuntuWslDev:
+    override: true
+    hostname: UbuntuWslDev
+    username: wsluser
+    password: root
+    install_dir: "%userprofile%/VMs"
+    files:
+      - src: "motd.txt"
+        dest: /etc/motd
+        mode: "644"
+    cloud_init:
+      type: file
+      path: "cloud-init.yaml.j2"
+    image:
+      type: distro
+      name: Ubuntu
+
+  wsl-vpnkit:
+    override: false
+    hostname: wsl-vpnkit
+    username: root
+    install_dir: "%userprofile%/VMs"
+    image:
+      type: file
+      path: "https://github.com/sakai135/wsl-vpnkit/releases/latest/download/wsl-vpnkit.tar.gz"
+    scripts:
+      - "cat /app/wsl-vpnkit.service | tee /etc/systemd/system/wsl-vpnkit.service"
+      - "systemctl enable wsl-vpnkit"
+      - "systemctl start wsl-vpnkit"

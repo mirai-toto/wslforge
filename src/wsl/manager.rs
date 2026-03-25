@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use crate::config::{Config, ImageSource, Instance};
+use crate::config::{Config, ImageSource, Instance, SourcePath};
 use crate::wsl::engine::WslEngine;
 use crate::wsl::helpers::{expand_path, resolve_install_dir};
 use crate::wsl::setup;
@@ -77,6 +77,10 @@ impl WslManager {
         self.execute_file_transfers(instance)
     }
 
+    pub fn run_scripts(&self, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+        self.execute_scripts(instance)
+    }
+
     pub fn apply_config(&self, root: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
         self.prepare_environment(options.dry_run)?;
 
@@ -138,11 +142,33 @@ impl WslManager {
         Ok(events)
     }
 
+    fn execute_scripts(&self, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+        let mut events: Vec<Event> = Vec::new();
+        for script in &instance.scripts {
+            events.push(Event::ScriptStarted(script.clone()));
+            self.engine.run_script(&instance.hostname, script)?;
+            events.push(Event::ScriptCompleted(script.clone()));
+        }
+        Ok(events)
+    }
+
     fn execute_create(&self, instance: &Instance) -> anyhow::Result<Status> {
         match &instance.image {
-            ImageSource::File { path: rootfs_tar } => {
+            ImageSource::File { path } => {
                 let install_dir: std::path::PathBuf = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
-                let rootfs_tar: std::path::PathBuf = expand_path(rootfs_tar.as_path())?;
+                let rootfs_tar: std::path::PathBuf = match path {
+                    SourcePath::Local(p) => expand_path(p)?,
+                    SourcePath::Remote(url) => {
+                        let response = ureq::get(url.as_str())
+                            .call()
+                            .map_err(|e| anyhow::anyhow!("failed to download '{}': {e}", url))?;
+                        let mut tmp = tempfile::NamedTempFile::new()?;
+                        std::io::copy(&mut response.into_reader(), tmp.as_file_mut())?;
+                        let path = tmp.path().to_path_buf();
+                        self.engine.create_from_file(&instance.hostname, &install_dir, &path)?;
+                        return Ok(Status::Created);
+                    }
+                };
                 self.engine
                     .create_from_file(&instance.hostname, &install_dir, &rootfs_tar)?;
             }

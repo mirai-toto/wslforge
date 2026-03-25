@@ -5,7 +5,7 @@ use console::style;
 use dialoguer::{Confirm, Input, Password};
 use url::Url;
 
-use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
+use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy, SourcePath};
 
 pub fn run() -> anyhow::Result<Config> {
     eprintln!(
@@ -94,6 +94,7 @@ pub fn run() -> anyhow::Result<Config> {
         proxy,
         vars: Default::default(),
         files: vec![],
+        scripts: vec![],
         install_dir: PathBuf::from("%userprofile%/VMs"),
         cloud_init,
         image,
@@ -120,7 +121,7 @@ fn prompt_image() -> anyhow::Result<ImageSource> {
             .with_prompt(style("🗂️  rootfs file path").cyan().bold().to_string())
             .interact_text()?;
         Ok(ImageSource::File {
-            path: PathBuf::from(path),
+            path: SourcePath::Local(PathBuf::from(path)),
         })
     } else {
         let name: String = Input::new()

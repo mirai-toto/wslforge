@@ -35,6 +35,10 @@ pub enum Event {
     CloudInitDebugSkipped(String),
     FileTransferStarted(PathBuf),
     FileTransferCompleted(String),
+    ImageDownloadStarted,
+    ImageDownloadCompleted,
+    ScriptStarted(String),
+    ScriptCompleted(String),
 }
 
 impl Event {
@@ -64,6 +68,10 @@ impl Event {
             Event::CloudInitDebugSkipped(reason) => format!("Cloud-init debug copy skipped ({reason})"),
             Event::FileTransferStarted(src) => format!("Transferring file: {}", src.display()),
             Event::FileTransferCompleted(dest) => format!("File transferred to: {dest}"),
+            Event::ImageDownloadStarted => "Downloading image...".to_string(),
+            Event::ImageDownloadCompleted => "Image downloaded.".to_string(),
+            Event::ScriptStarted(cmd) => format!("Running script: {cmd}"),
+            Event::ScriptCompleted(cmd) => format!("Script completed: {cmd}"),
         }
     }
 }

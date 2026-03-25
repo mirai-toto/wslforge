@@ -87,6 +87,14 @@ impl WslEngine for FakeEngine {
             .push(format!("write_file:{instance_name}:{dest}"));
         Ok(())
     }
+
+    fn run_script(&self, instance_name: &str, script: &str) -> anyhow::Result<()> {
+        self.calls
+            .lock()
+            .expect("lock calls")
+            .push(format!("run_script:{instance_name}:{script}"));
+        Ok(())
+    }
 }
 
 fn file_image_instance(image_path: &Path) -> Instance {
