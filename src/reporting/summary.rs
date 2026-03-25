@@ -35,6 +35,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
     eprintln!();
 
     log::debug!(
+        target: "wslforge::events",
         "config loaded: instance={instance_name} user={} image={image} override={} cloud-init={cloud_init}",
         instance.username,
         instance.override_instance,

@@ -13,7 +13,7 @@ fn main() -> anyhow::Result<()> {
         return Ok(());
     }
 
-    init_logger(args.verbose, args.log_file.as_deref())?;
+    init_logger(args.log_file.as_deref())?;
 
     let loaded = resolve_config(args.config.as_deref())?;
     app::run(app::AppArgs {
@@ -57,19 +57,8 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
     }
 }
 
-fn init_logger(verbosity: u8, log_file: Option<&Path>) -> anyhow::Result<()> {
-    let stderr_level: LevelFilter = match verbosity {
-        0 => LevelFilter::Warn,
-        1 => LevelFilter::Info,
-        _ => LevelFilter::Debug,
-    };
-
-    let stderr_dispatch = fern::Dispatch::new()
-        .level(stderr_level)
-        .format(|out, message, _record| out.finish(format_args!("{message}")))
-        .chain(std::io::stderr());
-
-    let mut base = fern::Dispatch::new().chain(stderr_dispatch);
+fn init_logger(log_file: Option<&Path>) -> anyhow::Result<()> {
+    let mut base = fern::Dispatch::new().level(LevelFilter::Off);
 
     if let Some(path) = log_file {
         let file_dispatch = fern::Dispatch::new()

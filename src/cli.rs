@@ -1,4 +1,4 @@
-use clap::{ArgAction, Parser, ValueHint};
+use clap::{Parser, ValueHint};
 use std::path::PathBuf;
 
 use crate::config;
@@ -23,11 +23,7 @@ pub struct Args {
     #[arg(long)]
     pub debug: bool,
 
-    /// Increase verbosity (-v, -vv)
-    #[arg(short, long, action = ArgAction::Count)]
-    pub verbose: u8,
-
-    /// Write logs to a file at the given path (always at debug level with timestamps)
+    /// Write logs to a file at the given path (debug level with timestamps)
     #[arg(long, value_hint = ValueHint::FilePath)]
     pub log_file: Option<PathBuf>,
 

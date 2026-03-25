@@ -1,4 +1,3 @@
-use log::info;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -89,8 +88,8 @@ pub struct InstanceResult {
 impl InstanceResult {
     pub fn log(&self) {
         for event in &self.events {
-            info!("{}", event.describe(&self.hostname));
+            log::debug!(target: "wslforge::events", "{}", event.describe(&self.hostname));
         }
-        info!("{}", self.outcome.describe(&self.hostname));
+        log::debug!(target: "wslforge::events", "{}", self.outcome.describe(&self.hostname));
     }
 }
