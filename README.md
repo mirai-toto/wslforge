@@ -51,8 +51,8 @@ wsl --update
 
 Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
-```sh
-curl -L -o wslforge.exe https://github.com/mirai-toto/wslforge/releases/download/v1.14.0/wslforge.exe
+```powershell
+Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/v1.14.0/wslforge.exe -OutFile wslforge.exe
 ```
 
 No config yet? Just run `wslforge` and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
@@ -83,13 +83,14 @@ Write a detailed log to a file for troubleshooting: 🧰
 
 ## 🧭 CLI
 
-| Flag                     | Description                                                    | Default |
-| ------------------------ | -------------------------------------------------------------- | ------- |
-| `--config`               | Path to YAML config file (optional, defaults to `config.yaml`) | —       |
-| `--dry-run`              | Show what would be done without changes                        | `false` |
-| `--debug`                | Enable extra debug output and write artifacts                  | `false` |
-| `--log-file`             | Write debug logs with timestamps to a file                     | —       |
-| `--print-example-config` | Print a minimal example config and exit                        | `false` |
+| Flag                     | Description                                                                              | Default |
+| ------------------------ | ---------------------------------------------------------------------------------------- | ------- |
+| `--config`               | Path to YAML config file (optional, defaults to `config.yaml`)                           | —       |
+| `--dry-run`              | Show what would be done without changes                                                  | `false` |
+| `--debug`                | Enable extra debug output and write artifacts                                            | `false` |
+| `--log-file`             | Write debug logs with timestamps to a file                                               | —       |
+| `--print-example-config` | Print a minimal example config and exit                                                  | `false` |
+| `--generate-completion`  | Print a shell completion script and exit (`powershell`)                                  | —       |
 
 If `--config` is omitted and no `config.yaml` is found in the current directory, an interactive wizard launches to build a config on the fly.
 
@@ -97,6 +98,19 @@ The `--debug` flag writes the rendered cloud-init user-data to the current direc
 
 ```sh
 ./wslforge --print-example-config
+```
+
+### Shell completions
+
+Generate and install a completion script for your shell:
+
+```powershell
+# PowerShell — load for the current session only
+./wslforge --generate-completion powershell | Out-String | Invoke-Expression
+
+# To persist across sessions, save to a separate file and dot-source it from your profile
+./wslforge --generate-completion powershell | Out-File "$HOME\wslforge_completion.ps1"
+Add-Content $PROFILE ". `"$HOME\wslforge_completion.ps1`""
 ```
 
 ---
