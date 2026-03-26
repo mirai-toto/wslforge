@@ -52,7 +52,7 @@ wsl --update
 Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
 ```powershell
-Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/v1.14.0/wslforge.exe -OutFile wslforge.exe
+Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/v1.15.0/wslforge.exe -OutFile wslforge.exe
 ```
 
 No config yet? Just run `wslforge` and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
