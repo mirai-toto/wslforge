@@ -102,6 +102,22 @@ impl WslEngine for FakeEngine {
         Ok(())
     }
 
+    fn write_dir(
+        &self,
+        instance_name: &str,
+        _src: &std::path::Path,
+        dest: &str,
+        _owner: Option<&str>,
+        _mode: Option<&str>,
+        _shell: &str,
+    ) -> anyhow::Result<()> {
+        self.calls
+            .lock()
+            .expect("lock calls")
+            .push(format!("write_dir:{instance_name}:{dest}"));
+        Ok(())
+    }
+
     fn run_script(&self, instance_name: &str, script: &str, _shell: &str) -> anyhow::Result<()> {
         self.calls
             .lock()

@@ -29,5 +29,14 @@ pub trait WslEngine {
         mode: Option<&str>,
         shell: &str,
     ) -> anyhow::Result<()>;
+    fn write_dir(
+        &self,
+        instance_name: &str,
+        src: &std::path::Path,
+        dest: &str,
+        owner: Option<&str>,
+        mode: Option<&str>,
+        shell: &str,
+    ) -> anyhow::Result<()>;
     fn run_script(&self, instance_name: &str, script: &str, shell: &str) -> anyhow::Result<()>;
 }

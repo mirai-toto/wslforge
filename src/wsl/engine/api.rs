@@ -49,6 +49,18 @@ impl WslEngine for ApiEngine {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 
+    fn write_dir(
+        &self,
+        _instance_name: &str,
+        _src: &std::path::Path,
+        _dest: &str,
+        _owner: Option<&str>,
+        _mode: Option<&str>,
+        _shell: &str,
+    ) -> anyhow::Result<()> {
+        anyhow::bail!("WSL API engine is not implemented yet")
+    }
+
     fn run_script(&self, _instance_name: &str, _script: &str, _shell: &str) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
     }

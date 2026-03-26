@@ -1,6 +1,7 @@
 use crate::wsl::engine::WslEngine;
 use crate::wsl::helpers::command_error;
 use std::io::Write;
+use std::path::Path;
 use std::process::{Command, Stdio};
 
 #[derive(Default)]
@@ -97,18 +98,46 @@ impl WslEngine for CliEngine {
             script.push(format!("chmod '{m}' '{dest}'"));
         }
 
-        let mut child = Command::new("wsl.exe")
-            .args(["-d", instance_name, "--", shell, "-c", &script.join(" && ")])
-            .stdin(Stdio::piped())
-            .stderr(Stdio::piped())
-            .spawn()?;
-        child.stdin.take().expect("stdin configured").write_all(content)?;
+        pipe_to_wsl(
+            instance_name,
+            shell,
+            &script,
+            content,
+            &format!("failed to write '{dest}'"),
+        )
+    }
 
-        let output: std::process::Output = child.wait_with_output()?;
-        if !output.status.success() {
-            return Err(command_error(&format!("failed to write '{dest}'"), &output));
+    fn write_dir(
+        &self,
+        instance_name: &str,
+        src: &Path,
+        dest: &str,
+        owner: Option<&str>,
+        mode: Option<&str>,
+        shell: &str,
+    ) -> anyhow::Result<()> {
+        let mut archive_buf: Vec<u8> = Vec::new();
+        {
+            let mut builder = tar::Builder::new(&mut archive_buf);
+            builder.append_dir_all(".", src)?;
+            builder.finish()?;
         }
-        Ok(())
+
+        let mut script: Vec<String> = vec![format!("mkdir -p '{dest}'"), format!("tar xf - -C '{dest}'")];
+        if let Some(o) = owner {
+            script.push(format!("chown -R '{o}' '{dest}'"));
+        }
+        if let Some(m) = mode {
+            script.push(format!("chmod -R '{m}' '{dest}'"));
+        }
+
+        pipe_to_wsl(
+            instance_name,
+            shell,
+            &script,
+            &archive_buf,
+            &format!("failed to transfer directory to '{dest}'"),
+        )
     }
 
     fn run_script(&self, instance_name: &str, script: &str, shell: &str) -> anyhow::Result<()> {
@@ -120,4 +149,24 @@ impl WslEngine for CliEngine {
         }
         Ok(())
     }
+}
+
+fn pipe_to_wsl(
+    instance_name: &str,
+    shell: &str,
+    script: &[String],
+    data: &[u8],
+    error_msg: &str,
+) -> anyhow::Result<()> {
+    let mut child = Command::new("wsl.exe")
+        .args(["-d", instance_name, "--", shell, "-c", &script.join(" && ")])
+        .stdin(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()?;
+    child.stdin.take().expect("stdin configured").write_all(data)?;
+    let output = child.wait_with_output()?;
+    if !output.status.success() {
+        return Err(command_error(error_msg, &output));
+    }
+    Ok(())
 }
