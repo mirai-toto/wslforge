@@ -1,15 +1,9 @@
 use super::resolve_userprofile_dir;
 use std::path::PathBuf;
-use std::sync::{Mutex, OnceLock};
-
-fn userprofile_env_lock() -> &'static Mutex<()> {
-    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-    LOCK.get_or_init(|| Mutex::new(()))
-}
 
 #[test]
 fn resolve_userprofile_dir_returns_env_path_when_set() {
-    let _guard = userprofile_env_lock().lock().expect("lock USERPROFILE env");
+    let _guard = super::userprofile_env_lock().lock().unwrap_or_else(|e| e.into_inner());
     let original = std::env::var_os("USERPROFILE");
     std::env::set_var("USERPROFILE", "/tmp/wslforge-userprofile");
 
@@ -24,7 +18,7 @@ fn resolve_userprofile_dir_returns_env_path_when_set() {
 
 #[test]
 fn resolve_userprofile_dir_errors_when_missing() {
-    let _guard = userprofile_env_lock().lock().expect("lock USERPROFILE env");
+    let _guard = super::userprofile_env_lock().lock().unwrap_or_else(|e| e.into_inner());
     let original = std::env::var_os("USERPROFILE");
     std::env::remove_var("USERPROFILE");
 
