@@ -25,7 +25,7 @@ Note: a bare instance object at the root (without `instances:`) is still accepte
 | `proxy`       | HTTP/HTTPS proxy settings                 | see [Proxy](#proxy)                 | —                   |
 | `image`       | Image source (distro or file/URL)         | see [Image Sources](#image-sources) | distro: Ubuntu      |
 | `cloud_init`  | Cloud-init user-data (file or inline)     | see [Cloud Init](#cloud-init)       | —                   |
-| `files`       | Files to copy into the instance           | see [Files](#files)                 | —                   |
+| `files`       | Files or directories to copy into the instance | see [Files](#files)            | —                   |
 | `scripts`     | Commands to run after create              | see [Scripts](#scripts)             | —                   |
 
 Example `config.yaml` with a file-based cloud-init and an official distro:
@@ -132,7 +132,7 @@ image:
 
 ## Files
 
-Copy files into the instance after creation. Useful for injecting certificates, config files, or scripts.
+Copy files or directories into the instance after creation. Useful for injecting certificates, config files, or scripts. If `src` points to a directory, the entire directory is transferred recursively.
 
 ```yaml
 files:
@@ -143,14 +143,18 @@ files:
     dest: /usr/local/share/ca-certificates/company.crt
     owner: root
     mode: "644"
+  - src: "%USERPROFILE%/dotfiles/config"
+    dest: /home/user/.config
+    owner: user
+    mode: "755"
 ```
 
-| Field   | Description                              | Required |
-| ------- | ---------------------------------------- | -------- |
-| `src`   | Local source path (env vars OK)          | yes      |
-| `dest`  | Destination path inside the WSL instance | yes      |
-| `owner` | File owner (e.g. `root`)                 | no       |
-| `mode`  | File permissions (e.g. `"644"`)          | no       |
+| Field   | Description                                              | Required |
+| ------- | -------------------------------------------------------- | -------- |
+| `src`   | Local source path — file or directory (env vars OK)      | yes      |
+| `dest`  | Destination path inside the WSL instance                 | yes      |
+| `owner` | File/directory owner (e.g. `root`)                       | no       |
+| `mode`  | File/directory permissions (e.g. `"644"`, `"755"`)       | no       |
 
 ## Scripts
 
