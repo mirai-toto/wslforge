@@ -25,3 +25,7 @@ Thumbs.db
 dist/
 build/
 tmp/
+
+# Coverage reports
+lcov.info
+cobertura.xml
