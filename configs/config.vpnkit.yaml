@@ -57,6 +57,10 @@ instances:
               Acquire::http::Proxy "{{ proxy.http }}";
               Acquire::https::Proxy "{{ proxy.https }}";
         {% endif %}
+          - path: /etc/profile.d/local-bin.sh
+            permissions: '0644'
+            content: |
+              export PATH="$PATH:/home/{{ username }}/.local/bin"
           - path: /etc/apt/apt.conf.d/99retries
             permissions: '0644'
             content: |
@@ -77,6 +81,9 @@ instances:
 
         runcmd:
         {% if proxy %}
+          - export http_proxy="{{ proxy.http }}"
+          - export https_proxy="{{ proxy.https }}"
+          - export no_proxy="{{ proxy.no_proxy }}"
           - git config --system http.proxy "{{ proxy.http }}"
           - git config --system https.proxy "{{ proxy.https }}"
         {% endif %}
