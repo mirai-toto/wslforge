@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use console::style;
-use dialoguer::{Confirm, Input, Password, Select};
+use dialoguer::{Input, Password, Select};
 use url::Url;
 
 use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
@@ -19,12 +19,13 @@ pub fn run() -> anyhow::Result<Config> {
     eprintln!();
     print_summary(&hostname, &instance);
 
-    let confirmed = Confirm::new()
-        .with_prompt(style("🚀 ready to provision — proceed?").cyan().bold().to_string())
-        .default(true)
+    let confirmed = Select::new()
+        .with_prompt(style("🚀  ready to provision?").cyan().bold().to_string())
+        .items(&["yes, proceed", "no, abort"])
+        .default(0)
         .interact()?;
 
-    if !confirmed {
+    if confirmed != 0 {
         eprintln!("{}", style("Aborted.").yellow());
         std::process::exit(0);
     }
@@ -83,26 +84,28 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     let password: String = Password::new()
         .with_prompt(style("🔑  password (blank to skip)").cyan().bold().to_string())
         .with_confirmation(
-            style("🔑 confirm password").cyan().bold().to_string(),
+            style("🔑  confirm password").cyan().bold().to_string(),
             "passwords do not match, please try again",
         )
         .allow_empty_password(true)
         .interact()?;
 
-    let override_instance: bool = Confirm::new()
+    let override_instance: bool = Select::new()
         .with_prompt(style("♻️  override existing instance?").cyan().bold().to_string())
-        .default(false)
-        .interact()?;
+        .items(&["no", "yes"])
+        .default(0)
+        .interact()? == 1;
 
     eprintln!(
         "{}",
         style("── Proxy ────────────────────────────────────────────").dim()
     );
 
-    let proxy = if Confirm::new()
+    let proxy = if Select::new()
         .with_prompt(style("🌐  configure proxy?").cyan().bold().to_string())
-        .default(false)
-        .interact()?
+        .items(&["no", "yes"])
+        .default(0)
+        .interact()? == 1
     {
         prompt_proxy()?
     } else {
