@@ -19,7 +19,7 @@ A minimal tool to declaratively create and manage WSL instances.
 `wslforge` does two things:
 
 1. **Manages WSL instances** — creates, configures, and optionally replaces instances from a YAML config.
-2. **Automates instance setup** — runs your automation config on first boot, with support for templating via variables and conditionals.
+2. **Automates instance setup** — drives [cloud-init](https://cloud-init.io) for automation and templating.
 
 > Status: early/in-development. Some operations are still mock.
 
@@ -57,10 +57,7 @@ Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/
 
 No config yet? Just run `wslforge` and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
 
-Looking for inspiration? Check out the ready-to-use examples in [`configs/`](configs/):
-
-- [`config.dev.yaml`](configs/config.dev.yaml) — Ubuntu dev instance with Docker, MicroK8s, Java, Node, and Python
-- [`config.vpnkit.yaml`](configs/config.vpnkit.yaml) — same as above, plus a `wsl-vpnkit` sidecar for VPN environments
+Looking for inspiration? Check out the [ready-to-use examples](docs/examples.md).
 
 ```sh
 ./wslforge
@@ -124,6 +121,7 @@ Add-Content $PROFILE ". `"$HOME\wslforge_completion.ps1`""
 ## 📚 Learn more
 
 - [🧩 Configuration](docs/configuration.md) — config schema, all fields, proxy, cloud-init, image sources, file transfers, post-create scripts
+- [📋 Examples](docs/examples.md) — ready-to-use configs for common setups
 - [🧱 Architecture](docs/architecture.md) — how the CLI, provisioner, and engine fit together
 - [💡 Rationale](docs/rationale.md) — why this project exists and the design decisions behind it
 - [🛠 Development](docs/development.md) — building locally, git hooks, and running CI checks
