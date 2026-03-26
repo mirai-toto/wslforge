@@ -94,6 +94,7 @@ Write a detailed log to a file for troubleshooting: 🧰
 | `--dry-run`              | Show what would be done without changes                                                  | `false` |
 | `--debug`                | Enable extra debug output and write artifacts                                            | `false` |
 | `--log-file`             | Write debug logs with timestamps to a file                                               | —       |
+| `--force`, `-f`          | Skip confirmation prompt and proceed automatically                                       | `false` |
 | `--print-example-config` | Print a minimal example config and exit                                                  | `false` |
 | `--generate-completion`  | Print a shell completion script and exit (`powershell`)                                  | —       |
 

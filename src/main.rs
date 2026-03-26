@@ -27,6 +27,7 @@ fn main() -> anyhow::Result<()> {
         config: loaded,
         dry_run: args.dry_run,
         debug: args.debug,
+        force: args.force,
     })?;
 
     Ok(())

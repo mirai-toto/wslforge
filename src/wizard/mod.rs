@@ -6,7 +6,6 @@ use dialoguer::{Input, Password, Select};
 use url::Url;
 
 use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
-use crate::wsl::cloud_init::DEFAULT_CLOUD_INIT_TEMPLATE;
 
 pub fn run() -> anyhow::Result<Config> {
     eprintln!(
@@ -18,8 +17,16 @@ pub fn run() -> anyhow::Result<Config> {
     let (hostname, instance) = prompt_instance()?;
 
     eprintln!();
-    print_summary(&hostname, &instance);
+    crate::reporting::log_config_summary(&hostname, &instance);
 
+    confirm_provision()?;
+
+    Ok(Config {
+        instances: BTreeMap::from([(hostname, instance)]),
+    })
+}
+
+pub fn confirm_provision() -> anyhow::Result<()> {
     let confirmed = Select::new()
         .with_prompt(style("🚀  ready to provision?").cyan().bold().to_string())
         .items(["yes, proceed", "no, abort"])
@@ -31,38 +38,7 @@ pub fn run() -> anyhow::Result<Config> {
         std::process::exit(0);
     }
 
-    Ok(Config {
-        instances: BTreeMap::from([(hostname, instance)]),
-    })
-}
-
-fn print_summary(hostname: &str, instance: &Instance) {
-    eprintln!(
-        "{}",
-        style("── Summary ──────────────────────────────────────────").dim()
-    );
-    eprintln!("  hostname    : {}", style(hostname).cyan());
-    eprintln!("  username    : {}", style(&instance.username).cyan());
-    eprintln!(
-        "  password    : {}",
-        style(if instance.password.is_some() { "set" } else { "none" }).cyan()
-    );
-    eprintln!("  override    : {}", style(instance.override_instance).cyan());
-    eprintln!("  install_dir : {}", style(instance.install_dir.display()).cyan());
-    eprintln!("  image       : {}", style(&instance.image).cyan());
-    match &instance.cloud_init {
-        Some(ci) => eprintln!("  cloud-init  : {}", style(format!("{ci}")).cyan()),
-        None => eprintln!(
-            "  cloud-init  : {}\n{}",
-            style("default (auto-generated):").cyan(),
-            style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
-        ),
-    };
-    eprintln!(
-        "  proxy       : {}",
-        style(if instance.proxy.is_some() { "configured" } else { "none" }).cyan()
-    );
-    eprintln!();
+    Ok(())
 }
 
 fn prompt_instance() -> anyhow::Result<(String, Instance)> {

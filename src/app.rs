@@ -1,6 +1,6 @@
 use crate::{
     config::Config,
-    display, reporting,
+    display, reporting, wizard,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
         EngineKind, RunOptions, WslManager,
@@ -11,6 +11,7 @@ pub struct AppArgs {
     pub config: Config,
     pub dry_run: bool,
     pub debug: bool,
+    pub force: bool,
 }
 
 pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
@@ -24,6 +25,10 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
 
     for (instance_name, instance) in &cfg.config.instances {
         reporting::log_config_summary(instance_name, instance);
+    }
+
+    if !cfg.force {
+        wizard::confirm_provision()?;
     }
 
     let results = manager.provision_all(&cfg.config, options)?;
