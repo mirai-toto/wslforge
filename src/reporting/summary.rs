@@ -1,47 +1,77 @@
 use console::style;
 
 use crate::config::{ImageSource, Instance};
+use crate::wsl::cloud_init::DEFAULT_CLOUD_INIT_TEMPLATE;
 use crate::wsl::helpers::resolve_install_dir;
 
 pub fn log_config_summary(instance_name: &str, instance: &Instance) {
     let image = image_label(&instance.image);
-    let cloud_init = cloud_init_label(&instance.cloud_init);
 
     eprintln!("{}", style(format!("📋 Instance '{instance_name}'")).bold());
-    let field = |key: &str, val: &str| eprintln!("   {}  {}", style(format!("{key:<12}")).dim(), val);
-    field("hostname", &instance.hostname);
-    field("user", &instance.username);
-    field("override", &instance.override_instance.to_string());
-    field("install dir", &resolved_install_dir_display(instance));
-    field("image", &image);
-    field("cloud-init", &cloud_init);
+    eprintln!(
+        "{}",
+        style("── Summary ──────────────────────────────────────────").dim()
+    );
+
+    eprintln!("  hostname    : {}", style(&instance.hostname).cyan());
+    eprintln!("  username    : {}", style(&instance.username).cyan());
+    eprintln!(
+        "  password    : {}",
+        style(if instance.password.is_some() { "set" } else { "none" }).cyan()
+    );
+    eprintln!("  override    : {}", style(instance.override_instance).cyan());
+    eprintln!(
+        "  install_dir : {}",
+        style(resolved_install_dir_display(instance)).cyan()
+    );
+    eprintln!("  image       : {}", style(&image).cyan());
+
+    match &instance.cloud_init {
+        Some(ci) => eprintln!("  cloud-init  : {}", style(format!("{ci}")).cyan()),
+        None => eprintln!(
+            "  cloud-init  : {}\n{}",
+            style("default (auto-generated):").cyan(),
+            style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
+        ),
+    };
+
     if let Some(proxy) = &instance.proxy {
         if let Some(v) = &proxy.http {
-            field("proxy http", v.as_ref());
+            eprintln!("  proxy http  : {}", style(v.as_ref()).cyan());
         }
         if let Some(v) = &proxy.https {
-            field("proxy https", v.as_ref());
+            eprintln!("  proxy https : {}", style(v.as_ref()).cyan());
         }
         if let Some(v) = &proxy.no_proxy {
-            field("no proxy", v);
+            eprintln!("  no proxy    : {}", style(v).cyan());
         }
+    } else {
+        eprintln!("  proxy       : {}", style("none").cyan());
     }
+
     if !instance.vars.is_empty() {
-        field("vars", &format!("{:?}", instance.vars));
+        eprintln!("  vars        : {}", style(format!("{:?}", instance.vars)).cyan());
     }
     if !instance.files.is_empty() {
-        field("files", &format!("{} transfer(s)", instance.files.len()));
+        eprintln!(
+            "  files       : {}",
+            style(format!("{} transfer(s)", instance.files.len())).cyan()
+        );
     }
     if !instance.scripts.run.is_empty() {
-        field("scripts", &format!("{} script(s)", instance.scripts.run.len()));
+        eprintln!(
+            "  scripts     : {}",
+            style(format!("{} script(s)", instance.scripts.run.len())).cyan()
+        );
     }
     eprintln!();
 
     log::debug!(
         target: "wslforge::events",
-        "config loaded: instance={instance_name} user={} image={image} override={} cloud-init={cloud_init}",
+        "config loaded: instance={instance_name} user={} image={image} override={} cloud-init={}",
         instance.username,
         instance.override_instance,
+        cloud_init_label(&instance.cloud_init),
     );
 }
 

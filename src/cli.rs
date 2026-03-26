@@ -20,7 +20,7 @@ pub struct Args {
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Enable extra debug output and write artifacts to the current directory (e.g. cloud-init.<hostname>.user-data)
+    /// Enable extra debug output and write artifacts to the current directory (e.g. `cloud-init.<hostname>.user-data`)
     #[arg(long)]
     pub debug: bool,
 
@@ -31,6 +31,10 @@ pub struct Args {
     /// Print a minimal example config to stdout and exit
     #[arg(long)]
     pub print_example_config: bool,
+
+    /// Skip confirmation prompt and proceed automatically
+    #[arg(long, short = 'f')]
+    pub force: bool,
 
     /// Generate shell completion script and exit
     #[arg(long, value_name = "SHELL")]
