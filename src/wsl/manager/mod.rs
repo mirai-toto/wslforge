@@ -87,7 +87,7 @@ impl WslManager {
         })
     }
 
-    pub fn provision_instance(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<InstanceResult> {
+    pub fn apply_instance(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<InstanceResult> {
         let is_remote = matches!(
             &instance.image,
             ImageSource::File {
@@ -95,7 +95,14 @@ impl WslManager {
             }
         );
         let pb = is_remote.then(|| display::spinner("⬇️  Downloading image...".to_string()));
-        let mut result = self.create_instance(instance, options)?;
+        let mut result = match self.create_instance(instance, options) {
+            Ok(r) => r,
+            Err(e) => return Ok(InstanceResult {
+                hostname: instance.hostname.clone(),
+                outcome: Status::Failed(e.to_string()),
+                events: vec![],
+            }),
+        };
         if let Some(pb) = pb {
             pb.finish_and_clear();
         }
@@ -123,7 +130,7 @@ impl WslManager {
         Ok(result)
     }
 
-    pub fn provision_all(
+    pub fn apply_all(
         &self,
         config: &Config,
         options: RunOptions,
@@ -132,7 +139,7 @@ impl WslManager {
         let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
         for (instance_name, instance) in &config.instances {
             eprintln!("{}", style(format!("🔧 Creating '{instance_name}'...")).bold());
-            results.insert(instance_name.clone(), self.provision_instance(instance, options)?);
+            results.insert(instance_name.clone(), self.apply_instance(instance, options)?);
         }
         Ok(results)
     }
