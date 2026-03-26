@@ -97,11 +97,13 @@ impl WslManager {
         let pb = is_remote.then(|| display::spinner("⬇️  Downloading image...".to_string()));
         let mut result = match self.create_instance(instance, options) {
             Ok(r) => r,
-            Err(e) => return Ok(InstanceResult {
-                hostname: instance.hostname.clone(),
-                outcome: Status::Failed(e.to_string()),
-                events: vec![],
-            }),
+            Err(e) => {
+                return Ok(InstanceResult {
+                    hostname: instance.hostname.clone(),
+                    outcome: Status::Failed(e.to_string()),
+                    events: vec![],
+                })
+            }
         };
         if let Some(pb) = pb {
             pb.finish_and_clear();
@@ -130,11 +132,7 @@ impl WslManager {
         Ok(result)
     }
 
-    pub fn apply_all(
-        &self,
-        config: &Config,
-        options: RunOptions,
-    ) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
+    pub fn apply_all(&self, config: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
         self.prepare_environment(options.dry_run)?;
         let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
         for (instance_name, instance) in &config.instances {

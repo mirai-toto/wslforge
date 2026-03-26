@@ -31,7 +31,7 @@ pub fn run(cfg: AppArgs) -> anyhow::Result<()> {
         wizard::confirm_provision()?;
     }
 
-    let results = manager.provision_all(&cfg.config, options)?;
+    let results = manager.apply_all(&cfg.config, options)?;
     display::print_summary(&results);
 
     Ok(())
