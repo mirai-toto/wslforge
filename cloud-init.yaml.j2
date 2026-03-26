@@ -64,6 +64,9 @@ write_files:
 
 runcmd:
 {% if proxy %}
+  - export http_proxy="{{ proxy.http }}"
+  - export https_proxy="{{ proxy.https }}"
+  - export no_proxy="{{ proxy.no_proxy }}"
   - git config --system http.proxy "{{ proxy.http }}"
   - git config --system https.proxy "{{ proxy.https }}"
 {% endif %}

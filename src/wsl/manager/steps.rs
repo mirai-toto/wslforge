@@ -64,17 +64,31 @@ pub(super) fn execute_file_transfers(engine: &dyn WslEngine, instance: &Instance
     let mut events: Vec<Event> = Vec::new();
     for transfer in &instance.files {
         let src = expand_path(&transfer.src)?;
-        events.push(Event::FileTransferStarted(src.clone()));
-        let content = std::fs::read(&src).map_err(|e| anyhow::anyhow!("failed to read '{}': {e}", src.display()))?;
-        engine.write_file(
-            &instance.hostname,
-            &transfer.dest,
-            &content,
-            transfer.owner.as_deref(),
-            transfer.mode.as_deref(),
-            shell,
-        )?;
-        events.push(Event::FileTransferCompleted(transfer.dest.clone()));
+        if src.is_dir() {
+            events.push(Event::DirectoryTransferStarted(src.clone()));
+            engine.write_dir(
+                &instance.hostname,
+                &src,
+                &transfer.dest,
+                transfer.owner.as_deref(),
+                transfer.mode.as_deref(),
+                shell,
+            )?;
+            events.push(Event::DirectoryTransferCompleted(transfer.dest.clone()));
+        } else {
+            events.push(Event::FileTransferStarted(src.clone()));
+            let content =
+                std::fs::read(&src).map_err(|e| anyhow::anyhow!("failed to read '{}': {e}", src.display()))?;
+            engine.write_file(
+                &instance.hostname,
+                &transfer.dest,
+                &content,
+                transfer.owner.as_deref(),
+                transfer.mode.as_deref(),
+                shell,
+            )?;
+            events.push(Event::FileTransferCompleted(transfer.dest.clone()));
+        }
     }
     Ok(events)
 }
