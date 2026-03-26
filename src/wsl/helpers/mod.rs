@@ -17,6 +17,19 @@ pub(crate) fn expand_env_vars(raw: &str) -> anyhow::Result<String> {
     Ok(expanded.into_owned())
 }
 
+/// Expands a leading `~` in a Linux guest path to `$HOME`.
+/// Unlike `expand_path`, this does not expand Windows environment variables,
+/// as the path will be resolved inside the WSL instance.
+pub(crate) fn expand_wsl_dest(raw: &str) -> String {
+    if raw == "~" {
+        "$HOME".to_string()
+    } else if let Some(rest) = raw.strip_prefix("~/") {
+        format!("$HOME/{rest}")
+    } else {
+        raw.to_string()
+    }
+}
+
 pub(crate) fn expand_path(raw: &Path) -> anyhow::Result<PathBuf> {
     let expanded: String = expand_env_vars(&raw.to_string_lossy())?;
     Ok(PathBuf::from(expanded))

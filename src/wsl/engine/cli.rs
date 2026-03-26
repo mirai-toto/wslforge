@@ -88,14 +88,14 @@ impl WslEngine for CliEngine {
 
         let mut script: Vec<String> = Vec::new();
         if !parent.is_empty() {
-            script.push(format!("mkdir -p '{parent}'"));
+            script.push(format!("mkdir -p \"{parent}\""));
         }
-        script.push(format!("cat > '{dest}'"));
+        script.push(format!("cat > \"{dest}\""));
         if let Some(o) = owner {
-            script.push(format!("chown '{o}' '{dest}'"));
+            script.push(format!("chown '{o}' \"{dest}\""));
         }
         if let Some(m) = mode {
-            script.push(format!("chmod '{m}' '{dest}'"));
+            script.push(format!("chmod '{m}' \"{dest}\""));
         }
 
         pipe_to_wsl(
@@ -123,12 +123,12 @@ impl WslEngine for CliEngine {
             builder.finish()?;
         }
 
-        let mut script: Vec<String> = vec![format!("mkdir -p '{dest}'"), format!("tar xf - -C '{dest}'")];
+        let mut script: Vec<String> = vec![format!("mkdir -p \"{dest}\""), format!("tar xf - -C \"{dest}\"")];
         if let Some(o) = owner {
-            script.push(format!("chown -R '{o}' '{dest}'"));
+            script.push(format!("chown -R '{o}' \"{dest}\""));
         }
         if let Some(m) = mode {
-            script.push(format!("chmod -R '{m}' '{dest}'"));
+            script.push(format!("chmod -R '{m}' \"{dest}\""));
         }
 
         pipe_to_wsl(

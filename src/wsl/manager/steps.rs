@@ -1,7 +1,7 @@
 use crate::config::{ImageSource, Instance, SourcePath};
 use crate::wsl::cloud_init;
 use crate::wsl::engine::WslEngine;
-use crate::wsl::helpers::{expand_path, resolve_install_dir, resolve_source_path};
+use crate::wsl::helpers::{expand_path, expand_wsl_dest, resolve_install_dir, resolve_source_path};
 use crate::wsl::validation::environment;
 use crate::wsl::{Event, RunOptions};
 
@@ -64,30 +64,31 @@ pub(super) fn execute_file_transfers(engine: &dyn WslEngine, instance: &Instance
     let mut events: Vec<Event> = Vec::new();
     for transfer in &instance.files {
         let src = expand_path(&transfer.src)?;
+        let dest = expand_wsl_dest(&transfer.dest);
         if src.is_dir() {
             events.push(Event::DirectoryTransferStarted(src.clone()));
             engine.write_dir(
                 &instance.hostname,
                 &src,
-                &transfer.dest,
+                &dest,
                 transfer.owner.as_deref(),
                 transfer.mode.as_deref(),
                 shell,
             )?;
-            events.push(Event::DirectoryTransferCompleted(transfer.dest.clone()));
+            events.push(Event::DirectoryTransferCompleted(dest.clone()));
         } else {
             events.push(Event::FileTransferStarted(src.clone()));
             let content =
                 std::fs::read(&src).map_err(|e| anyhow::anyhow!("failed to read '{}': {e}", src.display()))?;
             engine.write_file(
                 &instance.hostname,
-                &transfer.dest,
+                &dest,
                 &content,
                 transfer.owner.as_deref(),
                 transfer.mode.as_deref(),
                 shell,
             )?;
-            events.push(Event::FileTransferCompleted(transfer.dest.clone()));
+            events.push(Event::FileTransferCompleted(dest.clone()));
         }
     }
     Ok(events)
