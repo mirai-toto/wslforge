@@ -18,12 +18,18 @@ A minimal tool to declaratively create and manage WSL instances.
 
 `wslforge` does two things:
 
-1. **Manages WSL instances** — creates, configures, and optionally replaces instances from a YAML profile.
-2. **Templates cloud-init user-data with Jinja** — your `cloud-init` content (file or inline) is rendered as a [Jinja](https://jinja.palletsprojects.com/) template before being handed to WSL, giving you variables, conditionals, and filters inside your user-data.
+1. **Manages WSL instances** — creates, configures, and optionally replaces instances from a YAML config.
+2. **Automates instance setup** — runs your automation config on first boot, with support for templating via variables and conditionals.
 
 > Status: early/in-development. Some operations are still mock.
 
 ## ✅ Requirements
+
+Optional: install the latest PowerShell via winget if you prefer a newer shell experience:
+
+```powershell
+winget install --id Microsoft.PowerShell --source winget
+```
 
 WSL must be enabled on Windows before you can create instances. Run this once in an elevated PowerShell:
 
@@ -31,10 +37,10 @@ WSL must be enabled on Windows before you can create instances. Run this once in
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
 ```
 
-Optional: install the latest PowerShell via winget if you prefer a newer shell experience:
+If you run into issues, a WSL update may be needed:
 
 ```powershell
-winget install --id Microsoft.PowerShell --source winget
+wsl --update
 ```
 
 ---

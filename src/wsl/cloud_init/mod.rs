@@ -15,6 +15,35 @@ use std::path::PathBuf;
 
 pub use store::DebugCopyOutcome;
 
+pub const DEFAULT_CLOUD_INIT_TEMPLATE: &str = r#"#cloud-config
+users:
+  - name: {{ username }}
+    groups: [sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+{%- if password_hash %}
+    passwd: {{ password_hash }}
+    lock_passwd: false
+{%- endif %}
+{% if proxy %}
+write_files:
+  - path: /etc/environment
+    append: true
+    content: |
+{% if proxy.http %}
+      http_proxy={{ proxy.http }}
+      HTTP_PROXY={{ proxy.http }}
+{% endif %}
+{% if proxy.https %}
+      https_proxy={{ proxy.https }}
+      HTTPS_PROXY={{ proxy.https }}
+{% endif %}
+{% if proxy.no_proxy %}
+      no_proxy={{ proxy.no_proxy }}
+      NO_PROXY={{ proxy.no_proxy }}
+{% endif %}
+{% endif %}"#;
+
 pub fn user_data_path(hostname: &str) -> anyhow::Result<PathBuf> {
     let userprofile = resolve_userprofile_dir()?;
     let target_dir = userprofile.join(".cloud-init");
@@ -22,10 +51,19 @@ pub fn user_data_path(hostname: &str) -> anyhow::Result<PathBuf> {
 }
 
 pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> anyhow::Result<Vec<Event>> {
-    let Some(source) = &instance.cloud_init else {
-        return Ok(vec![Event::CloudInitSkipped]);
-    };
     let mut events: Vec<Event> = Vec::new();
+
+    let default_source;
+    let source = match &instance.cloud_init {
+        Some(s) => s,
+        None => {
+            events.push(Event::CloudInitDefaultGenerated);
+            default_source = CloudInitSource::Inline {
+                content: DEFAULT_CLOUD_INIT_TEMPLATE.into(),
+            };
+            &default_source
+        }
+    };
 
     let content: String = match source {
         CloudInitSource::File { path } => {

@@ -1,4 +1,5 @@
 use clap::{Parser, ValueHint};
+use clap_complete::Shell;
 use std::path::PathBuf;
 
 use crate::config;
@@ -30,4 +31,8 @@ pub struct Args {
     /// Print a minimal example config to stdout and exit
     #[arg(long)]
     pub print_example_config: bool,
+
+    /// Generate shell completion script and exit
+    #[arg(long, value_name = "SHELL")]
+    pub generate_completion: Option<Shell>,
 }

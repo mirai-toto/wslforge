@@ -3,17 +3,30 @@ use crate::config::Instance;
 use crate::wsl::engine::WslEngine;
 use crate::wsl::{Event, RunOptions, Status};
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::{Mutex, OnceLock};
+
+fn userprofile_env_lock() -> &'static Mutex<()> {
+    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+    LOCK.get_or_init(|| Mutex::new(()))
+}
+
+macro_rules! lock_userprofile {
+    ($dir:expr) => {{
+        let guard = userprofile_env_lock().lock().unwrap_or_else(|e| e.into_inner());
+        std::env::set_var("USERPROFILE", $dir);
+        guard
+    }};
+}
 
 struct FakeEngine {
     instance_exists: bool,
     fail_create_from_file: bool,
-    calls: Arc<Mutex<Vec<String>>>,
+    calls: std::sync::Arc<Mutex<Vec<String>>>,
 }
 
 impl FakeEngine {
-    fn new(instance_exists: bool, fail_create_from_file: bool) -> (Self, Arc<Mutex<Vec<String>>>) {
-        let calls = Arc::new(Mutex::new(Vec::new()));
+    fn new(instance_exists: bool, fail_create_from_file: bool) -> (Self, std::sync::Arc<Mutex<Vec<String>>>) {
+        let calls = std::sync::Arc::new(Mutex::new(Vec::new()));
         (
             Self {
                 instance_exists,
@@ -136,6 +149,10 @@ fn create_temp_tar_file(dir: &tempfile::TempDir) -> PathBuf {
     path
 }
 
+fn cloud_init_path(userprofile: &Path) -> PathBuf {
+    userprofile.join(".cloud-init").join("devbox.user-data")
+}
+
 #[test]
 fn create_instance_returns_already_exists_when_present_without_override() {
     let instance: Instance = serde_yaml::from_str(
@@ -162,6 +179,9 @@ override: false
 fn create_instance_dry_run_skips_engine_create_after_prepare() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
+    let userprofile = tempfile::tempdir().expect("create userprofile temp dir");
+    let _guard = lock_userprofile!(userprofile.path());
+
     let instance = file_image_instance(&image_path);
     let (engine, calls) = FakeEngine::new(false, false);
     let manager = WslManager::new(Box::new(engine));
@@ -176,13 +196,17 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
         )
         .expect("dry run should succeed");
 
+    std::env::remove_var("USERPROFILE");
+
     assert_eq!(report.outcome, Status::Skipped);
     assert_eq!(
         report.events,
         vec![
             Event::InstanceCheckStarted,
             Event::InstanceNotFound,
-            Event::CloudInitSkipped,
+            Event::CloudInitDefaultGenerated,
+            Event::CloudInitInlineLoaded,
+            Event::CloudInitDryRunDeployed(cloud_init_path(userprofile.path())),
             Event::CreateDryRun,
         ]
     );
@@ -193,6 +217,9 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
 fn create_instance_returns_error_when_engine_create_fails() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
+    let userprofile = tempfile::tempdir().expect("create userprofile temp dir");
+    let _guard = lock_userprofile!(userprofile.path());
+
     let instance = file_image_instance(&image_path);
     let (engine, calls) = FakeEngine::new(false, true);
     let manager = WslManager::new(Box::new(engine));
@@ -200,6 +227,9 @@ fn create_instance_returns_error_when_engine_create_fails() {
     let err = manager
         .create_instance(&instance, RunOptions::default())
         .expect_err("engine create failure should bubble up");
+
+    std::env::remove_var("USERPROFILE");
+
     assert!(err.to_string().contains("create from file failed"));
     assert_eq!(
         calls.lock().expect("lock calls").as_slice(),
@@ -211,6 +241,9 @@ fn create_instance_returns_error_when_engine_create_fails() {
 fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
+    let userprofile = tempfile::tempdir().expect("create userprofile temp dir");
+    let _guard = lock_userprofile!(userprofile.path());
+
     let instance = file_image_instance_with_override(&image_path, true);
     let (engine, calls) = FakeEngine::new(true, false);
     let manager = WslManager::new(Box::new(engine));
@@ -225,6 +258,8 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
         )
         .expect("dry run should succeed");
 
+    std::env::remove_var("USERPROFILE");
+
     assert_eq!(report.outcome, Status::Skipped);
     assert_eq!(
         report.events,
@@ -232,7 +267,9 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
             Event::InstanceCheckStarted,
             Event::InstanceFound,
             Event::OverrideEnabled,
-            Event::CloudInitSkipped,
+            Event::CloudInitDefaultGenerated,
+            Event::CloudInitInlineLoaded,
+            Event::CloudInitDryRunDeployed(cloud_init_path(userprofile.path())),
             Event::OverrideTriggered,
             Event::DeleteDryRun,
             Event::CreateDryRun,
@@ -245,6 +282,9 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
 fn create_instance_override_existing_deletes_then_creates() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let image_path = create_temp_tar_file(&dir);
+    let userprofile = tempfile::tempdir().expect("create userprofile temp dir");
+    let _guard = lock_userprofile!(userprofile.path());
+
     let instance = file_image_instance_with_override(&image_path, true);
     let (engine, calls) = FakeEngine::new(true, false);
     let manager = WslManager::new(Box::new(engine));
@@ -253,6 +293,8 @@ fn create_instance_override_existing_deletes_then_creates() {
         .create_instance(&instance, RunOptions::default())
         .expect("override create should succeed");
 
+    std::env::remove_var("USERPROFILE");
+
     assert_eq!(report.outcome, Status::Recreated);
     assert_eq!(
         report.events,
@@ -260,7 +302,9 @@ fn create_instance_override_existing_deletes_then_creates() {
             Event::InstanceCheckStarted,
             Event::InstanceFound,
             Event::OverrideEnabled,
-            Event::CloudInitSkipped,
+            Event::CloudInitDefaultGenerated,
+            Event::CloudInitInlineLoaded,
+            Event::CloudInitDeployed(cloud_init_path(userprofile.path())),
             Event::OverrideTriggered,
             Event::DeleteStarted,
             Event::DeleteCompleted,

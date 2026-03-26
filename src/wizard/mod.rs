@@ -2,10 +2,11 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use console::style;
-use dialoguer::{Confirm, Input, Password};
+use dialoguer::{Input, Password, Select};
 use url::Url;
 
-use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy, SourcePath};
+use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
+use crate::wsl::cloud_init::DEFAULT_CLOUD_INIT_TEMPLATE;
 
 pub fn run() -> anyhow::Result<Config> {
     eprintln!(
@@ -14,6 +15,57 @@ pub fn run() -> anyhow::Result<Config> {
     );
     eprintln!();
 
+    let (hostname, instance) = prompt_instance()?;
+
+    eprintln!();
+    print_summary(&hostname, &instance);
+
+    let confirmed = Select::new()
+        .with_prompt(style("🚀  ready to provision?").cyan().bold().to_string())
+        .items(["yes, proceed", "no, abort"])
+        .default(0)
+        .interact()?;
+
+    if confirmed != 0 {
+        eprintln!("{}", style("Aborted.").yellow());
+        std::process::exit(0);
+    }
+
+    Ok(Config {
+        instances: BTreeMap::from([(hostname, instance)]),
+    })
+}
+
+fn print_summary(hostname: &str, instance: &Instance) {
+    eprintln!(
+        "{}",
+        style("── Summary ──────────────────────────────────────────").dim()
+    );
+    eprintln!("  hostname    : {}", style(hostname).cyan());
+    eprintln!("  username    : {}", style(&instance.username).cyan());
+    eprintln!(
+        "  password    : {}",
+        style(if instance.password.is_some() { "set" } else { "none" }).cyan()
+    );
+    eprintln!("  override    : {}", style(instance.override_instance).cyan());
+    eprintln!("  install_dir : {}", style(instance.install_dir.display()).cyan());
+    eprintln!("  image       : {}", style(&instance.image).cyan());
+    match &instance.cloud_init {
+        Some(ci) => eprintln!("  cloud-init  : {}", style(format!("{ci}")).cyan()),
+        None => eprintln!(
+            "  cloud-init  : {}\n{}",
+            style("default (auto-generated):").cyan(),
+            style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
+        ),
+    };
+    eprintln!(
+        "  proxy       : {}",
+        style(if instance.proxy.is_some() { "configured" } else { "none" }).cyan()
+    );
+    eprintln!();
+}
+
+fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     eprintln!(
         "{}",
         style("── Instance ─────────────────────────────────────────").dim()
@@ -24,30 +76,39 @@ pub fn run() -> anyhow::Result<Config> {
         .default("UbuntuWSL".into())
         .interact_text()?;
 
+    let default_username = std::env::var("USERNAME").unwrap_or_else(|_| "wsluser".into());
     let username: String = Input::new()
-        .with_prompt(style("👤 username").cyan().bold().to_string())
-        .default("wsluser".into())
+        .with_prompt(style("👤  username").cyan().bold().to_string())
+        .default(default_username)
         .interact_text()?;
 
     let password: String = Password::new()
-        .with_prompt(style("🔑 password (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🔑  password (blank to skip)").cyan().bold().to_string())
+        .with_confirmation(
+            style("🔑  confirm password").cyan().bold().to_string(),
+            "passwords do not match, please try again",
+        )
         .allow_empty_password(true)
         .interact()?;
 
-    let override_instance: bool = Confirm::new()
+    let override_instance: bool = Select::new()
         .with_prompt(style("♻️  override existing instance?").cyan().bold().to_string())
-        .default(false)
-        .interact()?;
+        .items(["no", "yes"])
+        .default(0)
+        .interact()?
+        == 1;
 
     eprintln!(
         "{}",
         style("── Proxy ────────────────────────────────────────────").dim()
     );
 
-    let proxy = if Confirm::new()
-        .with_prompt(style("🌐 configure proxy?").cyan().bold().to_string())
-        .default(false)
+    let proxy = if Select::new()
+        .with_prompt(style("🌐  configure proxy?").cyan().bold().to_string())
+        .items(["no", "yes"])
+        .default(0)
         .interact()?
+        == 1
     {
         prompt_proxy()?
     } else {
@@ -59,23 +120,7 @@ pub fn run() -> anyhow::Result<Config> {
         style("── Cloud-init ───────────────────────────────────────").dim()
     );
 
-    let cloud_init_path: String = Input::new()
-        .with_prompt(
-            style("☁️  cloud-init file path (blank to skip)")
-                .cyan()
-                .bold()
-                .to_string(),
-        )
-        .allow_empty(true)
-        .interact_text()?;
-
-    let cloud_init = if cloud_init_path.is_empty() {
-        None
-    } else {
-        Some(CloudInitSource::File {
-            path: PathBuf::from(cloud_init_path),
-        })
-    };
+    let cloud_init = prompt_cloud_init()?;
 
     eprintln!(
         "{}",
@@ -83,8 +128,6 @@ pub fn run() -> anyhow::Result<Config> {
     );
 
     let image = prompt_image()?;
-
-    eprintln!();
 
     let instance = Instance {
         override_instance,
@@ -100,41 +143,55 @@ pub fn run() -> anyhow::Result<Config> {
         image,
     };
 
-    Ok(Config {
-        instances: BTreeMap::from([(hostname, instance)]),
-    })
+    Ok((hostname, instance))
 }
 
-fn prompt_image() -> anyhow::Result<ImageSource> {
-    let use_file: bool = Confirm::new()
+fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
+    let path: String = Input::new()
         .with_prompt(
-            style("🗂️  use a local rootfs file instead of a distro?")
+            style("☁️  cloud-init file path (blank to generate default)")
                 .cyan()
                 .bold()
                 .to_string(),
         )
-        .default(false)
+        .allow_empty(true)
+        .interact_text()?;
+
+    if path.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(CloudInitSource::File {
+            path: PathBuf::from(path),
+        }))
+    }
+}
+
+fn prompt_image() -> anyhow::Result<ImageSource> {
+    let choice = Select::new()
+        .with_prompt(style("🐧  image source").cyan().bold().to_string())
+        .items(["distro name (e.g. Ubuntu, Debian)", "rootfs file or URL"])
+        .default(0)
         .interact()?;
 
-    if use_file {
-        let path: String = Input::new()
-            .with_prompt(style("🗂️  rootfs file path").cyan().bold().to_string())
-            .interact_text()?;
-        Ok(ImageSource::File {
-            path: SourcePath::Local(PathBuf::from(path)),
-        })
-    } else {
+    if choice == 0 {
         let name: String = Input::new()
-            .with_prompt(style("🐧 distro name").cyan().bold().to_string())
+            .with_prompt(style("🐧  distro name").cyan().bold().to_string())
             .default("Ubuntu".into())
             .interact_text()?;
         Ok(ImageSource::Distro { name })
+    } else {
+        let path: String = Input::new()
+            .with_prompt(style("🗂️  rootfs path or URL").cyan().bold().to_string())
+            .interact_text()?;
+        Ok(ImageSource::File {
+            path: path.parse().unwrap(),
+        })
     }
 }
 
 fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     let http: String = Input::new()
-        .with_prompt(style("🌐 proxy http (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🌐  proxy http (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
@@ -145,7 +202,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     let http_url = Url::parse(&http).map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
 
     let https: String = Input::new()
-        .with_prompt(style("🔒 proxy https (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🔒  proxy https (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
@@ -156,7 +213,7 @@ fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
     };
 
     let no_proxy: String = Input::new()
-        .with_prompt(style("🚫 proxy no_proxy (blank to skip)").cyan().bold().to_string())
+        .with_prompt(style("🚫  proxy no_proxy (blank to skip)").cyan().bold().to_string())
         .allow_empty(true)
         .interact_text()?;
 
