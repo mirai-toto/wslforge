@@ -15,7 +15,7 @@ use std::path::PathBuf;
 
 pub use store::DebugCopyOutcome;
 
-const DEFAULT_CLOUD_INIT_TEMPLATE: &str = r#"#cloud-config
+pub const DEFAULT_CLOUD_INIT_TEMPLATE: &str = r#"#cloud-config
 users:
   - name: {{ username }}
     groups: [sudo]

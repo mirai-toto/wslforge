@@ -6,6 +6,7 @@ use dialoguer::{Input, Password, Select};
 use url::Url;
 
 use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
+use crate::wsl::cloud_init::DEFAULT_CLOUD_INIT_TEMPLATE;
 
 pub fn run() -> anyhow::Result<Config> {
     eprintln!(
@@ -49,14 +50,14 @@ fn print_summary(hostname: &str, instance: &Instance) {
     eprintln!("  override    : {}", style(instance.override_instance).cyan());
     eprintln!("  install_dir : {}", style(instance.install_dir.display()).cyan());
     eprintln!("  image       : {}", style(&instance.image).cyan());
-    eprintln!(
-        "  cloud-init  : {}",
-        style(match &instance.cloud_init {
-            Some(ci) => format!("{ci}"),
-            None => "none".into(),
-        })
-        .cyan()
-    );
+    match &instance.cloud_init {
+        Some(ci) => eprintln!("  cloud-init  : {}", style(format!("{ci}")).cyan()),
+        None => eprintln!(
+            "  cloud-init  : {}\n{}",
+            style("default (auto-generated):").cyan(),
+            style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
+        ),
+    };
     eprintln!(
         "  proxy       : {}",
         style(if instance.proxy.is_some() { "configured" } else { "none" }).cyan()

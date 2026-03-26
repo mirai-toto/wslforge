@@ -1,4 +1,4 @@
-mod cloud_init;
+pub mod cloud_init;
 pub(crate) mod engine;
 pub(crate) mod helpers;
 mod manager;
