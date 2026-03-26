@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use console::style;
-use dialoguer::{Confirm, Input, Password};
+use dialoguer::{Confirm, Input, Password, Select};
 use url::Url;
 
 use crate::config::{CloudInitSource, Config, ImageSource, Instance, Proxy};
@@ -161,25 +161,25 @@ fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
 }
 
 fn prompt_image() -> anyhow::Result<ImageSource> {
-    let name: String = Input::new()
-        .with_prompt(style("🐧  distro name (e.g. Ubuntu, Debian)").cyan().bold().to_string())
-        .default("Ubuntu".into())
-        .interact_text()?;
-
-    let use_file: bool = Confirm::new()
-        .with_prompt(style("🗂️  use a rootfs file or URL instead?").cyan().bold().to_string())
-        .default(false)
+    let choice = Select::new()
+        .with_prompt(style("🐧  image source").cyan().bold().to_string())
+        .items(&["distro name (e.g. Ubuntu, Debian)", "rootfs file or URL"])
+        .default(0)
         .interact()?;
 
-    if use_file {
+    if choice == 0 {
+        let name: String = Input::new()
+            .with_prompt(style("🐧  distro name").cyan().bold().to_string())
+            .default("Ubuntu".into())
+            .interact_text()?;
+        Ok(ImageSource::Distro { name })
+    } else {
         let path: String = Input::new()
             .with_prompt(style("🗂️  rootfs path or URL").cyan().bold().to_string())
             .interact_text()?;
         Ok(ImageSource::File {
             path: path.parse().unwrap(),
         })
-    } else {
-        Ok(ImageSource::Distro { name })
     }
 }
 
