@@ -57,6 +57,11 @@ Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/
 
 No config yet? Just run `wslforge` and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
 
+Looking for inspiration? Check out the ready-to-use examples in [`configs/`](configs/):
+
+- [`config.dev.yaml`](configs/config.dev.yaml) — Ubuntu dev instance with Docker, MicroK8s, Java, Node, and Python
+- [`config.vpnkit.yaml`](configs/config.vpnkit.yaml) — same as above, plus a `wsl-vpnkit` sidecar for VPN environments
+
 ```sh
 ./wslforge
 ```
