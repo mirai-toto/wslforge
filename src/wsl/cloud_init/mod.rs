@@ -30,13 +30,19 @@ write_files:
   - path: /etc/environment
     append: true
     content: |
-{% if proxy.http %}      HTTP_PROXY={{ proxy.http }}
+{% if proxy.http %}
       http_proxy={{ proxy.http }}
-{% endif %}{% if proxy.https %}      HTTPS_PROXY={{ proxy.https }}
+      HTTP_PROXY={{ proxy.http }}
+{% endif %}
+{% if proxy.https %}
       https_proxy={{ proxy.https }}
-{% endif %}{% if proxy.no_proxy %}      NO_PROXY={{ proxy.no_proxy }}
+      HTTPS_PROXY={{ proxy.https }}
+{% endif %}
+{% if proxy.no_proxy %}
       no_proxy={{ proxy.no_proxy }}
-{% endif %}{% endif %}"#;
+      NO_PROXY={{ proxy.no_proxy }}
+{% endif %}
+{% endif %}"#;
 
 pub fn user_data_path(hostname: &str) -> anyhow::Result<PathBuf> {
     let userprofile = resolve_userprofile_dir()?;
