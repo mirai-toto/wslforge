@@ -75,6 +75,12 @@ pub(crate) fn command_error(description: &str, output: &std::process::Output) ->
 }
 
 #[cfg(test)]
+pub(crate) fn userprofile_env_lock() -> &'static std::sync::Mutex<()> {
+    static LOCK: std::sync::OnceLock<std::sync::Mutex<()>> = std::sync::OnceLock::new();
+    LOCK.get_or_init(|| std::sync::Mutex::new(()))
+}
+
+#[cfg(test)]
 #[path = "../../../tests/unit/wsl/helpers/path_tests.rs"]
 mod path_tests;
 

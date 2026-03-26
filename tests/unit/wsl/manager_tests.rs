@@ -3,16 +3,13 @@ use crate::config::Instance;
 use crate::wsl::engine::WslEngine;
 use crate::wsl::{Event, RunOptions, Status};
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, OnceLock};
-
-fn userprofile_env_lock() -> &'static Mutex<()> {
-    static LOCK: OnceLock<Mutex<()>> = OnceLock::new();
-    LOCK.get_or_init(|| Mutex::new(()))
-}
+use std::sync::Mutex;
 
 macro_rules! lock_userprofile {
     ($dir:expr) => {{
-        let guard = userprofile_env_lock().lock().unwrap_or_else(|e| e.into_inner());
+        let guard = crate::wsl::helpers::userprofile_env_lock()
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
         std::env::set_var("USERPROFILE", $dir);
         guard
     }};
