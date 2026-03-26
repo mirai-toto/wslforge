@@ -22,7 +22,7 @@ pub fn run() -> anyhow::Result<Config> {
 
     let confirmed = Select::new()
         .with_prompt(style("🚀  ready to provision?").cyan().bold().to_string())
-        .items(&["yes, proceed", "no, abort"])
+        .items(["yes, proceed", "no, abort"])
         .default(0)
         .interact()?;
 
@@ -93,9 +93,10 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
 
     let override_instance: bool = Select::new()
         .with_prompt(style("♻️  override existing instance?").cyan().bold().to_string())
-        .items(&["no", "yes"])
+        .items(["no", "yes"])
         .default(0)
-        .interact()? == 1;
+        .interact()?
+        == 1;
 
     eprintln!(
         "{}",
@@ -104,9 +105,10 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
 
     let proxy = if Select::new()
         .with_prompt(style("🌐  configure proxy?").cyan().bold().to_string())
-        .items(&["no", "yes"])
+        .items(["no", "yes"])
         .default(0)
-        .interact()? == 1
+        .interact()?
+        == 1
     {
         prompt_proxy()?
     } else {
@@ -167,7 +169,7 @@ fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
 fn prompt_image() -> anyhow::Result<ImageSource> {
     let choice = Select::new()
         .with_prompt(style("🐧  image source").cyan().bold().to_string())
-        .items(&["distro name (e.g. Ubuntu, Debian)", "rootfs file or URL"])
+        .items(["distro name (e.g. Ubuntu, Debian)", "rootfs file or URL"])
         .default(0)
         .interact()?;
 
