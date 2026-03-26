@@ -17,7 +17,6 @@ instances:
       type: inline
       content: |
         #cloud-config
-        ## template: jinja
         hostname: {{ hostname }}
         manage_etc_hosts: true
 
@@ -38,14 +37,13 @@ instances:
         package_update: true
         package_upgrade: true
         packages:
-          - apt-transport-https
           - ca-certificates
           - curl
-          - gnupg2
-          - software-properties-common
+          - gcc
           - git
           - python3
           - python3-pip
+          - openjdk-21-jdk
           - nodejs
           - npm
 
@@ -63,10 +61,12 @@ instances:
               Acquire::http::Proxy "{{ proxy.http }}";
               Acquire::https::Proxy "{{ proxy.https }}";
         {% endif %}
-          - path: /usr/lib/binfmt.d/WSLInterop.conf
+          - path: /etc/apt/apt.conf.d/99retries
             permissions: '0644'
             content: |
-              :WSLInterop:M::MZ::/init:PF
+              Acquire::Retries "5";
+              Acquire::http::Timeout "120";
+              Acquire::https::Timeout "120";
           - path: /etc/wsl.conf
             permissions: '0644'
             content: |
@@ -88,7 +88,21 @@ instances:
           - usermod -aG docker {{ username }}
           - systemctl enable docker
           - systemctl start docker
-          - apt install -y docker-compose-plugin
+          - apt-get install -y docker-compose-plugin
+          - |
+            for port in 16443 6443 6444; do
+              if ss -tlnp | grep -qE ":${port}[[:space:]]"; then
+                echo "ERROR: port ${port} is already in use — another WSL instance may be running a Kubernetes service. Aborting to avoid infinite wait." >&2
+                exit 1
+              fi
+            done
+          - snap install microk8s --classic
+          - usermod -a -G microk8s {{ username }}
+          - mkdir -p /home/{{ username }}/.kube
+          - microk8s status --wait-ready
+          - microk8s config > /home/{{ username }}/.kube/config
+          - chown -R {{ username }}:{{ username }} /home/{{ username }}/.kube
+          - snap install kubectl --classic
 
         final_message: "✅ cloud-init finished on {{ hostname }}."
     image:
