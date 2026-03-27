@@ -1,12 +1,13 @@
 use std::collections::BTreeMap;
 
-use comfy_table::{Attribute, Cell, Color, Table};
+use comfy_table::{Attribute, Cell, Color, ContentArrangement, Table};
 use console::style;
 
 use crate::wsl::{InstanceResult, Status};
 
 pub fn print_summary(results: &BTreeMap<String, InstanceResult>) {
     let mut table = Table::new();
+    table.set_content_arrangement(ContentArrangement::Dynamic);
     table.set_header(vec![
         Cell::new("Instance").add_attribute(Attribute::Bold),
         Cell::new("Status").add_attribute(Attribute::Bold),
