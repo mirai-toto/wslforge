@@ -89,6 +89,9 @@ impl WslEngine for CliEngine {
         let mut script: Vec<String> = Vec::new();
         if !parent.is_empty() {
             script.push(format!("mkdir -p \"{parent}\""));
+            if let Some(o) = owner {
+                script.push(format!("chown -R '{o}' \"{parent}\""));
+            }
         }
         script.push(format!("cat > \"{dest}\""));
         if let Some(o) = owner {

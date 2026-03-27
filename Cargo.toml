@@ -33,6 +33,6 @@ comfy-table = "7.2.2"
 console = "0.16.3"
 fern = "0.7.1"
 chrono = { version = "0.4.44", features = ["clock"] }
-ureq = "2"
+ureq = { version = "2", default-features = false, features = ["native-tls"] }
 tempfile = "3"
 tar = "0.4"
