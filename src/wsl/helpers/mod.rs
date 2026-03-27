@@ -93,26 +93,6 @@ pub(crate) fn resolve_source_path(path: &SourcePath) -> anyhow::Result<ResolvedP
     }
 }
 
-pub(crate) fn wrap(s: &str, max_width: usize) -> String {
-    let mut lines: Vec<String> = Vec::new();
-    let mut line = String::new();
-    for word in s.split_whitespace() {
-        if line.is_empty() {
-            line.push_str(word);
-        } else if line.len() + 1 + word.len() <= max_width {
-            line.push(' ');
-            line.push_str(word);
-        } else {
-            lines.push(line.clone());
-            line = word.to_string();
-        }
-    }
-    if !line.is_empty() {
-        lines.push(line);
-    }
-    lines.join("\n")
-}
-
 pub(crate) fn command_error(description: &str, output: &std::process::Output) -> anyhow::Error {
     let stdout: std::borrow::Cow<'_, str> = String::from_utf8_lossy(&output.stdout);
     let stderr: std::borrow::Cow<'_, str> = String::from_utf8_lossy(&output.stderr);
