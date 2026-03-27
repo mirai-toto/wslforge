@@ -1,4 +1,4 @@
-use crate::wsl::engine::WslEngine;
+use crate::wsl::engine::{FileAttrs, WslEngine};
 use crate::wsl::helpers::command_error;
 use std::io::Write;
 use std::path::Path;
@@ -77,10 +77,10 @@ impl WslEngine for CliEngine {
         instance_name: &str,
         dest: &str,
         content: &[u8],
-        owner: Option<&str>,
-        mode: Option<&str>,
+        attrs: FileAttrs<'_>,
         shell: &str,
     ) -> anyhow::Result<()> {
+        let FileAttrs { owner, group, mode } = attrs;
         let parent: String = std::path::Path::new(dest)
             .parent()
             .map(|p| p.to_string_lossy().into_owned())
@@ -88,14 +88,11 @@ impl WslEngine for CliEngine {
 
         let mut script: Vec<String> = Vec::new();
         if !parent.is_empty() {
-            script.push(format!("mkdir -p \"{parent}\""));
-            if let Some(o) = owner {
-                script.push(format!("chown -R '{o}' \"{parent}\""));
-            }
+            script.push(install_dir(&parent, owner, group));
         }
         script.push(format!("cat > \"{dest}\""));
-        if let Some(o) = owner {
-            script.push(format!("chown '{o}' \"{dest}\""));
+        if owner.is_some() || group.is_some() {
+            script.push(chown_cmd(owner, group, dest));
         }
         if let Some(m) = mode {
             script.push(format!("chmod '{m}' \"{dest}\""));
@@ -115,10 +112,10 @@ impl WslEngine for CliEngine {
         instance_name: &str,
         src: &Path,
         dest: &str,
-        owner: Option<&str>,
-        mode: Option<&str>,
+        attrs: FileAttrs<'_>,
         shell: &str,
     ) -> anyhow::Result<()> {
+        let FileAttrs { owner, group, mode } = attrs;
         let mut archive_buf: Vec<u8> = Vec::new();
         {
             let mut builder = tar::Builder::new(&mut archive_buf);
@@ -126,12 +123,17 @@ impl WslEngine for CliEngine {
             builder.finish()?;
         }
 
-        let mut script: Vec<String> = vec![format!("mkdir -p \"{dest}\""), format!("tar xf - -C \"{dest}\"")];
-        if let Some(o) = owner {
-            script.push(format!("chown -R '{o}' \"{dest}\""));
+        let mut script: Vec<String> = vec![install_dir(dest, owner, group), format!("tar xf - -C \"{dest}\"")];
+        if owner.is_some() || group.is_some() {
+            script.push(format!("chown -R {} \"{dest}\"", chown_spec(owner, group)));
         }
         if let Some(m) = mode {
             script.push(format!("chmod -R '{m}' \"{dest}\""));
+        } else {
+            // tar archives built on Windows may not carry valid Unix file modes,
+            // so apply sensible defaults: rwx for owner, r-x for group/others on
+            // directories; rw for owner, r-- for group/others on regular files.
+            script.push(format!("chmod -R 'u+rwX,go+rX' \"{dest}\""));
         }
 
         pipe_to_wsl(
@@ -152,6 +154,39 @@ impl WslEngine for CliEngine {
         }
         Ok(())
     }
+}
+
+/// Builds a `chown` ownership specifier from separate owner and group values.
+fn chown_spec(owner: Option<&str>, group: Option<&str>) -> String {
+    match (owner, group) {
+        (Some(o), Some(g)) => format!("'{o}:{g}'"),
+        (Some(o), None) => format!("'{o}'"),
+        (None, Some(g)) => format!("':{g}'"),
+        (None, None) => String::new(),
+    }
+}
+
+/// Builds a `chown` command for a single path.
+fn chown_cmd(owner: Option<&str>, group: Option<&str>, path: &str) -> String {
+    format!("chown {} \"{path}\"", chown_spec(owner, group))
+}
+
+/// Builds an `install -d` command that creates a directory (and all intermediate
+/// ancestors) with the specified owner and/or group. Falls back to `mkdir -p`
+/// when neither is provided.
+fn install_dir(path: &str, owner: Option<&str>, group: Option<&str>) -> String {
+    if owner.is_none() && group.is_none() {
+        return format!("mkdir -p \"{path}\"");
+    }
+    let mut cmd = String::from("install -d");
+    if let Some(o) = owner {
+        cmd.push_str(&format!(" -o '{o}'"));
+    }
+    if let Some(g) = group {
+        cmd.push_str(&format!(" -g '{g}'"));
+    }
+    cmd.push_str(&format!(" \"{path}\""));
+    cmd
 }
 
 fn pipe_to_wsl(

@@ -88,8 +88,7 @@ impl WslEngine for FakeEngine {
         instance_name: &str,
         dest: &str,
         _content: &[u8],
-        _owner: Option<&str>,
-        _mode: Option<&str>,
+        _attrs: crate::wsl::engine::FileAttrs<'_>,
         _shell: &str,
     ) -> anyhow::Result<()> {
         self.calls
@@ -104,8 +103,7 @@ impl WslEngine for FakeEngine {
         instance_name: &str,
         _src: &std::path::Path,
         dest: &str,
-        _owner: Option<&str>,
-        _mode: Option<&str>,
+        _attrs: crate::wsl::engine::FileAttrs<'_>,
         _shell: &str,
     ) -> anyhow::Result<()> {
         self.calls

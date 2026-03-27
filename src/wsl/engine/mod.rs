@@ -7,6 +7,12 @@ pub enum EngineKind {
     Api,
 }
 
+pub struct FileAttrs<'a> {
+    pub owner: Option<&'a str>,
+    pub group: Option<&'a str>,
+    pub mode: Option<&'a str>,
+}
+
 pub trait WslEngine {
     fn status(&self) -> anyhow::Result<std::process::Output>;
     fn update(&self) -> anyhow::Result<std::process::Output>;
@@ -25,8 +31,7 @@ pub trait WslEngine {
         instance_name: &str,
         dest: &str,
         content: &[u8],
-        owner: Option<&str>,
-        mode: Option<&str>,
+        attrs: FileAttrs<'_>,
         shell: &str,
     ) -> anyhow::Result<()>;
     fn write_dir(
@@ -34,8 +39,7 @@ pub trait WslEngine {
         instance_name: &str,
         src: &std::path::Path,
         dest: &str,
-        owner: Option<&str>,
-        mode: Option<&str>,
+        attrs: FileAttrs<'_>,
         shell: &str,
     ) -> anyhow::Result<()>;
     fn run_script(&self, instance_name: &str, script: &str, shell: &str) -> anyhow::Result<()>;
