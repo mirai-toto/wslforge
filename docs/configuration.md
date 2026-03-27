@@ -156,6 +156,11 @@ files:
 | `owner` | File/directory owner (e.g. `root`)                       | no       |
 | `mode`  | File/directory permissions (e.g. `"644"`, `"755"`)       | no       |
 
+**Path expansion in `dest`:**
+
+- `~` is expanded to the instance user's home directory (e.g. `/home/user`)
+- If `dest` ends with `/`, the source filename is appended — e.g. `dest: /etc/ssl/certs/` with `src: company.crt` writes to `/etc/ssl/certs/company.crt`
+
 ## Scripts
 
 Run commands inside the instance after creation. Runs after file transfers.

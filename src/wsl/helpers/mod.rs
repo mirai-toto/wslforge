@@ -17,16 +17,33 @@ pub(crate) fn expand_env_vars(raw: &str) -> anyhow::Result<String> {
     Ok(expanded.into_owned())
 }
 
-/// Expands a leading `~` in a Linux guest path to `$HOME`.
-/// Unlike `expand_path`, this does not expand Windows environment variables,
-/// as the path will be resolved inside the WSL instance.
-pub(crate) fn expand_wsl_dest(raw: &str) -> String {
-    if raw == "~" {
-        "$HOME".to_string()
+/// Returns the home directory path for a given Linux username.
+pub(crate) fn user_home(username: &str) -> String {
+    if username == "root" {
+        "/root".to_string()
+    } else {
+        format!("/home/{username}")
+    }
+}
+
+/// Expands a Linux guest destination path.
+/// `~` is expanded to the instance user's home directory.
+/// A trailing `/` causes the source filename to be appended.
+/// Windows environment variables are not expanded.
+pub(crate) fn expand_wsl_dest(raw: &str, username: &str, src: &Path) -> String {
+    let home = user_home(username);
+    let expanded = if raw == "~" {
+        home
     } else if let Some(rest) = raw.strip_prefix("~/") {
-        format!("$HOME/{rest}")
+        format!("{home}/{rest}")
     } else {
         raw.to_string()
+    };
+    if expanded.ends_with('/') {
+        let filename = src.file_name().map(|f| f.to_string_lossy()).unwrap_or_default();
+        format!("{}{}", expanded, filename)
+    } else {
+        expanded
     }
 }
 

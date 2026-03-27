@@ -1,7 +1,7 @@
 use crate::config::{ImageSource, Instance, SourcePath};
 use crate::wsl::cloud_init;
 use crate::wsl::engine::WslEngine;
-use crate::wsl::helpers::{expand_path, expand_wsl_dest, resolve_install_dir, resolve_source_path};
+use crate::wsl::helpers::{expand_path, expand_wsl_dest, resolve_install_dir, resolve_source_path, user_home};
 use crate::wsl::validation::environment;
 use crate::wsl::{Event, RunOptions};
 
@@ -62,19 +62,20 @@ pub(super) fn execute_create(engine: &dyn WslEngine, instance: &Instance) -> any
 pub(super) fn execute_file_transfers(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
     let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
     let mut events: Vec<Event> = Vec::new();
+    let user_home = user_home(&instance.username);
     for transfer in &instance.files {
         let src = expand_path(&transfer.src)?;
-        let dest = expand_wsl_dest(&transfer.dest);
+        let dest = expand_wsl_dest(&transfer.dest, &instance.username, &src);
+        let owner = transfer.owner.as_deref().or_else(|| {
+            if dest.starts_with(&user_home) {
+                Some(instance.username.as_str())
+            } else {
+                None
+            }
+        });
         if src.is_dir() {
             events.push(Event::DirectoryTransferStarted(src.clone()));
-            engine.write_dir(
-                &instance.hostname,
-                &src,
-                &dest,
-                transfer.owner.as_deref(),
-                transfer.mode.as_deref(),
-                shell,
-            )?;
+            engine.write_dir(&instance.hostname, &src, &dest, owner, transfer.mode.as_deref(), shell)?;
             events.push(Event::DirectoryTransferCompleted(dest.clone()));
         } else {
             events.push(Event::FileTransferStarted(src.clone()));
@@ -84,7 +85,7 @@ pub(super) fn execute_file_transfers(engine: &dyn WslEngine, instance: &Instance
                 &instance.hostname,
                 &dest,
                 &content,
-                transfer.owner.as_deref(),
+                owner,
                 transfer.mode.as_deref(),
                 shell,
             )?;

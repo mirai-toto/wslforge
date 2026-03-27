@@ -1,5 +1,52 @@
-use super::{expand_env_vars, expand_path, resolve_install_dir};
+use super::{expand_env_vars, expand_path, expand_wsl_dest, resolve_install_dir};
 use std::path::Path;
+
+#[test]
+fn expand_wsl_dest_tilde_only_regular_user() {
+    assert_eq!(expand_wsl_dest("~", "alice", Path::new("file")), "/home/alice");
+}
+
+#[test]
+fn expand_wsl_dest_tilde_slash_regular_user() {
+    assert_eq!(
+        expand_wsl_dest("~/.local/bin", "alice", Path::new("file")),
+        "/home/alice/.local/bin"
+    );
+}
+
+#[test]
+fn expand_wsl_dest_tilde_only_root() {
+    assert_eq!(expand_wsl_dest("~", "root", Path::new("file")), "/root");
+}
+
+#[test]
+fn expand_wsl_dest_tilde_slash_root() {
+    assert_eq!(
+        expand_wsl_dest("~/.local/bin", "root", Path::new("file")),
+        "/root/.local/bin"
+    );
+}
+
+#[test]
+fn expand_wsl_dest_absolute_path_unchanged() {
+    assert_eq!(expand_wsl_dest("/etc/motd", "alice", Path::new("file")), "/etc/motd");
+}
+
+#[test]
+fn expand_wsl_dest_trailing_slash_appends_filename() {
+    assert_eq!(
+        expand_wsl_dest("~/.local/bin/", "alice", Path::new("tproxy-deployment")),
+        "/home/alice/.local/bin/tproxy-deployment"
+    );
+}
+
+#[test]
+fn expand_wsl_dest_trailing_slash_absolute_appends_filename() {
+    assert_eq!(
+        expand_wsl_dest("/usr/local/bin/", "alice", Path::new("/tmp/mytool")),
+        "/usr/local/bin/mytool"
+    );
+}
 
 #[test]
 fn expand_env_vars_supports_percent_and_dollar_styles() {
