@@ -49,33 +49,39 @@ wsl --update
 
 ![wslforge installation demo](./docs/assets/demo.gif)
 
-Download the latest release binary from: [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
+### 1. Install
+
+Download the latest release binary from the [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
 ```powershell
 Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/v1.16.3/wslforge.exe -OutFile wslforge.exe
 ```
 
-No config yet? Just run `wslforge` and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
+### 2. No config yet?
 
-Looking for inspiration? Check out the [ready-to-use examples](docs/examples.md).
+Run `wslforge` with no arguments and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
 
 ```sh
 ./wslforge
 ```
 
-Already have a config? Run it directly: ✅
+Looking for inspiration? Check out the [ready-to-use examples](docs/examples.md).
+
+### 3. Have a config?
+
+Run it directly:
 
 ```sh
 ./wslforge --config config.yaml
 ```
 
-Want to preview what will happen without making changes? Use dry-run: 🔍
+Preview what will happen without making changes:
 
 ```sh
 ./wslforge --config config.yaml --dry-run
 ```
 
-Write a detailed log to a file for troubleshooting: 🧰
+Write a detailed log to a file for troubleshooting:
 
 ```sh
 ./wslforge --config config.yaml --log-file wslforge.log
