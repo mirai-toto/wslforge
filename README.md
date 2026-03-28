@@ -54,7 +54,7 @@ wsl --update
 Download the latest release binary from the [Releases page](https://github.com/mirai-toto/wslforge/releases) 📦
 
 ```powershell
-Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/v1.16.5/wslforge.exe -OutFile wslforge.exe
+Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/v1.16.6/wslforge.exe -OutFile wslforge.exe
 ```
 
 ### 2. No config yet?
