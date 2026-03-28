@@ -1,5 +1,6 @@
 pub mod api;
 pub mod cli;
+mod script;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EngineKind {

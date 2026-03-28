@@ -5,7 +5,7 @@
 ```sh
 cargo build --release
 cp config.template.yaml config.yaml
-./target/release/wslforge --config config.yaml
+./target/release/wslforge.exe --config config.yaml
 ```
 
 ## Git hooks
@@ -36,14 +36,14 @@ Two modes are available: fast (no Docker) and Docker-based.
 
 Runs checks directly on your machine. Requires the following tools to be installed:
 
-| Tool | Install |
-| ---- | ------- |
-| Rust stable + beta + nightly | `rustup toolchain install stable beta nightly` |
-| `cargo-audit` | `cargo install cargo-audit` |
-| `cargo-llvm-cov` | `cargo install cargo-llvm-cov` |
-| `typos-cli` | `cargo install typos-cli` |
-| `markdownlint-cli2` | `npm install -g markdownlint-cli2` |
-| `commitlint` | `npm install -g @commitlint/cli @commitlint/config-conventional` |
+| Tool                         | Install                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| Rust stable + beta + nightly | `rustup toolchain install stable beta nightly`                   |
+| `cargo-audit`                | `cargo install cargo-audit`                                      |
+| `cargo-llvm-cov`             | `cargo install cargo-llvm-cov`                                   |
+| `typos-cli`                  | `cargo install typos-cli`                                        |
+| `markdownlint-cli2`          | `npm install -g markdownlint-cli2`                               |
+| `commitlint`                 | `npm install -g @commitlint/cli @commitlint/config-conventional` |
 
 ```sh
 ./scripts/run-local-ci.sh --fast      # core checks (fmt, clippy, check, test)
