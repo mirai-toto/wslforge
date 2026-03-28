@@ -1,0 +1,19 @@
+instances:
+  WslForgeTestFixes:
+    username: testuser
+    override: true
+    hostname: WslForgeTestFixes
+    image:
+      type: distro
+      name: Ubuntu
+    files:
+      - src: "motd.txt"
+        dest: /home/testuser/.local/bin/motd.txt
+        owner: testuser
+        mode: "644"
+      - src: "configs"
+        dest: /home/testuser/.config/wslforge
+        owner: testuser
+      - src: "configs"
+        dest: /home/testuser/toto/haha/prout
+        owner: testuser

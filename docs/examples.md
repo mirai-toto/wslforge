@@ -24,9 +24,9 @@ Identical to `config.dev.yaml`, plus a [`wsl-vpnkit`](https://github.com/sakai13
 
 Provisions two instances:
 
-| Instance | Purpose |
-| --- | --- |
-| `UbuntuWslDev` | The main dev environment |
-| `wsl-vpnkit` | VPN proxy sidecar (downloaded automatically) |
+| Instance       | Purpose                                      |
+| -------------- | -------------------------------------------- |
+| `UbuntuWslDev` | The main dev environment                     |
+| `wsl-vpnkit`   | VPN proxy sidecar (downloaded automatically) |
 
 The `UbuntuWslDev` instance registers `wsl-vpnkit` as a systemd service so it starts automatically.

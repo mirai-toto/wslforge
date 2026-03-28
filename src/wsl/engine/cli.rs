@@ -1,4 +1,5 @@
-use crate::wsl::engine::WslEngine;
+use crate::wsl::engine::script::{copy_dir, copy_file, make_dirs, make_parent_dirs};
+use crate::wsl::engine::{FileAttrs, WslEngine};
 use crate::wsl::helpers::command_error;
 use std::io::Write;
 use std::path::Path;
@@ -31,7 +32,6 @@ impl WslEngine for CliEngine {
 
     fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
         let output: std::process::Output = Command::new("wsl.exe").args(["--unregister", name]).output()?;
-
         if !output.status.success() {
             return Err(command_error("wsl.exe --unregister failed", &output));
         }
@@ -44,17 +44,16 @@ impl WslEngine for CliEngine {
         install_dir: &std::path::Path,
         rootfs_tar: &std::path::Path,
     ) -> anyhow::Result<()> {
-        let mut cmd: Command = Command::new("wsl.exe");
-        cmd.args([
-            "--import",
-            name,
-            &install_dir.to_string_lossy(),
-            &rootfs_tar.to_string_lossy(),
-            "--version",
-            "2",
-        ]);
-
-        let output: std::process::Output = cmd.output()?;
+        let output: std::process::Output = Command::new("wsl.exe")
+            .args([
+                "--import",
+                name,
+                &install_dir.to_string_lossy(),
+                &rootfs_tar.to_string_lossy(),
+                "--version",
+                "2",
+            ])
+            .output()?;
         if !output.status.success() {
             return Err(command_error("wsl.exe --import failed", &output));
         }
@@ -62,10 +61,11 @@ impl WslEngine for CliEngine {
     }
 
     fn create_from_distro(&self, distro_name: &str, instance_name: &str) -> anyhow::Result<()> {
-        let mut cmd: Command = Command::new("wsl.exe");
-        cmd.args(["--install", "-d", distro_name, "--name", instance_name, "--no-launch"]);
-
-        let status: std::process::ExitStatus = cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit()).status()?;
+        let status: std::process::ExitStatus = Command::new("wsl.exe")
+            .args(["--install", "-d", distro_name, "--name", instance_name, "--no-launch"])
+            .stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+            .status()?;
         if !status.success() {
             anyhow::bail!("wsl.exe --install failed with status {}", status);
         }
@@ -77,30 +77,12 @@ impl WslEngine for CliEngine {
         instance_name: &str,
         dest: &str,
         content: &[u8],
-        owner: Option<&str>,
-        mode: Option<&str>,
+        attrs: FileAttrs<'_>,
         shell: &str,
     ) -> anyhow::Result<()> {
-        let parent: String = std::path::Path::new(dest)
-            .parent()
-            .map(|p| p.to_string_lossy().into_owned())
-            .unwrap_or_default();
-
-        let mut script: Vec<String> = Vec::new();
-        if !parent.is_empty() {
-            script.push(format!("mkdir -p \"{parent}\""));
-            if let Some(o) = owner {
-                script.push(format!("chown -R '{o}' \"{parent}\""));
-            }
-        }
-        script.push(format!("cat > \"{dest}\""));
-        if let Some(o) = owner {
-            script.push(format!("chown '{o}' \"{dest}\""));
-        }
-        if let Some(m) = mode {
-            script.push(format!("chmod '{m}' \"{dest}\""));
-        }
-
+        let FileAttrs { owner, group, mode } = attrs;
+        let mut script = make_parent_dirs(dest, owner, group);
+        script.extend(copy_file(dest, owner, group, mode));
         pipe_to_wsl(
             instance_name,
             shell,
@@ -115,30 +97,23 @@ impl WslEngine for CliEngine {
         instance_name: &str,
         src: &Path,
         dest: &str,
-        owner: Option<&str>,
-        mode: Option<&str>,
+        attrs: FileAttrs<'_>,
         shell: &str,
     ) -> anyhow::Result<()> {
-        let mut archive_buf: Vec<u8> = Vec::new();
+        let FileAttrs { owner, group, mode } = attrs;
+        let mut tar_data: Vec<u8> = Vec::new();
         {
-            let mut builder = tar::Builder::new(&mut archive_buf);
+            let mut builder = tar::Builder::new(&mut tar_data);
             builder.append_dir_all(".", src)?;
             builder.finish()?;
         }
-
-        let mut script: Vec<String> = vec![format!("mkdir -p \"{dest}\""), format!("tar xf - -C \"{dest}\"")];
-        if let Some(o) = owner {
-            script.push(format!("chown -R '{o}' \"{dest}\""));
-        }
-        if let Some(m) = mode {
-            script.push(format!("chmod -R '{m}' \"{dest}\""));
-        }
-
+        let mut script = make_dirs(dest, owner, group);
+        script.extend(copy_dir(dest, owner, group, mode));
         pipe_to_wsl(
             instance_name,
             shell,
             &script,
-            &archive_buf,
+            &tar_data,
             &format!("failed to transfer directory to '{dest}'"),
         )
     }

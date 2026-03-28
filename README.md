@@ -62,7 +62,7 @@ Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/
 Run `wslforge` with no arguments and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
 
 ```sh
-./wslforge
+.\wslforge.exe
 ```
 
 Looking for inspiration? Check out the [ready-to-use examples](docs/examples.md).
@@ -72,19 +72,19 @@ Looking for inspiration? Check out the [ready-to-use examples](docs/examples.md)
 Run it directly:
 
 ```sh
-./wslforge --config config.yaml
+.\wslforge.exe --config config.yaml
 ```
 
 Preview what will happen without making changes:
 
 ```sh
-./wslforge --config config.yaml --dry-run
+.\wslforge.exe --config config.yaml --dry-run
 ```
 
 Write a detailed log to a file for troubleshooting:
 
 ```sh
-./wslforge --config config.yaml --log-file wslforge.log
+.\wslforge.exe --config config.yaml --log-file wslforge.log
 ```
 
 ---
@@ -106,7 +106,7 @@ If `--config` is omitted and no `config.yaml` is found in the current directory,
 The `--debug` flag writes the rendered cloud-init user-data to the current directory as `cloud-init.<hostname>.user-data`.
 
 ```sh
-./wslforge --print-example-config
+.\wslforge.exe --print-example-config
 ```
 
 ### Shell completions
@@ -115,10 +115,10 @@ Generate and install a completion script for your shell:
 
 ```powershell
 # PowerShell — load for the current session only
-./wslforge --generate-completion powershell | Out-String | Invoke-Expression
+.\wslforge.exe --generate-completion powershell | Out-String | Invoke-Expression
 
 # To persist across sessions, save to a separate file and dot-source it from your profile
-./wslforge --generate-completion powershell | Out-File "$HOME\wslforge_completion.ps1"
+.\wslforge.exe --generate-completion powershell | Out-File "$HOME\wslforge_completion.ps1"
 Add-Content $PROFILE ". `"$HOME\wslforge_completion.ps1`""
 ```
 

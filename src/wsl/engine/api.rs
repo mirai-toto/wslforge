@@ -1,4 +1,4 @@
-use crate::wsl::engine::WslEngine;
+use crate::wsl::engine::{FileAttrs, WslEngine};
 
 /// Placeholder for a future WSL API-based engine. All methods are unimplemented.
 pub struct ApiEngine;
@@ -42,8 +42,7 @@ impl WslEngine for ApiEngine {
         _instance_name: &str,
         _dest: &str,
         _content: &[u8],
-        _owner: Option<&str>,
-        _mode: Option<&str>,
+        _attrs: FileAttrs<'_>,
         _shell: &str,
     ) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
@@ -54,8 +53,7 @@ impl WslEngine for ApiEngine {
         _instance_name: &str,
         _src: &std::path::Path,
         _dest: &str,
-        _owner: Option<&str>,
-        _mode: Option<&str>,
+        _attrs: FileAttrs<'_>,
         _shell: &str,
     ) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")

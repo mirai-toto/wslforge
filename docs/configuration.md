@@ -15,18 +15,18 @@ Note: a bare instance object at the root (without `instances:`) is still accepte
 
 ## Core fields (per instance)
 
-| Field         | Description                               | Example / Reference                 | Default             |
-| ------------- | ----------------------------------------- | ----------------------------------- | ------------------- |
-| `override`    | Replace existing instance if it exists    | `true`                              | `false`             |
-| `hostname`    | WSL instance name                         | `UbuntuWslDev`                      | `UbuntuWSL`         |
-| `username`    | Default user                              | `wsluser`                           | `wsluser`           |
-| `password`    | Optional password (hashed for cloud-init) | `root`                              | —                   |
-| `install_dir` | Target install directory                  | `%userprofile%/VMs`                 | `%userprofile%/VMs` |
-| `proxy`       | HTTP/HTTPS proxy settings                 | see [Proxy](#proxy)                 | —                   |
-| `image`       | Image source (distro or file/URL)         | see [Image Sources](#image-sources) | distro: Ubuntu      |
-| `cloud_init`  | Cloud-init user-data (file or inline)     | see [Cloud Init](#cloud-init)       | —                   |
-| `files`       | Files or directories to copy into the instance | see [Files](#files)            | —                   |
-| `scripts`     | Commands to run after create              | see [Scripts](#scripts)             | —                   |
+| Field         | Description                                    | Example / Reference                 | Default             |
+| ------------- | ---------------------------------------------- | ----------------------------------- | ------------------- |
+| `override`    | Replace existing instance if it exists         | `true`                              | `false`             |
+| `hostname`    | WSL instance name                              | `UbuntuWslDev`                      | `UbuntuWSL`         |
+| `username`    | Default user                                   | `wsluser`                           | `wsluser`           |
+| `password`    | Optional password (hashed for cloud-init)      | `root`                              | —                   |
+| `install_dir` | Target install directory                       | `%userprofile%/VMs`                 | `%userprofile%/VMs` |
+| `proxy`       | HTTP/HTTPS proxy settings                      | see [Proxy](#proxy)                 | —                   |
+| `image`       | Image source (distro or file/URL)              | see [Image Sources](#image-sources) | distro: Ubuntu      |
+| `cloud_init`  | Cloud-init user-data (file or inline)          | see [Cloud Init](#cloud-init)       | —                   |
+| `files`       | Files or directories to copy into the instance | see [Files](#files)                 | —                   |
+| `scripts`     | Commands to run after create                   | see [Scripts](#scripts)             | —                   |
 
 Example `config.yaml` with a file-based cloud-init and an official distro:
 
@@ -149,12 +149,12 @@ files:
     mode: "755"
 ```
 
-| Field   | Description                                              | Required |
-| ------- | -------------------------------------------------------- | -------- |
-| `src`   | Local source path — file or directory (env vars OK)      | yes      |
-| `dest`  | Destination path inside the WSL instance                 | yes      |
-| `owner` | File/directory owner (e.g. `root`)                       | no       |
-| `mode`  | File/directory permissions (e.g. `"644"`, `"755"`)       | no       |
+| Field   | Description                                         | Required |
+| ------- | --------------------------------------------------- | -------- |
+| `src`   | Local source path — file or directory (env vars OK) | yes      |
+| `dest`  | Destination path inside the WSL instance            | yes      |
+| `owner` | File/directory owner (e.g. `root`)                  | no       |
+| `mode`  | File/directory permissions (e.g. `"644"`, `"755"`)  | no       |
 
 **Path expansion in `dest`:**
 
@@ -172,10 +172,10 @@ scripts:
     - "systemctl start my-service"
 ```
 
-| Field   | Description                                       | Default |
-| ------- | ------------------------------------------------- | ------- |
-| `run`   | List of commands to execute                       | —       |
-| `shell` | Shell used to run commands (e.g. `bash`, `sh`)    | `sh`    |
+| Field   | Description                                    | Default |
+| ------- | ---------------------------------------------- | ------- |
+| `run`   | List of commands to execute                    | —       |
+| `shell` | Shell used to run commands (e.g. `bash`, `sh`) | `sh`    |
 
 Each entry is passed to `<shell> -c` inside the instance. The default shell is `sh`, which works on any distro including Alpine-based images. Override to `bash` if your scripts require it:
 

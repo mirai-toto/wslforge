@@ -37,6 +37,8 @@ pub struct FileTransfer {
     #[serde(default)]
     pub owner: Option<String>,
     #[serde(default)]
+    pub group: Option<String>,
+    #[serde(default)]
     pub mode: Option<String>,
 }
 
