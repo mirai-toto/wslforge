@@ -14,10 +14,21 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
     );
 
     eprintln!("  hostname    : {}", style(&instance.hostname).cyan());
-    eprintln!("  username    : {}", style(&instance.username).cyan());
+    eprintln!(
+        "  username    : {}",
+        instance
+            .username
+            .as_deref()
+            .map(|v| style(v).cyan().to_string())
+            .unwrap_or_else(none_label)
+    );
     eprintln!(
         "  password    : {}",
-        style(if instance.password.is_some() { "set" } else { "none" }).cyan()
+        if instance.password.is_some() {
+            style("set").cyan().to_string()
+        } else {
+            none_label()
+        }
     );
     eprintln!("  override    : {}", style(instance.override_instance).cyan());
     eprintln!(
@@ -25,15 +36,6 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
         style(resolved_install_dir_display(instance)).cyan()
     );
     eprintln!("  image       : {}", style(&image).cyan());
-
-    match &instance.cloud_init {
-        Some(ci) => eprintln!("  cloud-init  : {}", style(format!("{ci}")).cyan()),
-        None => eprintln!(
-            "  cloud-init  : {}\n{}",
-            style("default (auto-generated):").cyan(),
-            style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
-        ),
-    };
 
     if let Some(proxy) = &instance.proxy {
         if let Some(v) = &proxy.http {
@@ -46,8 +48,18 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
             eprintln!("  no proxy    : {}", style(v).cyan());
         }
     } else {
-        eprintln!("  proxy       : {}", style("none").cyan());
+        eprintln!("  proxy       : {}", none_label());
     }
+
+    match &instance.cloud_init {
+        Some(ci) => eprintln!("  cloud-init  : {}", style(format!("{ci}")).cyan()),
+        None if instance.default_cloud_init => eprintln!(
+            "  cloud-init  : {}\n{}",
+            style("default (auto-generated):").cyan(),
+            style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
+        ),
+        None => eprintln!("  cloud-init  : {}", none_label()),
+    };
 
     if !instance.vars.is_empty() {
         eprintln!("  vars        : {}", style(format!("{:?}", instance.vars)).cyan());
@@ -69,7 +81,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
     log::debug!(
         target: "wslforge::events",
         "config loaded: instance={instance_name} user={} image={image} override={} cloud-init={}",
-        instance.username,
+        instance.username.as_deref().unwrap_or("(none)"),
         instance.override_instance,
         cloud_init_label(&instance.cloud_init),
     );
@@ -87,6 +99,10 @@ fn cloud_init_label(cloud_init: &Option<crate::config::CloudInitSource>) -> Stri
         Some(source) => source.to_string(),
         None => "not configured".to_string(),
     }
+}
+
+fn none_label() -> String {
+    style("none").red().to_string()
 }
 
 fn resolved_install_dir_display(instance: &Instance) -> String {

@@ -123,7 +123,7 @@ impl WslEngine for FakeEngine {
 }
 
 fn file_image_instance(image_path: &Path) -> Instance {
-    serde_yaml::from_str(&format!(
+    let mut instance: Instance = serde_yaml::from_str(&format!(
         r#"
 hostname: devbox
 username: devuser
@@ -134,11 +134,13 @@ image:
 "#,
         image_path.display()
     ))
-    .expect("deserialize instance")
+    .expect("deserialize instance");
+    instance.default_cloud_init = true;
+    instance
 }
 
 fn file_image_instance_with_override(image_path: &Path, override_instance: bool) -> Instance {
-    serde_yaml::from_str(&format!(
+    let mut instance: Instance = serde_yaml::from_str(&format!(
         r#"
 hostname: devbox
 username: devuser
@@ -151,7 +153,9 @@ image:
         override_instance,
         image_path.display()
     ))
-    .expect("deserialize instance")
+    .expect("deserialize instance");
+    instance.default_cloud_init = true;
+    instance
 }
 
 fn create_temp_tar_file(dir: &tempfile::TempDir) -> PathBuf {
@@ -171,6 +175,10 @@ fn create_instance_returns_already_exists_when_present_without_override() {
 hostname: devbox
 username: devuser
 override: false
+install_dir: /tmp/wslforge-install
+image:
+  type: distro
+  name: Ubuntu
 "#,
     )
     .expect("deserialize instance");

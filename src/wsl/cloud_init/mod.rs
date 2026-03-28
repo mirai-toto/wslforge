@@ -56,6 +56,7 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
     let default_source;
     let source = match &instance.cloud_init {
         Some(s) => s,
+        None if !instance.default_cloud_init => return Ok(events),
         None => {
             events.push(Event::CloudInitDefaultGenerated);
             default_source = CloudInitSource::Inline {

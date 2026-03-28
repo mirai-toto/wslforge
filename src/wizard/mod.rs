@@ -52,10 +52,11 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
         .default("UbuntuWSL".into())
         .interact_text()?;
 
-    let default_username = std::env::var("USERNAME").unwrap_or_else(|_| "wsluser".into());
-    let username: String = Input::new()
-        .with_prompt(style("👤  username").cyan().bold().to_string())
-        .default(default_username)
+    let prefill_username = std::env::var("USERNAME").unwrap_or_default();
+    let username_input: String = Input::new()
+        .with_prompt(style("👤  username (blank to skip)").cyan().bold().to_string())
+        .with_initial_text(prefill_username)
+        .allow_empty(true)
         .interact_text()?;
 
     let password: String = Password::new()
@@ -96,7 +97,7 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
         style("── Cloud-init ───────────────────────────────────────").dim()
     );
 
-    let cloud_init = prompt_cloud_init()?;
+    let (cloud_init, default_cloud_init) = prompt_cloud_init()?;
 
     eprintln!(
         "{}",
@@ -108,13 +109,18 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     let instance = Instance {
         override_instance,
         hostname: hostname.clone(),
-        username,
+        username: if username_input.is_empty() {
+            None
+        } else {
+            Some(username_input)
+        },
         password: if password.is_empty() { None } else { Some(password) },
         proxy,
         vars: Default::default(),
         files: vec![],
         scripts: Default::default(),
         install_dir: PathBuf::from("%userprofile%/VMs"),
+        default_cloud_init,
         cloud_init,
         image,
     };
@@ -122,23 +128,27 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     Ok((hostname, instance))
 }
 
-fn prompt_cloud_init() -> anyhow::Result<Option<CloudInitSource>> {
-    let path: String = Input::new()
-        .with_prompt(
-            style("☁️  cloud-init file path (blank to generate default)")
-                .cyan()
-                .bold()
-                .to_string(),
-        )
-        .allow_empty(true)
-        .interact_text()?;
+fn prompt_cloud_init() -> anyhow::Result<(Option<CloudInitSource>, bool)> {
+    let choice = Select::new()
+        .with_prompt(style("☁️  cloud-init").cyan().bold().to_string())
+        .items(["default (auto-generated)", "file", "none"])
+        .default(0)
+        .interact()?;
 
-    if path.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some(CloudInitSource::File {
-            path: PathBuf::from(path),
-        }))
+    match choice {
+        0 => Ok((None, true)),
+        1 => {
+            let path: String = Input::new()
+                .with_prompt(style("☁️  cloud-init file path").cyan().bold().to_string())
+                .interact_text()?;
+            Ok((
+                Some(CloudInitSource::File {
+                    path: PathBuf::from(path),
+                }),
+                false,
+            ))
+        }
+        _ => Ok((None, false)),
     }
 }
 

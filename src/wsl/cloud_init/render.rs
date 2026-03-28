@@ -27,7 +27,7 @@ pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
 
     let context: CloudInitRenderContext = CloudInitRenderContext {
         hostname: instance.hostname.clone(),
-        username: instance.username.clone(),
+        username: instance.username.clone().unwrap_or_default(),
         password_hash,
         proxy: instance.proxy.as_ref().map(|p| CloudInitRenderProxy {
             http: p.http.as_ref().map(ToString::to_string),
