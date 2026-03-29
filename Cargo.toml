@@ -1,6 +1,6 @@
 [package]
 name = "wslforge"
-version = "1.16.6"
+version = "1.17.0"
 edition = "2021"
 authors = ["mirai-toto"]
 description = "WSL instance manager using YAML configuration"
