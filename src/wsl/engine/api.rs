@@ -63,7 +63,7 @@ impl WslEngine for ApiEngine {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 
-    fn wait_for_provisioning(&self, _instance_name: &str) -> anyhow::Result<()> {
+    fn wait_for_provisioning(&self, _instance_name: &str, _on_status: &dyn Fn(String)) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
 }

@@ -156,12 +156,16 @@ pub(super) fn transfer_files(engine: &dyn WslEngine, instance: &Instance) -> any
     Ok(events)
 }
 
-pub(super) fn wait_for_provisioning(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+pub(super) fn wait_for_provisioning(
+    engine: &dyn WslEngine,
+    instance: &Instance,
+    on_status: &dyn Fn(String),
+) -> anyhow::Result<Vec<Event>> {
     let cloud_init_active = instance.cloud_init.is_some() || instance.default_cloud_init;
     if !cloud_init_active {
         return Ok(vec![]);
     }
-    engine.wait_for_provisioning(&instance.hostname)?;
+    engine.wait_for_provisioning(&instance.hostname, on_status)?;
     Ok(vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted])
 }
 

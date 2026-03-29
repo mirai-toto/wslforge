@@ -128,19 +128,28 @@ impl WslEngine for CliEngine {
         Ok(())
     }
 
-    fn wait_for_provisioning(&self, instance_name: &str) -> anyhow::Result<()> {
-        let output: std::process::Output = Command::new("wsl.exe")
-            .args(["-d", instance_name, "--", "cloud-init", "status", "--wait"])
-            .output()?;
-        if !output.status.success() {
-            // cloud-init may not be installed — log and continue
-            log::debug!(
-                "cloud-init status --wait exited non-zero for '{}': {}",
-                instance_name,
-                String::from_utf8_lossy(&output.stderr).trim()
-            );
+    fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<()> {
+        loop {
+            let output: std::process::Output = Command::new("wsl.exe")
+                .args(["-d", instance_name, "--", "cloud-init", "status"])
+                .output()?;
+            if !output.status.success() {
+                // cloud-init may not be installed — log and continue
+                log::debug!(
+                    "cloud-init status exited non-zero for '{}': {}",
+                    instance_name,
+                    String::from_utf8_lossy(&output.stderr).trim()
+                );
+                return Ok(());
+            }
+            let stdout: String = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            on_status(stdout.clone());
+            // Terminal states: done, error, disabled, not run
+            if !stdout.contains("running") {
+                return Ok(());
+            }
+            std::thread::sleep(std::time::Duration::from_secs(2));
         }
-        Ok(())
     }
 }
 

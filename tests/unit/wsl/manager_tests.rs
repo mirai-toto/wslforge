@@ -121,7 +121,7 @@ impl WslEngine for FakeEngine {
         Ok(())
     }
 
-    fn wait_for_provisioning(&self, instance_name: &str) -> anyhow::Result<()> {
+    fn wait_for_provisioning(&self, instance_name: &str, _on_status: &dyn Fn(String)) -> anyhow::Result<()> {
         self.calls
             .lock()
             .expect("lock calls")

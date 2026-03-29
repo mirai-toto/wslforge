@@ -77,9 +77,18 @@ impl WslManager {
     pub fn apply_instance(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<InstanceResult> {
         let mut result = self.create_instance_with_progress(instance, options)?;
 
-        self.run_step(&mut result, "⏳ Waiting for provisioning...".to_string(), || {
-            wait_for_provisioning(self.engine.as_ref(), instance)
-        });
+        if matches!(result.outcome, Status::Created | Status::Recreated) {
+            let pb = display::spinner("⏳ Waiting for provisioning...".to_string());
+            let provisioning_result = wait_for_provisioning(self.engine.as_ref(), instance, &|s| {
+                pb.set_message(format!("⏳ Waiting for provisioning... {s}"))
+            });
+            pb.finish_and_clear();
+            match provisioning_result {
+                Ok(events) => result.events.extend(events),
+                Err(e) => result.outcome = Status::Failed(e.to_string()),
+            }
+        }
+
         if !instance.files.is_empty() {
             self.run_step(
                 &mut result,
