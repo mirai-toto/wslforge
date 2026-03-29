@@ -9,6 +9,10 @@ fn render_injects_instance_fields_without_password_hash() {
 hostname: devbox
 username: devuser
 override: true
+install_dir: "%userprofile%/VMs"
+image:
+  type: distro
+  name: Ubuntu
 "#,
     )
     .expect("deserialize instance");
@@ -32,6 +36,10 @@ fn render_produces_sha512_hash_when_password_is_present() {
 hostname: devbox
 username: devuser
 password: secret123
+install_dir: "%userprofile%/VMs"
+image:
+  type: distro
+  name: Ubuntu
 "#,
     )
     .expect("deserialize instance");
@@ -43,7 +51,9 @@ password: secret123
 #[test]
 // Verifies invalid template syntax is reported as a cloud-init parse error.
 fn render_reports_template_parse_errors() {
-    let instance: Instance = serde_yaml::from_str("{}\n").expect("deserialize instance");
+    let instance: Instance =
+        serde_yaml::from_str("hostname: x\nusername: x\ninstall_dir: C:/VMs\nimage:\n  type: distro\n  name: Ubuntu\n")
+            .expect("deserialize instance");
 
     let err = render("{{", &instance).expect_err("invalid template should fail");
     assert!(err.to_string().contains("cloud-init template error"));

@@ -6,16 +6,12 @@ use url::Url;
 use super::cloud_init::CloudInitSource;
 use super::image::ImageSource;
 
-fn default_hostname() -> String {
-    "UbuntuWSL".into()
-}
-
-fn default_username() -> String {
-    "wsluser".into()
-}
-
 fn default_install_dir() -> PathBuf {
     "%userprofile%/VMs".into()
+}
+
+fn default_empty_string() -> String {
+    String::new()
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -56,10 +52,10 @@ pub struct ScriptConfig {
 pub struct Instance {
     #[serde(default, rename = "override")]
     pub override_instance: bool,
-    #[serde(default = "default_hostname")]
+    #[serde(default = "default_empty_string")]
     pub hostname: String,
-    #[serde(default = "default_username")]
-    pub username: String,
+    #[serde(default)]
+    pub username: Option<String>,
     #[serde(default)]
     pub password: Option<String>,
 
@@ -76,6 +72,8 @@ pub struct Instance {
     pub install_dir: PathBuf,
     #[serde(default)]
     pub cloud_init: Option<CloudInitSource>,
+    #[serde(skip)]
+    pub default_cloud_init: bool,
 
     #[serde(default)]
     pub image: ImageSource,
