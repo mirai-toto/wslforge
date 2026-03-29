@@ -44,5 +44,5 @@ pub trait WslEngine {
         shell: &str,
     ) -> anyhow::Result<()>;
     fn run_script(&self, instance_name: &str, script: &str, shell: &str) -> anyhow::Result<()>;
-    fn wait_for_provisioning(&self, instance_name: &str) -> anyhow::Result<()>;
+    fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<()>;
 }
