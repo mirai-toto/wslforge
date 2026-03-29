@@ -7,7 +7,52 @@ use crate::wsl::{Event, RunOptions};
 
 pub(super) const DEFAULT_SHELL: &str = "sh";
 
-pub(super) fn prepare_provision(
+pub(super) struct CreateDecision {
+    pub(super) skip: bool,
+    pub(super) events: Vec<Event>,
+    pub(super) recreated: bool,
+}
+
+pub(super) fn prepare_instance(
+    engine: &dyn WslEngine,
+    instance: &Instance,
+    instance_exists: bool,
+    options: RunOptions,
+) -> anyhow::Result<CreateDecision> {
+    if instance.override_instance {
+        // Override mode: prepare provisioning then delete the existing instance
+        // (delete_instance is a no-op when the instance does not exist yet).
+        let mut events: Vec<Event> = vec![Event::OverrideEnabled];
+        events.extend(setup_cloud_init(engine, instance, options)?);
+        events.extend(delete_instance(
+            engine,
+            &instance.hostname,
+            instance_exists,
+            options.dry_run,
+        )?);
+        Ok(CreateDecision {
+            skip: false,
+            events,
+            recreated: instance_exists,
+        })
+    } else if instance_exists {
+        // No override and instance already exists: nothing to do.
+        Ok(CreateDecision {
+            skip: true,
+            events: vec![],
+            recreated: false,
+        })
+    } else {
+        // Normal creation: prepare provisioning for a new instance.
+        Ok(CreateDecision {
+            skip: false,
+            events: setup_cloud_init(engine, instance, options)?,
+            recreated: false,
+        })
+    }
+}
+
+pub(super) fn setup_cloud_init(
     engine: &dyn WslEngine,
     instance: &Instance,
     options: RunOptions,
@@ -38,7 +83,7 @@ pub(super) fn delete_instance(
     ])
 }
 
-pub(super) fn execute_create(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+pub(super) fn create(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
     let mut events: Vec<Event> = Vec::new();
     match &instance.image {
         ImageSource::File { path } => {
@@ -59,7 +104,7 @@ pub(super) fn execute_create(engine: &dyn WslEngine, instance: &Instance) -> any
     Ok(events)
 }
 
-pub(super) fn execute_file_transfers(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+pub(super) fn transfer_files(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
     let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
     let mut events: Vec<Event> = Vec::new();
     let username = instance.username.as_deref().unwrap_or("");
@@ -120,7 +165,7 @@ pub(super) fn wait_for_provisioning(engine: &dyn WslEngine, instance: &Instance)
     Ok(vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted])
 }
 
-pub(super) fn execute_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+pub(super) fn run_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
     let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
     let mut events: Vec<Event> = Vec::new();
     for script in &instance.scripts.run {
