@@ -127,6 +127,21 @@ impl WslEngine for CliEngine {
         }
         Ok(())
     }
+
+    fn wait_for_provisioning(&self, instance_name: &str) -> anyhow::Result<()> {
+        let output: std::process::Output = Command::new("wsl.exe")
+            .args(["-d", instance_name, "--", "cloud-init", "status", "--wait"])
+            .output()?;
+        if !output.status.success() {
+            // cloud-init may not be installed — log and continue
+            log::debug!(
+                "cloud-init status --wait exited non-zero for '{}': {}",
+                instance_name,
+                String::from_utf8_lossy(&output.stderr).trim()
+            );
+        }
+        Ok(())
+    }
 }
 
 fn pipe_to_wsl(

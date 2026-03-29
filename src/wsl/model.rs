@@ -42,6 +42,8 @@ pub enum Event {
     DirectoryTransferCompleted(String),
     ImageDownloadStarted,
     ImageDownloadCompleted,
+    ProvisioningWaiting,
+    ProvisioningCompleted,
     ScriptStarted(String),
     ScriptCompleted(String),
 }
@@ -78,6 +80,8 @@ impl Event {
             Event::DirectoryTransferCompleted(dest) => format!("Directory transferred to: {dest}"),
             Event::ImageDownloadStarted => "Downloading image...".to_string(),
             Event::ImageDownloadCompleted => "Image downloaded.".to_string(),
+            Event::ProvisioningWaiting => format!("Waiting for cloud-init to complete on '{hostname}'..."),
+            Event::ProvisioningCompleted => format!("Cloud-init provisioning completed on '{hostname}'."),
             Event::ScriptStarted(cmd) => format!("Running script: {cmd}"),
             Event::ScriptCompleted(cmd) => format!("Script completed: {cmd}"),
         }

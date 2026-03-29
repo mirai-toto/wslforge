@@ -120,6 +120,14 @@ impl WslEngine for FakeEngine {
             .push(format!("run_script:{instance_name}:{script}"));
         Ok(())
     }
+
+    fn wait_for_provisioning(&self, instance_name: &str) -> anyhow::Result<()> {
+        self.calls
+            .lock()
+            .expect("lock calls")
+            .push(format!("wait_for_provisioning:{instance_name}"));
+        Ok(())
+    }
 }
 
 fn file_image_instance(image_path: &Path) -> Instance {

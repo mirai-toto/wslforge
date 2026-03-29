@@ -12,7 +12,9 @@ use crate::wsl::validation::{environment, instance};
 use crate::wsl::{Event, InstanceResult, RunOptions, Status};
 
 mod steps;
-use steps::{delete_instance, execute_create, execute_file_transfers, execute_scripts, prepare_provision};
+use steps::{
+    delete_instance, execute_create, execute_file_transfers, execute_scripts, prepare_provision, wait_for_provisioning,
+};
 
 pub struct WslManager {
     engine: Box<dyn WslEngine>,
@@ -107,6 +109,17 @@ impl WslManager {
         };
         if let Some(pb) = pb {
             pb.finish_and_clear();
+        }
+
+        if matches!(result.outcome, Status::Created | Status::Recreated)
+            && (!instance.files.is_empty() || !instance.scripts.run.is_empty())
+        {
+            match display::with_spinner("⏳ Waiting for provisioning...".to_string(), || {
+                wait_for_provisioning(self.engine.as_ref(), instance)
+            }) {
+                Ok(events) => result.events.extend(events),
+                Err(e) => result.outcome = Status::Failed(e.to_string()),
+            }
         }
 
         if matches!(result.outcome, Status::Created | Status::Recreated) && !instance.files.is_empty() {

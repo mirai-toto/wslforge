@@ -62,4 +62,8 @@ impl WslEngine for ApiEngine {
     fn run_script(&self, _instance_name: &str, _script: &str, _shell: &str) -> anyhow::Result<()> {
         anyhow::bail!("WSL API engine is not implemented yet")
     }
+
+    fn wait_for_provisioning(&self, _instance_name: &str) -> anyhow::Result<()> {
+        anyhow::bail!("WSL API engine is not implemented yet")
+    }
 }

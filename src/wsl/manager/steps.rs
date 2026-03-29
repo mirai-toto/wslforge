@@ -111,6 +111,15 @@ pub(super) fn execute_file_transfers(engine: &dyn WslEngine, instance: &Instance
     Ok(events)
 }
 
+pub(super) fn wait_for_provisioning(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
+    let cloud_init_active = instance.cloud_init.is_some() || instance.default_cloud_init;
+    if !cloud_init_active {
+        return Ok(vec![]);
+    }
+    engine.wait_for_provisioning(&instance.hostname)?;
+    Ok(vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted])
+}
+
 pub(super) fn execute_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
     let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
     let mut events: Vec<Event> = Vec::new();
