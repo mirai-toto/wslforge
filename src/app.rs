@@ -3,6 +3,7 @@ use crate::{
     display, reporting, wizard,
     wsl::{
         engine::{api::ApiEngine, cli::CliEngine, WslEngine},
+        validation::instance::validate_instance,
         EngineKind, RunOptions, WslManager,
     },
 };
@@ -12,6 +13,23 @@ pub struct AppArgs {
     pub dry_run: bool,
     pub debug: bool,
     pub force: bool,
+}
+
+pub fn validate(config: Config) -> anyhow::Result<()> {
+    let mut all_valid = true;
+    for (name, instance) in &config.instances {
+        match validate_instance(instance) {
+            Ok(()) => eprintln!("{}", console::style(format!("✅ '{name}' is valid")).green()),
+            Err(e) => {
+                eprintln!("{}", console::style(format!("❌ '{name}': {e}")).red());
+                all_valid = false;
+            }
+        }
+    }
+    if !all_valid {
+        std::process::exit(1);
+    }
+    Ok(())
 }
 
 pub fn run(cfg: AppArgs) -> anyhow::Result<()> {

@@ -28,6 +28,10 @@ pub struct Args {
     #[arg(long, value_hint = ValueHint::FilePath)]
     pub log_file: Option<PathBuf>,
 
+    /// Validate the config file and exit without provisioning
+    #[arg(long)]
+    pub validate: bool,
+
     /// Print a minimal example config to stdout and exit
     #[arg(long)]
     pub print_example_config: bool,

@@ -4,7 +4,7 @@ pub(crate) mod helpers;
 mod manager;
 mod model;
 pub(crate) mod setup;
-mod validation;
+pub(crate) mod validation;
 
 pub use engine::EngineKind;
 pub use manager::WslManager;
