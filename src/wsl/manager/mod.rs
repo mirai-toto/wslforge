@@ -37,7 +37,7 @@ impl WslManager {
         instance::validate_instance(instance)?;
 
         let mut events: Vec<Event> = vec![Event::InstanceCheckStarted];
-        let instance_exists = self.engine.instance_exists(&instance.hostname)?;
+        let instance_exists = self.engine.instance_exists(&instance.name)?;
         events.push(if instance_exists {
             Event::InstanceFound
         } else {
@@ -47,7 +47,7 @@ impl WslManager {
         let decision: CreateDecision = prepare_instance(self.engine.as_ref(), instance, instance_exists, options)?;
         if decision.skip {
             return Ok(InstanceResult {
-                hostname: instance.hostname.clone(),
+                name: instance.name.clone(),
                 outcome: Status::AlreadyExists,
                 events,
             });
@@ -58,7 +58,7 @@ impl WslManager {
         if options.dry_run {
             events.push(Event::CreateDryRun);
             return Ok(InstanceResult {
-                hostname: instance.hostname.clone(),
+                name: instance.name.clone(),
                 outcome: Status::Skipped,
                 events,
             });
@@ -68,7 +68,7 @@ impl WslManager {
         events.extend(create(self.engine.as_ref(), instance)?);
         let outcome = if recreated { Status::Recreated } else { Status::Created };
         Ok(InstanceResult {
-            hostname: instance.hostname.clone(),
+            name: instance.name.clone(),
             outcome,
             events,
         })
@@ -124,7 +124,7 @@ impl WslManager {
         let result = self
             .create_instance(instance, options)
             .unwrap_or_else(|e| InstanceResult {
-                hostname: instance.hostname.clone(),
+                name: instance.name.clone(),
                 outcome: Status::Failed(e.to_string()),
                 events: vec![],
             });

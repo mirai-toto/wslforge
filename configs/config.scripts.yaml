@@ -1,0 +1,19 @@
+instances:
+  UbuntuScripts:
+    override: true
+    username: wsluser
+    image:
+      type: distro
+      name: Ubuntu
+
+    scripts:
+      shell: bash
+      run:
+        # Install packages
+        - "apt-get update && apt-get install -y curl git build-essential"
+
+        # Configure git globals for the user
+        - |
+          git config --global user.name "wsluser"
+          git config --global core.autocrlf input
+          git config --global init.defaultBranch main

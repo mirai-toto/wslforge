@@ -1,6 +1,6 @@
 #cloud-config
 ## template: jinja
-hostname: {{ hostname }}
+hostname: {{ name }}
 manage_etc_hosts: true
 
 {% if proxy %}
@@ -90,4 +90,4 @@ runcmd:
   - chown -R {{ username }}:{{ username }} /home/{{ username }}/.kube
   - snap install kubectl --classic
 
-final_message: "✅ cloud-init finished on {{ hostname }}."
+final_message: "✅ cloud-init finished on {{ name }}."

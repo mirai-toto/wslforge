@@ -21,15 +21,15 @@ pub fn run() -> anyhow::Result<Config> {
     );
     eprintln!();
 
-    let (hostname, instance) = prompt_instance()?;
+    let (name, instance) = prompt_instance()?;
 
     eprintln!();
-    crate::reporting::log_config_summary(&hostname, &instance);
+    crate::reporting::log_config_summary(&name, &instance);
 
     confirm_provision()?;
 
     Ok(Config {
-        instances: BTreeMap::from([(hostname, instance)]),
+        instances: BTreeMap::from([(name, instance)]),
     })
 }
 
@@ -50,7 +50,7 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     let mut step = Step::Hostname;
     let mut prev_step = Step::Hostname;
 
-    let mut hostname: Option<String> = None;
+    let mut name: Option<String> = None;
     let mut username_raw: Option<String> = None;
     let mut password_raw: Option<String> = None;
     let mut override_instance: Option<bool> = None;
@@ -68,15 +68,15 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
                         style("── Instance ─────────────────────────────────────────").dim()
                     );
                 }
-                let default = hostname.as_deref().unwrap_or("Ubuntu");
-                match Text::new("🏠  hostname")
+                let default = name.as_deref().unwrap_or("Ubuntu");
+                match Text::new("🏠  name")
                     .with_default(default)
                     .with_initial_value(default)
                     .with_help_message(HELP)
                     .prompt()
                 {
                     Ok(v) => {
-                        hostname = Some(v);
+                        name = Some(v);
                     }
                     Err(e) if is_back(&e) => {}
                     Err(e) => return Err(e.into()),
@@ -211,12 +211,12 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
         step = step.next();
     };
 
-    let hostname = hostname.unwrap();
+    let name = name.unwrap();
     let (cloud_init, default_cloud_init) = cloud_init_raw.unwrap();
 
     let instance = Instance {
         override_instance: override_instance.unwrap(),
-        hostname: hostname.clone(),
+        name: name.clone(),
         username: non_empty(username_raw.unwrap()),
         password: non_empty(password_raw.unwrap()),
         proxy: proxy.unwrap(),
@@ -229,7 +229,7 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
         image,
     };
 
-    Ok((hostname, instance))
+    Ok((name, instance))
 }
 
 fn non_empty(s: String) -> Option<String> {

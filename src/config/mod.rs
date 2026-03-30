@@ -8,7 +8,6 @@ pub const EXAMPLE_CONFIG: &str = r#"# ─── Example Config ─────�
 instances:
   UbuntuWslDev:
     override: true
-    hostname: UbuntuWslDev
     username: wsluser
     password: <PASSWORD>
     # proxy:

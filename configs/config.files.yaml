@@ -1,0 +1,31 @@
+instances:
+  UbuntuFiles:
+    override: true
+    username: wsluser
+    image:
+      type: distro
+      name: Ubuntu
+
+    # Copy a single file into the instance
+    files:
+      - src: "motd.txt"
+        dest: /etc/motd
+        mode: "644"
+
+      # Copy a file to a user-owned location (owner defaults to username when dest is under ~)
+      - src: "configs/.bashrc"
+        dest: /home/wsluser/.bashrc
+        mode: "644"
+
+      # Copy a file with explicit owner and group
+      - src: "configs/app.conf"
+        dest: /etc/myapp/app.conf
+        owner: root
+        group: root
+        mode: "640"
+
+      # Copy an entire directory into the instance
+      - src: "configs/scripts"
+        dest: /home/wsluser/.local/bin
+        owner: wsluser
+        mode: "755"

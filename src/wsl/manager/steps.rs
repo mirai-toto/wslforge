@@ -26,7 +26,7 @@ pub(super) fn prepare_instance(
         events.extend(setup_cloud_init(engine, instance, options)?);
         events.extend(delete_instance(
             engine,
-            &instance.hostname,
+            &instance.name,
             instance_exists,
             options.dry_run,
         )?);
@@ -65,7 +65,7 @@ pub(super) fn setup_cloud_init(
 
 pub(super) fn delete_instance(
     engine: &dyn WslEngine,
-    hostname: &str,
+    name: &str,
     instance_exists: bool,
     dry_run: bool,
 ) -> anyhow::Result<Vec<Event>> {
@@ -75,7 +75,7 @@ pub(super) fn delete_instance(
     if dry_run {
         return Ok(vec![Event::OverrideTriggered, Event::DeleteDryRun]);
     }
-    engine.delete_instance(hostname)?;
+    engine.delete_instance(name)?;
     Ok(vec![
         Event::OverrideTriggered,
         Event::DeleteStarted,
@@ -87,7 +87,7 @@ pub(super) fn create(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Res
     let mut events: Vec<Event> = Vec::new();
     match &instance.image {
         ImageSource::File { path } => {
-            let install_dir = resolve_install_dir(&instance.install_dir, &instance.hostname)?;
+            let install_dir = resolve_install_dir(&instance.install_dir, &instance.name)?;
             if matches!(path, SourcePath::Remote(_)) {
                 events.push(Event::ImageDownloadStarted);
             }
@@ -95,10 +95,10 @@ pub(super) fn create(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Res
             if matches!(path, SourcePath::Remote(_)) {
                 events.push(Event::ImageDownloadCompleted);
             }
-            engine.create_from_file(&instance.hostname, &install_dir, resolved.as_path())?;
+            engine.create_from_file(&instance.name, &install_dir, resolved.as_path())?;
         }
         ImageSource::Distro { name } => {
-            engine.create_from_distro(name, &instance.hostname)?;
+            engine.create_from_distro(name, &instance.name)?;
         }
     }
     Ok(events)
@@ -124,7 +124,7 @@ pub(super) fn transfer_files(engine: &dyn WslEngine, instance: &Instance) -> any
         if src.is_dir() {
             events.push(Event::DirectoryTransferStarted(src.clone()));
             engine.write_dir(
-                &instance.hostname,
+                &instance.name,
                 &src,
                 &dest,
                 FileAttrs {
@@ -140,7 +140,7 @@ pub(super) fn transfer_files(engine: &dyn WslEngine, instance: &Instance) -> any
             let content =
                 std::fs::read(&src).map_err(|e| anyhow::anyhow!("failed to read '{}': {e}", src.display()))?;
             engine.write_file(
-                &instance.hostname,
+                &instance.name,
                 &dest,
                 &content,
                 FileAttrs {
@@ -165,7 +165,7 @@ pub(super) fn wait_for_provisioning(
     if !cloud_init_active {
         return Ok(vec![]);
     }
-    engine.wait_for_provisioning(&instance.hostname, on_status)?;
+    engine.wait_for_provisioning(&instance.name, on_status)?;
     Ok(vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted])
 }
 
@@ -174,7 +174,7 @@ pub(super) fn run_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow
     let mut events: Vec<Event> = Vec::new();
     for script in &instance.scripts.run {
         events.push(Event::ScriptStarted(script.clone()));
-        engine.run_script(&instance.hostname, script, shell)?;
+        engine.run_script(&instance.name, script, shell)?;
         events.push(Event::ScriptCompleted(script.clone()));
     }
     Ok(events)

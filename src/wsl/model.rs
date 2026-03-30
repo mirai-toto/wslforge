@@ -49,21 +49,21 @@ pub enum Event {
 }
 
 impl Event {
-    pub fn describe(&self, hostname: &str) -> String {
+    pub fn describe(&self, name: &str) -> String {
         match self {
-            Event::InstanceCheckStarted => format!("Checking if WSL instance '{}' exists...", hostname),
-            Event::InstanceFound => format!("WSL instance '{}' exists.", hostname),
-            Event::InstanceNotFound => format!("WSL instance '{}' does not exist.", hostname),
-            Event::OverrideEnabled => format!("Override requested for WSL instance '{}'.", hostname),
+            Event::InstanceCheckStarted => format!("Checking if WSL instance '{}' exists...", name),
+            Event::InstanceFound => format!("WSL instance '{}' exists.", name),
+            Event::InstanceNotFound => format!("WSL instance '{}' does not exist.", name),
+            Event::OverrideEnabled => format!("Override requested for WSL instance '{}'.", name),
             Event::OverrideTriggered => {
-                format!("WSL instance '{}' already exists and will be overridden.", hostname)
+                format!("WSL instance '{}' already exists and will be overridden.", name)
             }
-            Event::DeleteSkipped => format!("WSL instance '{}' does not exist. Skipping delete.", hostname),
-            Event::DeleteDryRun => format!("Dry run: WSL instance '{}' would be deleted", hostname),
-            Event::DeleteStarted => format!("Deleting existing WSL instance '{}'", hostname),
-            Event::DeleteCompleted => format!("WSL instance '{}' deleted successfully.", hostname),
-            Event::CreateDryRun => format!("Dry run: WSL instance '{}' would be created", hostname),
-            Event::CreateStarted => format!("Creating WSL instance '{}'", hostname),
+            Event::DeleteSkipped => format!("WSL instance '{}' does not exist. Skipping delete.", name),
+            Event::DeleteDryRun => format!("Dry run: WSL instance '{}' would be deleted", name),
+            Event::DeleteStarted => format!("Deleting existing WSL instance '{}'", name),
+            Event::DeleteCompleted => format!("WSL instance '{}' deleted successfully.", name),
+            Event::CreateDryRun => format!("Dry run: WSL instance '{}' would be created", name),
+            Event::CreateStarted => format!("Creating WSL instance '{}'", name),
             Event::CloudInitSkipped => "Cloud-init: not configured".to_string(),
             Event::CloudInitDefaultGenerated => "Cloud-init: no config provided, using generated default".to_string(),
             Event::CloudInitSourceResolved(path) => format!("Cloud-init source: {}", path.display()),
@@ -80,8 +80,8 @@ impl Event {
             Event::DirectoryTransferCompleted(dest) => format!("Directory transferred to: {dest}"),
             Event::ImageDownloadStarted => "Downloading image...".to_string(),
             Event::ImageDownloadCompleted => "Image downloaded.".to_string(),
-            Event::ProvisioningWaiting => format!("Waiting for cloud-init to complete on '{hostname}'..."),
-            Event::ProvisioningCompleted => format!("Cloud-init provisioning completed on '{hostname}'."),
+            Event::ProvisioningWaiting => format!("Waiting for cloud-init to complete on '{name}'..."),
+            Event::ProvisioningCompleted => format!("Cloud-init provisioning completed on '{name}'."),
             Event::ScriptStarted(cmd) => format!("Running script: {cmd}"),
             Event::ScriptCompleted(cmd) => format!("Script completed: {cmd}"),
         }
@@ -89,20 +89,20 @@ impl Event {
 }
 
 impl Status {
-    pub fn describe(&self, hostname: &str) -> String {
+    pub fn describe(&self, name: &str) -> String {
         match self {
-            Status::Created => format!("WSL instance '{}' created successfully.", hostname),
-            Status::Recreated => format!("WSL instance '{}' recreated successfully.", hostname),
-            Status::AlreadyExists => format!("WSL instance '{}' already exists.", hostname),
-            Status::Skipped => format!("WSL instance '{}' was skipped.", hostname),
-            Status::Failed(e) => format!("WSL instance '{}' failed: {e}", hostname),
+            Status::Created => format!("WSL instance '{}' created successfully.", name),
+            Status::Recreated => format!("WSL instance '{}' recreated successfully.", name),
+            Status::AlreadyExists => format!("WSL instance '{}' already exists.", name),
+            Status::Skipped => format!("WSL instance '{}' was skipped.", name),
+            Status::Failed(e) => format!("WSL instance '{}' failed: {e}", name),
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct InstanceResult {
-    pub hostname: String,
+    pub name: String,
     pub outcome: Status,
     pub events: Vec<Event>,
 }
@@ -110,8 +110,8 @@ pub struct InstanceResult {
 impl InstanceResult {
     pub fn log(&self) {
         for event in &self.events {
-            log::debug!(target: "wslforge::events", "{}", event.describe(&self.hostname));
+            log::debug!(target: "wslforge::events", "{}", event.describe(&self.name));
         }
-        log::debug!(target: "wslforge::events", "{}", self.outcome.describe(&self.hostname));
+        log::debug!(target: "wslforge::events", "{}", self.outcome.describe(&self.name));
     }
 }

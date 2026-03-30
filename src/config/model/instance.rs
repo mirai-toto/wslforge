@@ -10,10 +10,6 @@ fn default_install_dir() -> PathBuf {
     "%userprofile%/VMs".into()
 }
 
-fn default_empty_string() -> String {
-    String::new()
-}
-
 #[derive(Debug, Clone, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Proxy {
@@ -52,8 +48,8 @@ pub struct ScriptConfig {
 pub struct Instance {
     #[serde(default, rename = "override")]
     pub override_instance: bool,
-    #[serde(default = "default_empty_string")]
-    pub hostname: String,
+    #[serde(skip)]
+    pub name: String,
     #[serde(default)]
     pub username: Option<String>,
     #[serde(default)]

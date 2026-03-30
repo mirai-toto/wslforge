@@ -13,7 +13,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
         style("── Summary ──────────────────────────────────────────").dim()
     );
 
-    eprintln!("  hostname    : {}", style(&instance.hostname).cyan());
+    eprintln!("  name        : {}", style(&instance.name).cyan());
     eprintln!(
         "  username    : {}",
         instance
@@ -106,8 +106,8 @@ fn none_label() -> String {
 }
 
 fn resolved_install_dir_display(instance: &Instance) -> String {
-    match resolve_install_dir(&instance.install_dir, &instance.hostname) {
+    match resolve_install_dir(&instance.install_dir, &instance.name) {
         Ok(path) => path.display().to_string(),
-        Err(_) => instance.install_dir.join(&instance.hostname).display().to_string(),
+        Err(_) => instance.install_dir.join(&instance.name).display().to_string(),
     }
 }

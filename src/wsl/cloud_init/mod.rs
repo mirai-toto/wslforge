@@ -44,10 +44,10 @@ write_files:
 {% endif %}
 {% endif %}"#;
 
-pub fn user_data_path(hostname: &str) -> anyhow::Result<PathBuf> {
+pub fn user_data_path(name: &str) -> anyhow::Result<PathBuf> {
     let userprofile = resolve_userprofile_dir()?;
     let target_dir = userprofile.join(".cloud-init");
-    Ok(target_dir.join(format!("{}.user-data", hostname)))
+    Ok(target_dir.join(format!("{}.user-data", name)))
 }
 
 pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> anyhow::Result<Vec<Event>> {
@@ -78,7 +78,7 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
     };
     let rendered: String = render::render(&content, instance)?;
 
-    let target_file: PathBuf = user_data_path(&instance.hostname)?;
+    let target_file: PathBuf = user_data_path(&instance.name)?;
     if dry_run {
         events.push(Event::CloudInitDryRunDeployed(target_file));
         return Ok(events);
@@ -87,7 +87,7 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
     store::store(&target_file, &rendered)?;
     events.push(Event::CloudInitDeployed(target_file));
     if debug {
-        match store::copy_debug_to_current_dir(&instance.hostname, &rendered) {
+        match store::copy_debug_to_current_dir(&instance.name, &rendered) {
             DebugCopyOutcome::Written(path) => events.push(Event::CloudInitDebugCopied(path)),
             DebugCopyOutcome::Skipped(reason) => events.push(Event::CloudInitDebugSkipped(reason)),
         }

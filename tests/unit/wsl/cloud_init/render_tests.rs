@@ -4,9 +4,8 @@ use crate::config::Instance;
 #[test]
 // Verifies template rendering injects instance fields and leaves password hash empty when absent.
 fn render_injects_instance_fields_without_password_hash() {
-    let instance: Instance = serde_yaml::from_str(
+    let mut instance: Instance = serde_yaml::from_str(
         r#"
-hostname: devbox
 username: devuser
 override: true
 install_dir: "%userprofile%/VMs"
@@ -16,14 +15,15 @@ image:
 "#,
     )
     .expect("deserialize instance");
+    instance.name = "devbox".to_string();
 
     let output = render(
-        "hostname={{ hostname }}\nuser={{ username }}\nhash={{ password_hash }}",
+        "name={{ name }}\nuser={{ username }}\nhash={{ password_hash }}",
         &instance,
     )
     .expect("render template");
 
-    assert!(output.contains("hostname=devbox"));
+    assert!(output.contains("name=devbox"));
     assert!(output.contains("user=devuser"));
     assert!(output.contains("hash="));
 }
@@ -33,7 +33,6 @@ image:
 fn render_produces_sha512_hash_when_password_is_present() {
     let instance: Instance = serde_yaml::from_str(
         r#"
-hostname: devbox
 username: devuser
 password: secret123
 install_dir: "%userprofile%/VMs"
@@ -52,7 +51,7 @@ image:
 // Verifies invalid template syntax is reported as a cloud-init parse error.
 fn render_reports_template_parse_errors() {
     let instance: Instance =
-        serde_yaml::from_str("hostname: x\nusername: x\ninstall_dir: C:/VMs\nimage:\n  type: distro\n  name: Ubuntu\n")
+        serde_yaml::from_str("username: x\ninstall_dir: C:/VMs\nimage:\n  type: distro\n  name: Ubuntu\n")
             .expect("deserialize instance");
 
     let err = render("{{", &instance).expect_err("invalid template should fail");

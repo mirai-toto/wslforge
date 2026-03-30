@@ -20,7 +20,7 @@ pub struct Args {
     #[arg(long)]
     pub dry_run: bool,
 
-    /// Enable extra debug output and write artifacts to the current directory (e.g. `cloud-init.<hostname>.user-data`)
+    /// Enable extra debug output and write artifacts to the current directory (e.g. `cloud-init.<name>.user-data`)
     #[arg(long)]
     pub debug: bool,
 
