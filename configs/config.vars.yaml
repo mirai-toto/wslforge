@@ -11,7 +11,10 @@ instances:
       timezone: Europe/Paris
       git_name: "John Doe"
       git_email: "john@example.com"
-      packages: "curl git build-essential"
+      packages:
+        - curl
+        - git
+        - build-essential
 
     cloud_init:
       type: inline
@@ -23,7 +26,7 @@ instances:
         timezone: {{ vars.timezone }}
 
         packages:
-          {% for pkg in vars.packages.split() %}
+          {% for pkg in vars.packages %}
           - {{ pkg }}
           {% endfor %}
 

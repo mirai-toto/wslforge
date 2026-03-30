@@ -17,7 +17,7 @@ struct CloudInitRenderContext {
     username: String,
     password_hash: Option<String>,
     proxy: Option<CloudInitRenderProxy>,
-    vars: HashMap<String, String>,
+    vars: HashMap<String, serde_yaml::Value>,
 }
 
 pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
