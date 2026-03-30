@@ -24,9 +24,6 @@ pub fn run() -> anyhow::Result<Config> {
     let (name, instance) = prompt_instance()?;
 
     eprintln!();
-    crate::reporting::log_config_summary(&name, &instance);
-
-    confirm_provision()?;
 
     Ok(Config {
         instances: BTreeMap::from([(name, instance)]),
