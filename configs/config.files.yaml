@@ -8,7 +8,7 @@ instances:
 
     # Copy a single file into the instance
     files:
-      - src: "motd.txt"
+      - src: "configs/motd.txt"
         dest: /etc/motd
         mode: "644"
 

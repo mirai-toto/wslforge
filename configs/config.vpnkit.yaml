@@ -5,7 +5,7 @@ instances:
     password: root
     install_dir: "%userprofile%/VMs"
     files:
-      - src: "motd.txt"
+      - src: "configs/motd.txt"
         dest: /etc/motd
         mode: "644"
     cloud_init:

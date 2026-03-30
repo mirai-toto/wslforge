@@ -18,7 +18,7 @@ instances:
 
     # --- File transfers (copied into the instance after creation) ---
     files:
-      - src: "motd.txt"
+      - src: "configs/motd.txt"
         dest: /etc/motd
         mode: "644"
     # Advanced example: inject a CA certificate
@@ -33,7 +33,7 @@ instances:
     # Cloud-init user-data source (optional)
     cloud_init:
       type: file
-      path: "cloud-init.yaml.j2"
+      path: "configs/cloud-init.j2"
 
     # Inline cloud-init example
     # cloud_init:
