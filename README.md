@@ -157,15 +157,3 @@ Open an issue at [GitHub Issues](https://github.com/mirai-toto/wslforge/issues) 
 
 - [Cloud-init WSL datasource](https://cloudinit.readthedocs.io/en/latest/topics/datasources/wsl.html) for user-data behavior and file locations
 - [WSL documentation](https://learn.microsoft.com/windows/wsl/) for setup, commands, and troubleshooting
-
----
-
-## 👤 Credits
-
-Made by [mirai-toto](https://github.com/mirai-toto). Thanks for checking it out!
-
----
-
-## 🙏 Acknowledgements
-
-Thanks to the maintainers of WSL, cloud-init, Docker, k3s, Helm, and wsl-vpnkit.
