@@ -9,11 +9,14 @@ instances:
     scripts:
       shell: bash
       run:
-        # Install packages
+        # Install packages (runs as root)
         - "apt-get update && apt-get install -y curl git build-essential"
 
-        # Configure git globals for the user
+        # Write a welcome message shown on every login (runs as root, writes to /etc/)
+        - "echo 'echo \"Welcome to UbuntuScripts, provisioned by wslforge!\"' > /etc/profile.d/welcome.sh"
+
+        # Configure git globals for the user (su required — scripts run as root)
         - |
-          git config --global user.name "wsluser"
-          git config --global core.autocrlf input
-          git config --global init.defaultBranch main
+          su - wsluser -c 'git config --global user.name "wsluser"'
+          su - wsluser -c 'git config --global core.autocrlf input'
+          su - wsluser -c 'git config --global init.defaultBranch main'

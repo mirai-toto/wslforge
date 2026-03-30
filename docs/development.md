@@ -4,7 +4,7 @@
 
 ```sh
 cargo build --release
-cp config.template.yaml config.yaml
+cp configs/config.template.yaml config.yaml
 ./target/release/wslforge.exe --config config.yaml
 ```
 
