@@ -58,7 +58,7 @@ fn expand_env_vars_supports_percent_and_dollar_styles() {
 }
 
 #[test]
-fn resolve_install_dir_expands_and_appends_hostname() {
+fn resolve_install_dir_expands_and_appends_name() {
     let key = "WSLFORGE_INSTALL_ROOT";
     std::env::set_var(key, "/tmp/wslforge-root");
 

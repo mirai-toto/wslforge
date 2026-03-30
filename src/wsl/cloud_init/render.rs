@@ -13,7 +13,7 @@ struct CloudInitRenderProxy {
 
 #[derive(Serialize)]
 struct CloudInitRenderContext {
-    hostname: String,
+    name: String,
     username: String,
     password_hash: Option<String>,
     proxy: Option<CloudInitRenderProxy>,
@@ -26,7 +26,7 @@ pub fn render(raw: &str, instance: &Instance) -> anyhow::Result<String> {
     let password_hash = instance.password.as_deref().map(hash_password_sha512).transpose()?;
 
     let context: CloudInitRenderContext = CloudInitRenderContext {
-        hostname: instance.hostname.clone(),
+        name: instance.name.clone(),
         username: instance.username.clone().unwrap_or_default(),
         password_hash,
         proxy: instance.proxy.as_ref().map(|p| CloudInitRenderProxy {

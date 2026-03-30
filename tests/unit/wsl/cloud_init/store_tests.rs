@@ -14,7 +14,7 @@ fn store_creates_parent_dirs_and_writes_file() {
 }
 
 #[test]
-// Verifies debug copy writes `cloud-init.<hostname>.user-data` into the current working directory.
+// Verifies debug copy writes `cloud-init.<name>.user-data` into the current working directory.
 fn copy_debug_writes_file_in_current_directory() {
     let dir = tempfile::tempdir().expect("create temp dir");
     let original_dir = std::env::current_dir().expect("current dir");

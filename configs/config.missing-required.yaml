@@ -1,6 +1,0 @@
-instances:
-  MissingRequiredFields:
-    override: false
-    # hostname: intentionally omitted — should error: missing field `hostname`
-    # username: intentionally omitted — should error: missing field `username`
-    # image:    intentionally omitted — should error: missing field `image`

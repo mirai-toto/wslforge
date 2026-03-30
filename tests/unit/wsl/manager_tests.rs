@@ -133,7 +133,6 @@ impl WslEngine for FakeEngine {
 fn file_image_instance(image_path: &Path) -> Instance {
     let mut instance: Instance = serde_yaml::from_str(&format!(
         r#"
-hostname: devbox
 username: devuser
 install_dir: /tmp/wslforge-install
 image:
@@ -143,6 +142,7 @@ image:
         image_path.display()
     ))
     .expect("deserialize instance");
+    instance.name = "devbox".to_string();
     instance.default_cloud_init = true;
     instance
 }
@@ -150,7 +150,6 @@ image:
 fn file_image_instance_with_override(image_path: &Path, override_instance: bool) -> Instance {
     let mut instance: Instance = serde_yaml::from_str(&format!(
         r#"
-hostname: devbox
 username: devuser
 override: {}
 install_dir: /tmp/wslforge-install
@@ -162,6 +161,7 @@ image:
         image_path.display()
     ))
     .expect("deserialize instance");
+    instance.name = "devbox".to_string();
     instance.default_cloud_init = true;
     instance
 }
@@ -178,9 +178,8 @@ fn cloud_init_path(userprofile: &Path) -> PathBuf {
 
 #[test]
 fn create_instance_returns_already_exists_when_present_without_override() {
-    let instance: Instance = serde_yaml::from_str(
+    let mut instance: Instance = serde_yaml::from_str(
         r#"
-hostname: devbox
 username: devuser
 override: false
 install_dir: /tmp/wslforge-install
@@ -190,6 +189,7 @@ image:
 "#,
     )
     .expect("deserialize instance");
+    instance.name = "devbox".to_string();
     let (engine, calls) = FakeEngine::new(true, false);
     let manager = WslManager::new(Box::new(engine));
 

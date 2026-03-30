@@ -52,9 +52,9 @@ pub(crate) fn expand_path(raw: &Path) -> anyhow::Result<PathBuf> {
     Ok(PathBuf::from(expanded))
 }
 
-pub(crate) fn resolve_install_dir(install_dir: &Path, hostname: &str) -> anyhow::Result<PathBuf> {
+pub(crate) fn resolve_install_dir(install_dir: &Path, name: &str) -> anyhow::Result<PathBuf> {
     let expanded: PathBuf = expand_path(install_dir)?;
-    Ok(expanded.join(hostname))
+    Ok(expanded.join(name))
 }
 
 pub(crate) fn resolve_userprofile_dir() -> anyhow::Result<PathBuf> {

@@ -20,7 +20,7 @@ pub fn print_summary(results: &BTreeMap<String, InstanceResult>) {
     table.set_header(vec![
         Cell::new("Instance").add_attribute(Attribute::Bold),
         Cell::new("Status").add_attribute(Attribute::Bold),
-        Cell::new("Hostname").add_attribute(Attribute::Bold),
+        Cell::new("Name").add_attribute(Attribute::Bold),
     ]);
 
     for (name, result) in results {
@@ -34,7 +34,7 @@ pub fn print_summary(results: &BTreeMap<String, InstanceResult>) {
         table.add_row(vec![
             Cell::new(name),
             Cell::new(status_str).fg(color),
-            Cell::new(&result.hostname),
+            Cell::new(&result.name),
         ]);
     }
 

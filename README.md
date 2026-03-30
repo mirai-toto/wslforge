@@ -110,7 +110,7 @@ Write a detailed log to a file for troubleshooting:
 
 If `--config` is omitted and no `config.yaml` is found in the current directory, an interactive wizard launches to build a config on the fly.
 
-The `--debug` flag writes the rendered cloud-init user-data to the current directory as `cloud-init.<hostname>.user-data`.
+The `--debug` flag writes the rendered cloud-init user-data to the current directory as `cloud-init.<name>.user-data`.
 
 ```sh
 .\wslforge.exe --print-example-config

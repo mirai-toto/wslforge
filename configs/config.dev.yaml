@@ -1,7 +1,6 @@
 instances:
   UbuntuWslDev:
     override: true
-    hostname: UbuntuWslDev
     username: wsluser
     password: root
     install_dir: "%userprofile%/VMs"
@@ -17,7 +16,7 @@ instances:
       type: inline
       content: |
         #cloud-config
-        hostname: {{ hostname }}
+        hostname: {{ name }}
         manage_etc_hosts: true
 
         {% if proxy %}
@@ -111,7 +110,7 @@ instances:
             chown -R {{ username }}:{{ username }} /home/{{ username }}/.kube
             snap install kubectl --classic
 
-        final_message: "✅ cloud-init finished on {{ hostname }}."
+        final_message: "✅ cloud-init finished on {{ name }}."
     image:
       type: distro
       name: Ubuntu
