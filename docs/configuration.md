@@ -1,6 +1,6 @@
 # 🧩 Configuration
 
-The configuration is intentionally small. All fields are optional and have sensible defaults, so you can start with a minimal config and grow into advanced options as needed.
+The configuration is intentionally small. Only `hostname` is required — all other fields are optional. When using a config file, omitted fields are left unset; no defaults are injected. Defaults only apply in the interactive wizard flow.
 
 The top-level config is an `instances` map, where each key is an instance name:
 
@@ -15,18 +15,18 @@ Note: a bare instance object at the root (without `instances:`) is still accepte
 
 ## Core fields (per instance)
 
-| Field         | Description                                    | Example / Reference                 | Default             |
-| ------------- | ---------------------------------------------- | ----------------------------------- | ------------------- |
-| `override`    | Replace existing instance if it exists         | `true`                              | `false`             |
-| `hostname`    | WSL instance name                              | `UbuntuWslDev`                      | `UbuntuWSL`         |
-| `username`    | Default user                                   | `wsluser`                           | `wsluser`           |
-| `password`    | Optional password (hashed for cloud-init)      | `root`                              | —                   |
-| `install_dir` | Target install directory                       | `%userprofile%/VMs`                 | `%userprofile%/VMs` |
-| `proxy`       | HTTP/HTTPS proxy settings                      | see [Proxy](#proxy)                 | —                   |
-| `image`       | Image source (distro or file/URL)              | see [Image Sources](#image-sources) | distro: Ubuntu      |
-| `cloud_init`  | Cloud-init user-data (file or inline)          | see [Cloud Init](#cloud-init)       | —                   |
-| `files`       | Files or directories to copy into the instance | see [Files](#files)                 | —                   |
-| `scripts`     | Commands to run after create                   | see [Scripts](#scripts)             | —                   |
+| Field         | Description                                    | Example / Reference                 |
+| ------------- | ---------------------------------------------- | ----------------------------------- |
+| `hostname`    | WSL instance name (required)                   | `UbuntuWslDev`                      |
+| `override`    | Replace existing instance if it exists         | `true`                              |
+| `username`    | Default user                                   | `wsluser`                           |
+| `password`    | Optional password (hashed for cloud-init)      | `root`                              |
+| `install_dir` | Target install directory                       | `%userprofile%/VMs`                 |
+| `proxy`       | HTTP/HTTPS proxy settings                      | see [Proxy](#proxy)                 |
+| `image`       | Image source (distro or file/URL)              | see [Image Sources](#image-sources) |
+| `cloud_init`  | Cloud-init user-data (file or inline)          | see [Cloud Init](#cloud-init)       |
+| `files`       | Files or directories to copy into the instance | see [Files](#files)                 |
+| `scripts`     | Commands to run after create                   | see [Scripts](#scripts)             |
 
 Example `config.yaml` with a file-based cloud-init and an official distro:
 
@@ -67,7 +67,7 @@ proxy:
 
 ## Cloud init
 
-Use cloud-init to bootstrap packages and settings on first boot. You can reference a file or embed the YAML inline. These blocks live inside an instance.
+Use cloud-init to bootstrap packages and settings on first boot. When cloud-init is configured, wslforge waits for provisioning to complete before running file transfers and scripts — ensuring the instance is fully ready before any post-create steps run. You can reference a file or embed the YAML inline. These blocks live inside an instance.
 
 Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Instance fields are available as direct template variables (e.g. `{{ username }}`, `{{ hostname }}`), and the hashed password is available as `{{ password_hash }}`. Proxy fields are available as `{{ proxy.http }}`, `{{ proxy.https }}`, `{{ proxy.no_proxy }}`. Custom variables defined under `vars:` are accessible as `{{ vars.my_key }}`.
 

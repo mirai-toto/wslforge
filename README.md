@@ -97,16 +97,16 @@ Write a detailed log to a file for troubleshooting:
 
 ## 🧭 CLI
 
-| Flag                     | Description                                                                              | Default |
-| ------------------------ | ---------------------------------------------------------------------------------------- | ------- |
-| `--config`               | Path to YAML config file (optional, defaults to `config.yaml`)                           | —       |
-| `--dry-run`              | Show what would be done without changes                                                  | `false` |
-| `--validate`             | Parse and validate the config file without provisioning                                  | `false` |
-| `--debug`                | Enable extra debug output and write artifacts                                            | `false` |
-| `--log-file`             | Write debug logs with timestamps to a file                                               | —       |
-| `--force`, `-f`          | Skip confirmation prompt and proceed automatically                                       | `false` |
-| `--print-example-config` | Print a minimal example config and exit                                                  | `false` |
-| `--generate-completion`  | Print a shell completion script and exit (`powershell`)                                  | —       |
+| Flag                     | Description                                                    | Default       |
+| ------------------------ | -------------------------------------------------------------- | ------------- |
+| `--config`               | Path to YAML config file (optional, defaults to `config.yaml`) | `config.yaml` |
+| `--dry-run`              | Show what would be done without changes                        | `false`       |
+| `--validate`             | Parse and validate the config file without provisioning        | `false`       |
+| `--debug`                | Enable extra debug output and write artifacts                  | `false`       |
+| `--log-file`             | Write debug logs with timestamps to a file                     | —             |
+| `--force`, `-f`          | Skip confirmation prompt and proceed automatically             | `false`       |
+| `--print-example-config` | Print a minimal example config and exit                        | `false`       |
+| `--generate-completion`  | Print a shell completion script and exit (`powershell`)        | —             |
 
 If `--config` is omitted and no `config.yaml` is found in the current directory, an interactive wizard launches to build a config on the fly.
 
