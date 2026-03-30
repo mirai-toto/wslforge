@@ -30,3 +30,38 @@ Provisions two instances:
 | `wsl-vpnkit`   | VPN proxy sidecar (downloaded automatically) |
 
 The `UbuntuWslDev` instance registers `wsl-vpnkit` as a systemd service so it starts automatically.
+
+## config.files.yaml — file and directory transfer
+
+Shows how to copy files and directories into an instance after creation:
+
+- A single file to `/etc/motd`
+- The entire `configs/` directory into the instance
+
+## config.scripts.yaml — post-create scripts
+
+Shows how to run shell commands inside the instance after creation:
+
+- Package installation as root
+- A welcome message written to `/etc/profile.d/` (visible on every login)
+- Per-user git config using `su -`
+
+## config.files-and-scripts.yaml — file transfer + scripts combined
+
+Shows the full post-create flow: files are transferred first, then scripts run against them.
+
+Transfers `configs/setup.sh` into the instance, then executes it.
+
+## config.vars.yaml — custom template variables
+
+Shows how `vars` can be used to inject values into a cloud-init Jinja template without touching the template itself:
+
+- Strings (`timezone`, `git_name`, `git_email`)
+- Arrays (`packages` — iterated with `{% for %}`)
+- Nested objects (`motd.title`, `motd.message`)
+
+After provisioning, verify with:
+
+```sh
+cat /etc/wslforge-vars-test
+```

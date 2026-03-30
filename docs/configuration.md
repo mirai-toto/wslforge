@@ -64,7 +64,18 @@ proxy:
 
 Use cloud-init to bootstrap packages and settings on first boot. When cloud-init is configured, wslforge waits for provisioning to complete before running file transfers and scripts — ensuring the instance is fully ready before any post-create steps run. You can reference a file or embed the YAML inline. These blocks live inside an instance.
 
-Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Instance fields are available as direct template variables (e.g. `{{ name }}`, `{{ username }}`), and the hashed password is available as `{{ password_hash }}`. Proxy fields are available as `{{ proxy.http }}`, `{{ proxy.https }}`, `{{ proxy.no_proxy }}`. Custom variables defined under `vars:` are accessible as `{{ vars.my_key }}`.
+Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Instance fields are available as direct template variables (e.g. `{{ name }}`, `{{ username }}`), and the hashed password is available as `{{ password_hash }}`. Proxy fields are available as `{{ proxy.http }}`, `{{ proxy.https }}`, `{{ proxy.no_proxy }}`. Custom variables defined under `vars:` are accessible as `{{ vars.my_key }}` and support strings, arrays, and nested objects:
+
+```yaml
+vars:
+  timezone: Europe/Paris # string  → {{ vars.timezone }}
+  packages: # array   → {% for p in vars.packages %}
+    - curl
+    - git
+  motd: # object  → {{ vars.motd.title }}
+    title: "Welcome"
+    message: "Provisioned by wslforge"
+```
 
 Cloud-init types:
 
