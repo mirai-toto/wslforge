@@ -58,7 +58,7 @@ pub struct Instance {
     #[serde(default)]
     pub proxy: Option<Proxy>,
     #[serde(default)]
-    pub vars: HashMap<String, String>,
+    pub vars: HashMap<String, serde_yaml::Value>,
     #[serde(default)]
     pub files: Vec<FileTransfer>,
     #[serde(default)]

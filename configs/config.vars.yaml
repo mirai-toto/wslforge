@@ -11,7 +11,13 @@ instances:
       timezone: Europe/Paris
       git_name: "John Doe"
       git_email: "john@example.com"
-      packages: "curl git build-essential"
+      packages:
+        - curl
+        - git
+        - build-essential
+      motd:
+        title: "Welcome to UbuntuVars"
+        message: "Provisioned by wslforge"
 
     cloud_init:
       type: inline
@@ -22,11 +28,24 @@ instances:
 
         timezone: {{ vars.timezone }}
 
+        users:
+          - name: {{ username }}
+            shell: /bin/bash
+            sudo: ALL=(ALL) NOPASSWD:ALL
+
         packages:
-          {% for pkg in vars.packages.split() %}
+          {% for pkg in vars.packages %}
           - {{ pkg }}
           {% endfor %}
 
         runcmd:
           - su - {{ username }} -c 'git config --global user.name "{{ vars.git_name }}"'
           - su - {{ username }} -c 'git config --global user.email "{{ vars.git_email }}"'
+          - |
+            cat > /etc/wslforge-vars-test << 'EOF'
+            # nested object
+            title: {{ vars.motd.title }}
+            message: {{ vars.motd.message }}
+            # array
+            packages: {{ vars.packages | join(", ") }}
+            EOF

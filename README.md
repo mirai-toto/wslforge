@@ -59,7 +59,7 @@ Invoke-WebRequest -Uri https://github.com/mirai-toto/wslforge/releases/download/
 
 ### 2. No config yet?
 
-Run `wslforge` with no arguments and the interactive wizard will guide you through creating one instance. It covers the essentials — hostname, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
+Run `wslforge` with no arguments and the interactive wizard will guide you through creating one instance. It covers the essentials — instance name, user, image, proxy, and cloud-init. For advanced options like file transfers, scripts, or multi-instance setups, use a config file. 🧙
 
 ```sh
 .\wslforge.exe
