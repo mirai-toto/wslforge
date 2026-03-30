@@ -66,7 +66,7 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
         }
     };
 
-    let content: String = match source {
+    let raw: String = match source {
         CloudInitSource::File { path } => {
             events.push(Event::CloudInitSourceResolved(path.clone()));
             load::load_cloud_init_source(path)?
@@ -76,6 +76,7 @@ pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> an
             content.clone()
         }
     };
+    let content: String = raw.replace("\r\n", "\n");
     let rendered: String = render::render(&content, instance)?;
 
     let target_file: PathBuf = user_data_path(&instance.name)?;
