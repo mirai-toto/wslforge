@@ -75,6 +75,12 @@ Run it directly:
 .\wslforge.exe --config config.yaml
 ```
 
+Validate your config without provisioning anything:
+
+```sh
+.\wslforge.exe --config config.yaml --validate
+```
+
 Preview what will happen without making changes:
 
 ```sh
@@ -95,6 +101,7 @@ Write a detailed log to a file for troubleshooting:
 | ------------------------ | ---------------------------------------------------------------------------------------- | ------- |
 | `--config`               | Path to YAML config file (optional, defaults to `config.yaml`)                           | —       |
 | `--dry-run`              | Show what would be done without changes                                                  | `false` |
+| `--validate`             | Parse and validate the config file without provisioning                                  | `false` |
 | `--debug`                | Enable extra debug output and write artifacts                                            | `false` |
 | `--log-file`             | Write debug logs with timestamps to a file                                               | —       |
 | `--force`, `-f`          | Skip confirmation prompt and proceed automatically                                       | `false` |
