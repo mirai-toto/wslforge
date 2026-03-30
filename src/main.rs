@@ -23,6 +23,11 @@ fn main() -> anyhow::Result<()> {
     init_logger(args.log_file.as_deref())?;
 
     let loaded = resolve_config(args.config.as_deref())?;
+
+    if args.validate {
+        return app::validate(loaded);
+    }
+
     app::run(app::AppArgs {
         config: loaded,
         dry_run: args.dry_run,
