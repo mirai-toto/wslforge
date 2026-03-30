@@ -1,6 +1,22 @@
 use crate::config::{ImageSource, Instance, SourcePath};
 use crate::wsl::helpers::expand_env_vars;
 
+/// Returns the reasons why this instance requires cloud-init but doesn't have it configured.
+/// Add new rules here as features require cloud-init support.
+pub fn cloud_init_required(instance: &Instance) -> Vec<&'static str> {
+    if instance.cloud_init.is_some() || instance.default_cloud_init {
+        return vec![];
+    }
+    let mut reasons: Vec<&'static str> = Vec::new();
+    if instance.username.is_some() || instance.password.is_some() {
+        reasons.push("username/password set — user account requires cloud-init to be created");
+    }
+    if instance.proxy.is_some() {
+        reasons.push("proxy set — proxy configuration requires cloud-init to be applied");
+    }
+    reasons
+}
+
 pub fn validate_instance(instance: &Instance) -> anyhow::Result<()> {
     validate_image_source(instance)
 }

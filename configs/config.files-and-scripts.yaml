@@ -8,16 +8,16 @@ instances:
 
     # Transfer files first, then run scripts against them
     files:
+      - src: "configs/motd.txt"
+        dest: /etc/motd
+        mode: "644"
+
       - src: "configs/setup.sh"
-        dest: /home/wsluser/.local/bin/setup.sh
+        dest: /home/wsluser/setup.sh
         owner: wsluser
         mode: "755"
-
-      - src: "configs/dotfiles"
-        dest: /home/wsluser/.config
-        owner: wsluser
 
     scripts:
       shell: bash
       run:
-        - "bash /home/wsluser/.local/bin/setup.sh"
+        - "bash /home/wsluser/setup.sh"
