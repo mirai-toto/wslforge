@@ -1,0 +1,32 @@
+instances:
+  UbuntuVars:
+    override: true
+    username: wsluser
+    image:
+      type: distro
+      name: Ubuntu
+
+    # Custom variables injected into the cloud-init template as {{ vars.<key> }}
+    vars:
+      timezone: Europe/Paris
+      git_name: "John Doe"
+      git_email: "john@example.com"
+      packages: "curl git build-essential"
+
+    cloud_init:
+      type: inline
+      content: |
+        #cloud-config
+        hostname: {{ name }}
+        manage_etc_hosts: true
+
+        timezone: {{ vars.timezone }}
+
+        packages:
+          {% for pkg in vars.packages.split() %}
+          - {{ pkg }}
+          {% endfor %}
+
+        runcmd:
+          - su - {{ username }} -c 'git config --global user.name "{{ vars.git_name }}"'
+          - su - {{ username }} -c 'git config --global user.email "{{ vars.git_email }}"'
