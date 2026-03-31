@@ -79,7 +79,7 @@ impl WslManager {
 
         if matches!(result.outcome, Status::Created | Status::Recreated) {
             let pb = display::spinner("⏳ Waiting for provisioning...".to_string());
-            let provisioning_result = wait_for_provisioning(self.engine.as_ref(), instance, &|s| {
+            let provisioning_result = wait_for_provisioning(self.engine.as_ref(), instance, options, &|s| {
                 pb.set_message(format!("⏳ Waiting for provisioning... {s}"))
             });
             pb.finish_and_clear();

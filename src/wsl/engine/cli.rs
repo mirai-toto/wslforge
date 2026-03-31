@@ -128,10 +128,15 @@ impl WslEngine for CliEngine {
         Ok(())
     }
 
-    fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<String> {
+    fn wait_for_provisioning(
+        &self,
+        instance_name: &str,
+        timeout_secs: u64,
+        on_status: &dyn Fn(String),
+    ) -> anyhow::Result<String> {
         on_status("waiting...".to_string());
 
-        let timeout = std::time::Duration::from_secs(300);
+        let timeout = std::time::Duration::from_secs(timeout_secs);
         let poll_interval = std::time::Duration::from_secs(2);
         let start = std::time::Instant::now();
 

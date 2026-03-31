@@ -121,7 +121,12 @@ impl WslEngine for FakeEngine {
         Ok(())
     }
 
-    fn wait_for_provisioning(&self, instance_name: &str, _on_status: &dyn Fn(String)) -> anyhow::Result<String> {
+    fn wait_for_provisioning(
+        &self,
+        instance_name: &str,
+        _timeout_secs: u64,
+        _on_status: &dyn Fn(String),
+    ) -> anyhow::Result<String> {
         self.calls
             .lock()
             .expect("lock calls")
@@ -219,6 +224,7 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
             RunOptions {
                 dry_run: true,
                 debug: false,
+                cloud_init_timeout: 300,
             },
         )
         .expect("dry run should succeed");
@@ -281,6 +287,7 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
             RunOptions {
                 dry_run: true,
                 debug: false,
+                cloud_init_timeout: 300,
             },
         )
         .expect("dry run should succeed");

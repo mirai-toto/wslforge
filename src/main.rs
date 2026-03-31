@@ -33,6 +33,7 @@ fn main() -> anyhow::Result<()> {
         dry_run: args.dry_run,
         debug: args.debug,
         force: args.force,
+        cloud_init_timeout: args.cloud_init_timeout,
     })?;
 
     Ok(())
