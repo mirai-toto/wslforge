@@ -84,7 +84,12 @@ impl WslManager {
             });
             pb.finish_and_clear();
             match provisioning_result {
-                Ok(events) => result.events.extend(events),
+                Ok((events, final_status)) => {
+                    if !final_status.is_empty() {
+                        println!("  {} {}", console::style("☁").cyan(), console::style(&final_status).dim());
+                    }
+                    result.events.extend(events);
+                }
                 Err(e) => result.outcome = Status::Failed(e.to_string()),
             }
         }

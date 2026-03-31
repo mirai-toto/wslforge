@@ -159,13 +159,13 @@ pub(super) fn wait_for_provisioning(
     engine: &dyn WslEngine,
     instance: &Instance,
     on_status: &dyn Fn(String),
-) -> anyhow::Result<Vec<Event>> {
+) -> anyhow::Result<(Vec<Event>, String)> {
     let cloud_init_active = instance.cloud_init.is_some() || instance.default_cloud_init;
     if !cloud_init_active {
-        return Ok(vec![]);
+        return Ok((vec![], String::new()));
     }
-    engine.wait_for_provisioning(&instance.name, on_status)?;
-    Ok(vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted])
+    let final_status = engine.wait_for_provisioning(&instance.name, on_status)?;
+    Ok((vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted], final_status))
 }
 
 pub(super) fn run_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {

@@ -128,7 +128,7 @@ impl WslEngine for CliEngine {
         Ok(())
     }
 
-    fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<()> {
+    fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<String> {
         on_status("waiting...".to_string());
 
         let timeout = std::time::Duration::from_secs(300);
@@ -154,7 +154,7 @@ impl WslEngine for CliEngine {
                     instance_name,
                     String::from_utf8_lossy(&output.stderr).trim()
                 );
-                return Ok(());
+                return Ok(String::new());
             }
 
             let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -167,7 +167,7 @@ impl WslEngine for CliEngine {
                 || stdout.contains("status: disabled")
                 || stdout.contains("status: not run")
             {
-                return Ok(());
+                return Ok(stdout);
             }
 
             std::thread::sleep(poll_interval);
