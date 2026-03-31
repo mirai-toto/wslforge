@@ -85,9 +85,7 @@ impl WslManager {
             pb.finish_and_clear();
             match provisioning_result {
                 Ok((events, final_status)) => {
-                    if !final_status.is_empty() {
-                        println!("  {} {}", console::style("☁").cyan(), console::style(&final_status).dim());
-                    }
+                    println!("  {}", final_status);
                     result.events.extend(events);
                 }
                 Err(e) => result.outcome = Status::Failed(e.to_string()),

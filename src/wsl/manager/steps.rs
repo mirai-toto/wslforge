@@ -165,7 +165,10 @@ pub(super) fn wait_for_provisioning(
         return Ok((vec![], String::new()));
     }
     let final_status = engine.wait_for_provisioning(&instance.name, on_status)?;
-    Ok((vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted], final_status))
+    Ok((
+        vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted],
+        final_status,
+    ))
 }
 
 pub(super) fn run_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {

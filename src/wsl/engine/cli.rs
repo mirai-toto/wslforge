@@ -149,12 +149,9 @@ impl WslEngine for CliEngine {
                 .output()?;
 
             if !output.status.success() {
-                log::debug!(
-                    "cloud-init status exited non-zero for '{}': {}",
-                    instance_name,
-                    String::from_utf8_lossy(&output.stderr).trim()
-                );
-                return Ok(String::new());
+                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                log::debug!("cloud-init status exited non-zero for '{}': {}", instance_name, stderr);
+                return Ok(format!("⚠️  cloud-init unavailable: {}", stderr));
             }
 
             let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
@@ -163,11 +160,11 @@ impl WslEngine for CliEngine {
             if stdout.contains("status: error") {
                 anyhow::bail!("cloud-init failed for '{}': {}", instance_name, stdout);
             }
-            if stdout.contains("status: done")
-                || stdout.contains("status: disabled")
-                || stdout.contains("status: not run")
-            {
-                return Ok(stdout);
+            if stdout.contains("status: done") {
+                return Ok(format!("✅ {}", stdout));
+            }
+            if stdout.contains("status: disabled") || stdout.contains("status: not run") {
+                return Ok(format!("⚠️  {}", stdout));
             }
 
             std::thread::sleep(poll_interval);
