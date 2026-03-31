@@ -62,7 +62,18 @@ proxy:
 
 ## Cloud init
 
-Use cloud-init to bootstrap packages and settings on first boot. When cloud-init is configured, wslforge waits for provisioning to complete before running file transfers and scripts — ensuring the instance is fully ready before any post-create steps run. You can reference a file or embed the YAML inline. These blocks live inside an instance.
+Use cloud-init to bootstrap packages and settings on first boot. Wslforge waits for provisioning to complete before running file transfers and scripts — ensuring the instance is fully ready before any post-create steps run. You can reference a file or embed the YAML inline.
+
+When cloud-init is configured, wslforge polls `cloud-init status` every 2 seconds until it reaches a terminal state. The default timeout is **300 seconds** and can be overridden with `--cloud-init-timeout <seconds>`. The final status is printed after the spinner clears.
+
+| Status reported       | Behaviour                                              |
+| --------------------- | ------------------------------------------------------ |
+| `status: done`        | ✅ Success — provisioning continues                    |
+| `status: error`       | ❌ Fails — provisioning stops with an error            |
+| `status: disabled`    | ⚠️ Warning — cloud-init was disabled, continues       |
+| `status: not run`     | ⚠️ Warning — cloud-init did not run, continues        |
+| cloud-init not found  | ⚠️ Warning — cloud-init is not installed, continues   |
+| timeout exceeded      | ❌ Fails — provisioning stops with a timeout error     |
 
 Both `file` and `inline` content are rendered as **Jinja templates** before being written as user-data. Instance fields are available as direct template variables (e.g. `{{ name }}`, `{{ username }}`), and the hashed password is available as `{{ password_hash }}`. Proxy fields are available as `{{ proxy.http }}`, `{{ proxy.https }}`, `{{ proxy.no_proxy }}`. Custom variables defined under `vars:` are accessible as `{{ vars.my_key }}` and support strings, arrays, and nested objects:
 
@@ -191,3 +202,7 @@ scripts:
   run:
     - "source /etc/profile && my-bash-script"
 ```
+
+**Path expansion in scripts:**
+
+- `~/` is expanded to the instance user's home directory — the same expansion applied to `dest` in file transfers. For example, `bash ~/setup.sh` becomes `bash /home/wsluser/setup.sh` when `username: wsluser`.
