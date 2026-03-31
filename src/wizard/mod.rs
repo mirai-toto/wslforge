@@ -214,6 +214,10 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
     let instance = Instance {
         override_instance: override_instance.unwrap(),
         name: name.clone(),
+        user_home: match non_empty(username_raw.clone().unwrap()).as_deref() {
+            Some("root") | None => "/root".to_string(),
+            Some(u) => format!("/home/{u}"),
+        },
         username: non_empty(username_raw.unwrap()),
         password: non_empty(password_raw.unwrap()),
         proxy: proxy.unwrap(),
