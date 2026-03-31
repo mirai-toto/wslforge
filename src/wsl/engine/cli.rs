@@ -129,12 +129,26 @@ impl WslEngine for CliEngine {
     }
 
     fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<()> {
+        on_status("waiting...".to_string());
+
+        let timeout = std::time::Duration::from_secs(300);
+        let poll_interval = std::time::Duration::from_secs(2);
+        let start = std::time::Instant::now();
+
         loop {
-            let output: std::process::Output = Command::new("wsl.exe")
+            if start.elapsed() >= timeout {
+                anyhow::bail!(
+                    "cloud-init timed out after {}s for '{}'",
+                    timeout.as_secs(),
+                    instance_name
+                );
+            }
+
+            let output = Command::new("wsl.exe")
                 .args(["-d", instance_name, "--", "cloud-init", "status"])
                 .output()?;
+
             if !output.status.success() {
-                // cloud-init may not be installed — log and continue
                 log::debug!(
                     "cloud-init status exited non-zero for '{}': {}",
                     instance_name,
@@ -142,13 +156,21 @@ impl WslEngine for CliEngine {
                 );
                 return Ok(());
             }
-            let stdout: String = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
             on_status(stdout.clone());
-            // Terminal states: done, error, disabled, not run
-            if !stdout.contains("running") {
+
+            if stdout.contains("status: error") {
+                anyhow::bail!("cloud-init failed for '{}': {}", instance_name, stdout);
+            }
+            if stdout.contains("status: done")
+                || stdout.contains("status: disabled")
+                || stdout.contains("status: not run")
+            {
                 return Ok(());
             }
-            std::thread::sleep(std::time::Duration::from_secs(2));
+
+            std::thread::sleep(poll_interval);
         }
     }
 }
