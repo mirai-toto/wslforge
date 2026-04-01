@@ -153,13 +153,14 @@ impl WslEngine for CliEngine {
                 .args(["-d", instance_name, "--", "cloud-init", "status"])
                 .output()?;
 
-            if !output.status.success() {
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+            if stdout.is_empty() {
                 let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
                 log::debug!("cloud-init status exited non-zero for '{}': {}", instance_name, stderr);
                 return Ok(format!("⚠️  cloud-init unavailable: {}", stderr));
             }
 
-            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
             on_status(stdout.clone());
 
             if stdout.contains("status: error") {
