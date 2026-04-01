@@ -15,6 +15,7 @@ pub struct AppArgs {
     pub dry_run: bool,
     pub debug: bool,
     pub force: bool,
+    pub cloud_init_timeout: u64,
 }
 
 pub fn validate(config: Config) -> anyhow::Result<()> {
@@ -41,6 +42,7 @@ pub fn run(mut cfg: AppArgs) -> anyhow::Result<()> {
     let options: RunOptions = RunOptions {
         dry_run: cfg.dry_run,
         debug: cfg.debug,
+        cloud_init_timeout: cfg.cloud_init_timeout,
     };
 
     for (instance_name, instance) in &cfg.config.instances {

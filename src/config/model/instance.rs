@@ -50,6 +50,8 @@ pub struct Instance {
     pub override_instance: bool,
     #[serde(skip)]
     pub name: String,
+    #[serde(skip)]
+    pub user_home: String,
     #[serde(default)]
     pub username: Option<String>,
     #[serde(default)]

@@ -14,6 +14,6 @@ instances:
 
       # Copy the entire configs directory into the instance
       - src: "configs"
-        dest: /home/wsluser/configs
+        dest: ~/configs
         owner: wsluser
         mode: "755"

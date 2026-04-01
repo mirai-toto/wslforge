@@ -1,7 +1,7 @@
 use crate::config::{ImageSource, Instance, SourcePath};
 use crate::wsl::cloud_init;
 use crate::wsl::engine::{FileAttrs, WslEngine};
-use crate::wsl::helpers::{expand_path, expand_wsl_dest, resolve_install_dir, resolve_source_path, user_home};
+use crate::wsl::helpers::{expand_path, expand_wsl_dest, resolve_install_dir, resolve_source_path};
 use crate::wsl::validation::environment;
 use crate::wsl::{Event, RunOptions};
 
@@ -108,12 +108,11 @@ pub(super) fn transfer_files(engine: &dyn WslEngine, instance: &Instance) -> any
     let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
     let mut events: Vec<Event> = Vec::new();
     let username = instance.username.as_deref().unwrap_or("");
-    let user_home = user_home(username);
     for transfer in &instance.files {
         let src = expand_path(&transfer.src)?;
         let dest = expand_wsl_dest(&transfer.dest, username, &src);
         let owner = transfer.owner.as_deref().or_else(|| {
-            if dest.starts_with(&user_home) {
+            if dest.starts_with(&instance.user_home) {
                 Some(username)
             } else {
                 None
@@ -159,22 +158,27 @@ pub(super) fn transfer_files(engine: &dyn WslEngine, instance: &Instance) -> any
 pub(super) fn wait_for_provisioning(
     engine: &dyn WslEngine,
     instance: &Instance,
+    options: RunOptions,
     on_status: &dyn Fn(String),
-) -> anyhow::Result<Vec<Event>> {
+) -> anyhow::Result<(Vec<Event>, String)> {
     let cloud_init_active = instance.cloud_init.is_some() || instance.default_cloud_init;
     if !cloud_init_active {
-        return Ok(vec![]);
+        return Ok((vec![], String::new()));
     }
-    engine.wait_for_provisioning(&instance.name, on_status)?;
-    Ok(vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted])
+    let final_status = engine.wait_for_provisioning(&instance.name, options.cloud_init_timeout, on_status)?;
+    Ok((
+        vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted],
+        final_status,
+    ))
 }
 
 pub(super) fn run_scripts(engine: &dyn WslEngine, instance: &Instance) -> anyhow::Result<Vec<Event>> {
     let shell = instance.scripts.shell.as_deref().unwrap_or(DEFAULT_SHELL);
     let mut events: Vec<Event> = Vec::new();
     for script in &instance.scripts.run {
+        let expanded = script.replace("~/", &format!("{}/", instance.user_home));
         events.push(Event::ScriptStarted(script.clone()));
-        engine.run_script(&instance.name, script, shell)?;
+        engine.run_script(&instance.name, &expanded, shell)?;
         events.push(Event::ScriptCompleted(script.clone()));
     }
     Ok(events)

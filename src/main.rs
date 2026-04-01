@@ -33,6 +33,7 @@ fn main() -> anyhow::Result<()> {
         dry_run: args.dry_run,
         debug: args.debug,
         force: args.force,
+        cloud_init_timeout: args.cloud_init_timeout,
     })?;
 
     Ok(())
@@ -63,7 +64,7 @@ fn resolve_config(explicit: Option<&Path>) -> anyhow::Result<config::Config> {
 }
 
 fn init_logger(log_file: Option<&Path>) -> anyhow::Result<()> {
-    let mut base = fern::Dispatch::new().level(LevelFilter::Off);
+    let mut base = fern::Dispatch::new();
 
     if let Some(path) = log_file {
         let file_dispatch = fern::Dispatch::new()

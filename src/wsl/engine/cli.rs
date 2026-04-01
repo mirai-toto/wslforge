@@ -128,27 +128,52 @@ impl WslEngine for CliEngine {
         Ok(())
     }
 
-    fn wait_for_provisioning(&self, instance_name: &str, on_status: &dyn Fn(String)) -> anyhow::Result<()> {
+    fn wait_for_provisioning(
+        &self,
+        instance_name: &str,
+        timeout_secs: u64,
+        on_status: &dyn Fn(String),
+    ) -> anyhow::Result<String> {
+        on_status("waiting...".to_string());
+
+        let timeout = std::time::Duration::from_secs(timeout_secs);
+        let poll_interval = std::time::Duration::from_secs(2);
+        let start = std::time::Instant::now();
+
         loop {
-            let output: std::process::Output = Command::new("wsl.exe")
+            if start.elapsed() >= timeout {
+                anyhow::bail!(
+                    "cloud-init timed out after {}s for '{}'",
+                    timeout.as_secs(),
+                    instance_name
+                );
+            }
+
+            let output = Command::new("wsl.exe")
                 .args(["-d", instance_name, "--", "cloud-init", "status"])
                 .output()?;
-            if !output.status.success() {
-                // cloud-init may not be installed — log and continue
-                log::debug!(
-                    "cloud-init status exited non-zero for '{}': {}",
-                    instance_name,
-                    String::from_utf8_lossy(&output.stderr).trim()
-                );
-                return Ok(());
+
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+            if stdout.is_empty() {
+                let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
+                log::debug!("cloud-init status exited non-zero for '{}': {}", instance_name, stderr);
+                return Ok(format!("⚠️  cloud-init unavailable: {}", stderr));
             }
-            let stdout: String = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
             on_status(stdout.clone());
-            // Terminal states: done, error, disabled, not run
-            if !stdout.contains("running") {
-                return Ok(());
+
+            if stdout.contains("status: error") {
+                anyhow::bail!("cloud-init failed for '{}': {}", instance_name, stdout);
             }
-            std::thread::sleep(std::time::Duration::from_secs(2));
+            if stdout.contains("status: done") {
+                return Ok(format!("✅ {}", stdout));
+            }
+            if stdout.contains("status: disabled") || stdout.contains("status: not run") {
+                return Ok(format!("⚠️  {}", stdout));
+            }
+
+            std::thread::sleep(poll_interval);
         }
     }
 }

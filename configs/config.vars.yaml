@@ -23,7 +23,6 @@ instances:
       type: inline
       content: |
         #cloud-config
-        hostname: {{ name }}
         manage_etc_hosts: true
 
         timezone: {{ vars.timezone }}

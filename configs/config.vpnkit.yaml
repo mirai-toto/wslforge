@@ -12,7 +12,6 @@ instances:
       type: inline
       content: |
         #cloud-config
-        hostname: {{ name }}
         manage_etc_hosts: true
 
         {% if proxy %}

@@ -13,11 +13,11 @@ instances:
         mode: "644"
 
       - src: "configs/setup.sh"
-        dest: /home/wsluser/setup.sh
+        dest: ~/setup.sh
         owner: wsluser
         mode: "755"
 
     scripts:
       shell: bash
       run:
-        - "bash /home/wsluser/setup.sh"
+        - "bash ~/setup.sh"
