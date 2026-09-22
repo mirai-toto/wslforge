@@ -141,14 +141,6 @@ impl WslEngine for CliEngine {
         let start = std::time::Instant::now();
 
         loop {
-            if start.elapsed() >= timeout {
-                anyhow::bail!(
-                    "cloud-init timed out after {}s for '{}'",
-                    timeout.as_secs(),
-                    instance_name
-                );
-            }
-
             let output = Command::new("wsl.exe")
                 .args(["-d", instance_name, "--", "cloud-init", "status"])
                 .output()?;
@@ -171,6 +163,14 @@ impl WslEngine for CliEngine {
             }
             if stdout.contains("status: disabled") || stdout.contains("status: not run") {
                 return Ok(format!("⚠️  {}", stdout));
+            }
+
+            if start.elapsed() >= timeout {
+                anyhow::bail!(
+                    "cloud-init timed out after {}s for '{}'",
+                    timeout.as_secs(),
+                    instance_name
+                );
             }
 
             std::thread::sleep(poll_interval);

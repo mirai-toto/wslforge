@@ -12,7 +12,7 @@ impl Default for RunOptions {
         Self {
             dry_run: false,
             debug: false,
-            cloud_init_timeout: 300,
+            cloud_init_timeout: 900,
         }
     }
 }
