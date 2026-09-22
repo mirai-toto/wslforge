@@ -64,7 +64,7 @@ proxy:
 
 Use cloud-init to bootstrap packages and settings on first boot. Wslforge waits for provisioning to complete before running file transfers and scripts — ensuring the instance is fully ready before any post-create steps run. You can reference a file or embed the YAML inline.
 
-When cloud-init is configured, wslforge polls `cloud-init status` every 2 seconds until it reaches a terminal state. The default timeout is **300 seconds** and can be overridden with `--cloud-init-timeout <seconds>`. The final status is printed after the spinner clears.
+When cloud-init is configured, wslforge polls `cloud-init status` every 2 seconds until it reaches a terminal state. The default timeout is **900 seconds** and can be overridden with `--cloud-init-timeout <seconds>`. The final status is printed after the spinner clears.
 
 | Status reported       | Behaviour                                              |
 | --------------------- | ------------------------------------------------------ |
