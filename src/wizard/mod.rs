@@ -227,6 +227,7 @@ fn prompt_instance() -> anyhow::Result<(String, Instance)> {
         install_dir: PathBuf::from("%userprofile%/VMs"),
         default_cloud_init,
         cloud_init,
+        cloud_init_timeout: None,
         image,
     };
 

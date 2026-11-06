@@ -15,7 +15,7 @@ pub struct AppArgs {
     pub dry_run: bool,
     pub debug: bool,
     pub force: bool,
-    pub cloud_init_timeout: u64,
+    pub cloud_init_timeout: Option<u64>,
 }
 
 pub fn validate(config: Config) -> anyhow::Result<()> {

@@ -70,6 +70,8 @@ pub struct Instance {
     pub install_dir: PathBuf,
     #[serde(default)]
     pub cloud_init: Option<CloudInitSource>,
+    #[serde(default)]
+    pub cloud_init_timeout: Option<u64>,
     #[serde(skip)]
     pub default_cloud_init: bool,
 
