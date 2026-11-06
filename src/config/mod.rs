@@ -10,6 +10,7 @@ instances:
     override: true
     username: wsluser
     password: <PASSWORD>
+    # cloud_init_timeout: 2700  # seconds; overrides the 900-second default
     # proxy:
     #   http: http://proxy.local:8080
     #   https: http://proxy.local:8080

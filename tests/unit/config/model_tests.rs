@@ -7,6 +7,14 @@ fn instance_deserialization_name_is_empty_by_default() {
     let instance: Instance = serde_yaml::from_str("{}\n").expect("bare instance should deserialize");
     assert!(instance.name.is_empty());
     assert!(instance.username.is_none());
+    assert!(instance.cloud_init_timeout.is_none());
+}
+
+#[test]
+fn instance_deserializes_cloud_init_timeout() {
+    let instance: Instance =
+        serde_yaml::from_str("cloud_init_timeout: 2700\n").expect("deserialize per-instance timeout");
+    assert_eq!(instance.cloud_init_timeout, Some(2700));
 }
 
 #[test]

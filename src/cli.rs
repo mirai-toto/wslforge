@@ -40,9 +40,9 @@ pub struct Args {
     #[arg(long, short = 'f')]
     pub force: bool,
 
-    /// Timeout in seconds for cloud-init provisioning (default: 900)
-    #[arg(long, default_value_t = 900)]
-    pub cloud_init_timeout: u64,
+    /// Override the per-instance cloud-init timeout in seconds (default: 900)
+    #[arg(long)]
+    pub cloud_init_timeout: Option<u64>,
 
     /// Generate shell completion script and exit
     #[arg(long, value_name = "SHELL")]

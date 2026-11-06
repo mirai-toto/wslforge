@@ -6,6 +6,7 @@ use crate::wsl::validation::environment;
 use crate::wsl::{Event, RunOptions};
 
 pub(super) const DEFAULT_SHELL: &str = "sh";
+const DEFAULT_CLOUD_INIT_TIMEOUT: u64 = 900;
 
 pub(super) struct CreateDecision {
     pub(super) skip: bool,
@@ -165,7 +166,11 @@ pub(super) fn wait_for_provisioning(
     if !cloud_init_active {
         return Ok((vec![], String::new()));
     }
-    let final_status = engine.wait_for_provisioning(&instance.name, options.cloud_init_timeout, on_status)?;
+    let timeout: u64 = options
+        .cloud_init_timeout
+        .or(instance.cloud_init_timeout)
+        .unwrap_or(DEFAULT_CLOUD_INIT_TIMEOUT);
+    let final_status = engine.wait_for_provisioning(&instance.name, timeout, on_status)?;
     Ok((
         vec![Event::ProvisioningWaiting, Event::ProvisioningCompleted],
         final_status,

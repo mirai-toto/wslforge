@@ -1,20 +1,10 @@
 use std::path::PathBuf;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct RunOptions {
     pub dry_run: bool,
     pub debug: bool,
-    pub cloud_init_timeout: u64,
-}
-
-impl Default for RunOptions {
-    fn default() -> Self {
-        Self {
-            dry_run: false,
-            debug: false,
-            cloud_init_timeout: 900,
-        }
-    }
+    pub cloud_init_timeout: Option<u64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -124,13 +124,13 @@ impl WslEngine for FakeEngine {
     fn wait_for_provisioning(
         &self,
         instance_name: &str,
-        _timeout_secs: u64,
+        timeout_secs: u64,
         _on_status: &dyn Fn(String),
     ) -> anyhow::Result<String> {
         self.calls
             .lock()
             .expect("lock calls")
-            .push(format!("wait_for_provisioning:{instance_name}"));
+            .push(format!("wait_for_provisioning:{instance_name}:{timeout_secs}"));
         Ok(String::new())
     }
 }
@@ -224,7 +224,7 @@ fn create_instance_dry_run_skips_engine_create_after_prepare() {
             RunOptions {
                 dry_run: true,
                 debug: false,
-                cloud_init_timeout: 300,
+                cloud_init_timeout: Some(300),
             },
         )
         .expect("dry run should succeed");
@@ -287,7 +287,7 @@ fn create_instance_override_dry_run_reports_delete_dry_run_and_skips_create() {
             RunOptions {
                 dry_run: true,
                 debug: false,
-                cloud_init_timeout: 300,
+                cloud_init_timeout: Some(300),
             },
         )
         .expect("dry run should succeed");
@@ -353,4 +353,34 @@ fn create_instance_override_existing_deletes_then_creates() {
             "create_from_file:devbox"
         ]
     );
+}
+
+#[test]
+fn provisioning_timeout_prefers_cli_then_instance_then_default() {
+    let dir = tempfile::tempdir().expect("create temp dir");
+    let image_path = create_temp_tar_file(&dir);
+    let mut instance: Instance = file_image_instance(&image_path);
+    let (engine, calls) = FakeEngine::new(false, false);
+
+    for (configured, cli, expected) in [
+        (None, None, 900),
+        (Some(2700), None, 2700),
+        (Some(2700), Some(1200), 1200),
+    ] {
+        instance.cloud_init_timeout = configured;
+        super::steps::wait_for_provisioning(
+            &engine,
+            &instance,
+            RunOptions {
+                cloud_init_timeout: cli,
+                ..RunOptions::default()
+            },
+            &|_| {},
+        )
+        .expect("wait for provisioning");
+        assert_eq!(
+            calls.lock().expect("lock calls").last().map(String::as_str),
+            Some(format!("wait_for_provisioning:devbox:{expected}").as_str())
+        );
+    }
 }

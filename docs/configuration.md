@@ -12,17 +12,18 @@ instances:
 
 ## Core fields (per instance)
 
-| Field         | Description                                                                 | Example / Reference                 |
-| ------------- | --------------------------------------------------------------------------- | ----------------------------------- |
-| `override`    | Replace existing instance if it exists                                      | `true`                              |
-| `username`    | Default user                                                                | `wsluser`                           |
-| `password`    | Optional password (hashed for cloud-init)                                   | `root`                              |
-| `install_dir` | Target install directory                                                    | `%userprofile%/VMs`                 |
-| `proxy`       | HTTP/HTTPS proxy settings                                                   | see [Proxy](#proxy)                 |
-| `image`       | Image source (distro or file/URL)                                           | see [Image Sources](#image-sources) |
-| `cloud_init`  | Cloud-init user-data (file or inline)                                       | see [Cloud Init](#cloud-init)       |
-| `files`       | Files or directories to copy into the instance                              | see [Files](#files)                 |
-| `scripts`     | Shell commands to run inside the instance after creation and file transfers | see [Scripts](#scripts)             |
+| Field                | Description                                                                 | Example / Reference                 |
+| -------------------- | --------------------------------------------------------------------------- | ----------------------------------- |
+| `override`           | Replace existing instance if it exists                                      | `true`                              |
+| `username`           | Default user                                                                | `wsluser`                           |
+| `password`           | Optional password (hashed for cloud-init)                                   | `root`                              |
+| `install_dir`        | Target install directory                                                    | `%userprofile%/VMs`                 |
+| `cloud_init_timeout` | Cloud-init provisioning timeout in seconds (default: 900)                  | `2700`                              |
+| `proxy`              | HTTP/HTTPS proxy settings                                                   | see [Proxy](#proxy)                 |
+| `image`              | Image source (distro or file/URL)                                           | see [Image Sources](#image-sources) |
+| `cloud_init`         | Cloud-init user-data (file or inline)                                       | see [Cloud Init](#cloud-init)       |
+| `files`              | Files or directories to copy into the instance                              | see [Files](#files)                 |
+| `scripts`            | Shell commands to run inside the instance after creation and file transfers | see [Scripts](#scripts)             |
 
 Example `config.yaml` with a file-based cloud-init and an official distro:
 
@@ -64,7 +65,13 @@ proxy:
 
 Use cloud-init to bootstrap packages and settings on first boot. Wslforge waits for provisioning to complete before running file transfers and scripts — ensuring the instance is fully ready before any post-create steps run. You can reference a file or embed the YAML inline.
 
-When cloud-init is configured, wslforge polls `cloud-init status` every 2 seconds until it reaches a terminal state. The default timeout is **900 seconds** and can be overridden with `--cloud-init-timeout <seconds>`. The final status is printed after the spinner clears.
+When cloud-init is configured, wslforge polls `cloud-init status` every 2 seconds until it reaches a terminal state. The default timeout is **900 seconds**. Set `cloud_init_timeout` on an instance to change it for that instance, or pass `--cloud-init-timeout <seconds>` to override it for all instances in that run. The final status is printed after the spinner clears.
+
+```yaml
+instances:
+  MyInstance:
+    cloud_init_timeout: 2700  # 45 minutes
+```
 
 | Status reported       | Behaviour                                              |
 | --------------------- | ------------------------------------------------------ |
