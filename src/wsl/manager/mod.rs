@@ -19,20 +19,38 @@ pub struct WslManager {
 }
 
 impl WslManager {
+    #[must_use]
     pub fn new(engine: Box<dyn WslEngine>) -> Self {
         Self { engine }
     }
 
+    /// Checks that WSL and its required Windows features are available.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if WSL is unavailable, a required Windows feature is
+    /// disabled, or a system check fails.
     pub fn validate_environment(&self) -> anyhow::Result<()> {
         environment::check_environment(self.engine.as_ref())
     }
 
+    /// Validates and prepares the WSL environment.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if environment validation or the WSL update fails.
     pub fn prepare_environment(&self, dry_run: bool) -> anyhow::Result<()> {
         self.validate_environment()?;
         setup::environment::update_wsl_version(self.engine.as_ref(), dry_run)?;
         Ok(())
     }
 
+    /// Creates a WSL instance after validating its configuration.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the configuration is invalid or a WSL engine
+    /// operation fails.
     pub fn create_instance(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<InstanceResult> {
         instance::validate_instance(instance)?;
 
@@ -74,18 +92,19 @@ impl WslManager {
         })
     }
 
-    pub fn apply_instance(&self, instance: &Instance, options: RunOptions) -> anyhow::Result<InstanceResult> {
-        let mut result = self.create_instance_with_progress(instance, options)?;
+    #[must_use]
+    pub fn apply_instance(&self, instance: &Instance, options: RunOptions) -> InstanceResult {
+        let mut result = self.create_instance_with_progress(instance, options);
 
         if matches!(result.outcome, Status::Created | Status::Recreated) {
             let pb = display::spinner("⏳ Waiting for provisioning...".to_string());
             let provisioning_result = wait_for_provisioning(self.engine.as_ref(), instance, options, &|s| {
-                pb.set_message(format!("⏳ Waiting for provisioning... {s}"))
+                pb.set_message(format!("⏳ Waiting for provisioning... {s}"));
             });
             pb.finish_and_clear();
             match provisioning_result {
                 Ok((events, final_status)) => {
-                    println!("  {}", final_status);
+                    println!("  {final_status}");
                     result.events.extend(events);
                 }
                 Err(e) => result.outcome = Status::Failed(e.to_string()),
@@ -93,14 +112,14 @@ impl WslManager {
         }
 
         if !instance.files.is_empty() {
-            self.run_step(
+            Self::run_step(
                 &mut result,
                 format!("📂 Transferring {} file(s)...", instance.files.len()),
                 || transfer_files(self.engine.as_ref(), instance),
             );
         }
         if !instance.scripts.run.is_empty() {
-            self.run_step(
+            Self::run_step(
                 &mut result,
                 format!("⚙️  Running {} script(s)...", instance.scripts.run.len()),
                 || run_scripts(self.engine.as_ref(), instance),
@@ -108,22 +127,18 @@ impl WslManager {
         }
 
         result.log();
-        Ok(result)
+        result
     }
 
     /// Runs `create_instance`, wrapping it in a download spinner for remote images.
-    fn create_instance_with_progress(
-        &self,
-        instance: &Instance,
-        options: RunOptions,
-    ) -> anyhow::Result<InstanceResult> {
+    fn create_instance_with_progress(&self, instance: &Instance, options: RunOptions) -> InstanceResult {
         let is_remote = matches!(
             &instance.image,
             ImageSource::File {
                 path: SourcePath::Remote(_)
             }
         );
-        let pb = is_remote.then(|| display::spinner("⬇️Downloading image...".to_string()));
+        let download_spinner = is_remote.then(|| display::spinner("⬇️Downloading image...".to_string()));
         let result = self
             .create_instance(instance, options)
             .unwrap_or_else(|e| InstanceResult {
@@ -131,15 +146,15 @@ impl WslManager {
                 outcome: Status::Failed(e.to_string()),
                 events: vec![],
             });
-        if let Some(pb) = pb {
-            pb.finish_and_clear();
+        if let Some(spinner) = download_spinner {
+            spinner.finish_and_clear();
         }
-        Ok(result)
+        result
     }
 
     /// Runs a labelled step only when the instance was just created/recreated.
     /// On failure, transitions the outcome to `Status::Failed` instead of propagating.
-    fn run_step<F>(&self, result: &mut InstanceResult, label: String, f: F)
+    fn run_step<F>(result: &mut InstanceResult, label: String, f: F)
     where
         F: FnOnce() -> anyhow::Result<Vec<Event>>,
     {
@@ -152,12 +167,17 @@ impl WslManager {
         }
     }
 
+    /// Prepares the WSL environment and applies every configured instance.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the WSL environment cannot be prepared.
     pub fn apply_all(&self, config: &Config, options: RunOptions) -> anyhow::Result<BTreeMap<String, InstanceResult>> {
         self.prepare_environment(options.dry_run)?;
         let mut results: BTreeMap<String, InstanceResult> = BTreeMap::new();
         for (instance_name, instance) in &config.instances {
             eprintln!("{}", style(format!("🔧 Creating '{instance_name}'...")).bold());
-            results.insert(instance_name.clone(), self.apply_instance(instance, options)?);
+            results.insert(instance_name.clone(), self.apply_instance(instance, options));
         }
         Ok(results)
     }

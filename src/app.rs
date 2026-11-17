@@ -18,7 +18,12 @@ pub struct AppArgs {
     pub cloud_init_timeout: Option<u64>,
 }
 
-pub fn validate(config: Config) -> anyhow::Result<()> {
+/// Validates every configured instance.
+///
+/// # Errors
+///
+/// Returns an error if one or more instances fail validation.
+pub fn validate(config: &Config) -> anyhow::Result<()> {
     let mut all_valid = true;
     for (name, instance) in &config.instances {
         match validate_instance(instance) {
@@ -30,11 +35,17 @@ pub fn validate(config: Config) -> anyhow::Result<()> {
         }
     }
     if !all_valid {
-        std::process::exit(1);
+        anyhow::bail!("one or more instances are invalid");
     }
     Ok(())
 }
 
+/// Runs the configured WSL provisioning workflow.
+///
+/// # Errors
+///
+/// Returns an error if the host is unsupported, an interactive prompt fails,
+/// or WSL environment preparation fails.
 pub fn run(mut cfg: AppArgs) -> anyhow::Result<()> {
     ensure_windows()?;
 
@@ -73,7 +84,7 @@ fn prompt_missing_cloud_init(config: &mut Config, force: bool) -> anyhow::Result
         return Ok(());
     }
 
-    for (name, instance) in config.instances.iter() {
+    for (name, instance) in &config.instances {
         for reason in cloud_init_required(instance) {
             eprintln!("{}", console::style(format!("⚠️  '{name}': {reason}")).yellow());
         }

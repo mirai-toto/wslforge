@@ -2,6 +2,12 @@ use std::time::Duration;
 
 use indicatif::{ProgressBar, ProgressStyle};
 
+/// Creates and starts a spinner with the given message.
+///
+/// # Panics
+///
+/// Panics if the built-in spinner template is invalid.
+#[must_use]
 pub fn spinner(msg: String) -> ProgressBar {
     let pb = ProgressBar::new_spinner();
     pb.set_style(
