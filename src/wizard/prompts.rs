@@ -72,12 +72,12 @@ pub fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
         return Ok(None);
     }
 
-    let http_url = Url::parse(&http).map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
+    let http_proxy_url = Url::parse(&http).map_err(|e| anyhow::anyhow!("invalid proxy http URL: {e}"))?;
 
     let https = Text::new("🔒  proxy https (blank to skip)")
         .with_help_message(HELP)
         .prompt()?;
-    let https_url = non_empty(https)
+    let secure_proxy_url = non_empty(https)
         .map(|s| Url::parse(&s).map_err(|e| anyhow::anyhow!("invalid proxy https URL: {e}")))
         .transpose()?;
 
@@ -86,8 +86,8 @@ pub fn prompt_proxy() -> anyhow::Result<Option<Proxy>> {
         .prompt()?;
 
     Ok(Some(Proxy {
-        http: Some(http_url),
-        https: https_url,
+        http: Some(http_proxy_url),
+        https: secure_proxy_url,
         no_proxy: non_empty(no_proxy),
     }))
 }

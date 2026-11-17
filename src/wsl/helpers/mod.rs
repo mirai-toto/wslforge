@@ -41,7 +41,7 @@ pub(crate) fn expand_wsl_dest(raw: &str, username: &str, src: &Path) -> String {
     };
     if expanded.ends_with('/') {
         let filename = src.file_name().map(|f| f.to_string_lossy()).unwrap_or_default();
-        format!("{}{}", expanded, filename)
+        format!("{expanded}{filename}")
     } else {
         expanded
     }
@@ -84,7 +84,7 @@ pub(crate) fn resolve_source_path(path: &SourcePath) -> anyhow::Result<ResolvedP
         SourcePath::Remote(url) => {
             let response = ureq::get(url.as_str())
                 .call()
-                .map_err(|e| anyhow::anyhow!("failed to download '{}': {e}", url))?;
+                .map_err(|e| anyhow::anyhow!("failed to download '{url}': {e}"))?;
             let mut tmp = tempfile::NamedTempFile::new()?;
             std::io::copy(&mut response.into_reader(), tmp.as_file_mut())?;
             // Close the file handle so wsl.exe --import can open the file on Windows.

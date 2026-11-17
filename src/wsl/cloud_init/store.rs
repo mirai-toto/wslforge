@@ -20,7 +20,7 @@ pub fn copy_debug_to_current_dir(name: &str, rendered: &str) -> DebugCopyOutcome
             return DebugCopyOutcome::Skipped(format!("cwd error: {err}"));
         }
     };
-    let debug_path: PathBuf = debug_dir.join(format!("cloud-init.{}.user-data", name));
+    let debug_path: PathBuf = debug_dir.join(format!("cloud-init.{name}.user-data"));
     if let Err(err) = std::fs::write(&debug_path, rendered) {
         DebugCopyOutcome::Skipped(format!("write error: {err}"))
     } else {

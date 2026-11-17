@@ -67,7 +67,7 @@ impl WslEngine for CliEngine {
             .stderr(Stdio::inherit())
             .status()?;
         if !status.success() {
-            anyhow::bail!("wsl.exe --install failed with status {}", status);
+            anyhow::bail!("wsl.exe --install failed with status {status}");
         }
         Ok(())
     }
@@ -149,20 +149,20 @@ impl WslEngine for CliEngine {
 
             if stdout.is_empty() {
                 let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
-                log::debug!("cloud-init status exited non-zero for '{}': {}", instance_name, stderr);
-                return Ok(format!("⚠️  cloud-init unavailable: {}", stderr));
+                log::debug!("cloud-init status exited non-zero for '{instance_name}': {stderr}");
+                return Ok(format!("⚠️  cloud-init unavailable: {stderr}"));
             }
 
             on_status(stdout.clone());
 
             if stdout.contains("status: error") {
-                anyhow::bail!("cloud-init failed for '{}': {}", instance_name, stdout);
+                anyhow::bail!("cloud-init failed for '{instance_name}': {stdout}");
             }
             if stdout.contains("status: done") {
-                return Ok(format!("✅ {}", stdout));
+                return Ok(format!("✅ {stdout}"));
             }
             if stdout.contains("status: disabled") || stdout.contains("status: not run") {
-                return Ok(format!("⚠️  {}", stdout));
+                return Ok(format!("⚠️  {stdout}"));
             }
 
             if start.elapsed() >= timeout {

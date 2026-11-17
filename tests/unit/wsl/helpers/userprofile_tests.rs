@@ -3,7 +3,9 @@ use std::path::PathBuf;
 
 #[test]
 fn resolve_userprofile_dir_returns_env_path_when_set() {
-    let _guard = super::userprofile_env_lock().lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = super::userprofile_env_lock()
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let original = std::env::var_os("USERPROFILE");
     std::env::set_var("USERPROFILE", "/tmp/wslforge-userprofile");
 
@@ -18,7 +20,9 @@ fn resolve_userprofile_dir_returns_env_path_when_set() {
 
 #[test]
 fn resolve_userprofile_dir_errors_when_missing() {
-    let _guard = super::userprofile_env_lock().lock().unwrap_or_else(|e| e.into_inner());
+    let _guard = super::userprofile_env_lock()
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
     let original = std::env::var_os("USERPROFILE");
     std::env::remove_var("USERPROFILE");
 

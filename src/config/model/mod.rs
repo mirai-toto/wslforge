@@ -5,7 +5,7 @@ mod source;
 
 pub use cloud_init::CloudInitSource;
 pub use image::ImageSource;
-pub use instance::{Config, Instance, Proxy};
+pub use instance::{Config, Instance, Proxy, ScriptConfig};
 pub use source::SourcePath;
 
 #[cfg(test)]

@@ -15,7 +15,7 @@ use std::path::PathBuf;
 
 pub use store::DebugCopyOutcome;
 
-pub const DEFAULT_CLOUD_INIT_TEMPLATE: &str = r#"#cloud-config
+pub const DEFAULT_CLOUD_INIT_TEMPLATE: &str = r"#cloud-config
 users:
   - name: {{ username }}
     groups: [sudo]
@@ -42,14 +42,26 @@ write_files:
       no_proxy={{ proxy.no_proxy }}
       NO_PROXY={{ proxy.no_proxy }}
 {% endif %}
-{% endif %}"#;
+{% endif %}";
 
+/// Returns the path where rendered cloud-init data is stored for an instance.
+///
+/// # Errors
+///
+/// Returns an error if the current user's profile directory cannot be resolved.
 pub fn user_data_path(name: &str) -> anyhow::Result<PathBuf> {
     let userprofile = resolve_userprofile_dir()?;
     let target_dir = userprofile.join(".cloud-init");
-    Ok(target_dir.join(format!("{}.user-data", name)))
+    Ok(target_dir.join(format!("{name}.user-data")))
 }
 
+/// Loads, renders, and stores cloud-init data for an instance.
+///
+/// # Errors
+///
+/// Returns an error if the configured source cannot be loaded, the template
+/// cannot be rendered, the target path cannot be resolved, or the data cannot
+/// be written.
 pub fn prepare_cloud_init(instance: &Instance, dry_run: bool, debug: bool) -> anyhow::Result<Vec<Event>> {
     let mut events: Vec<Event> = Vec::new();
 

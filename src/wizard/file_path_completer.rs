@@ -46,16 +46,16 @@ fn resolve_scan_dir(input: &str) -> (PathBuf, PathBuf) {
     } else {
         PathBuf::from(input)
     };
-    let fallback = input_path
-        .parent()
-        .map(|p| {
+    let fallback = input_path.parent().map_or_else(
+        || PathBuf::from("."),
+        |p| {
             if p.to_string_lossy() == "" {
                 PathBuf::from(".")
             } else {
                 p.to_owned()
             }
-        })
-        .unwrap_or_else(|| PathBuf::from("."));
+        },
+    );
     let scan_dir = if input.ends_with('/') {
         input_path
     } else {

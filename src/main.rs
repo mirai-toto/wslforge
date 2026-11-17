@@ -25,7 +25,7 @@ fn main() -> anyhow::Result<()> {
     let loaded = resolve_config(args.config.as_deref())?;
 
     if args.validate {
-        return app::validate(loaded);
+        return app::validate(&loaded);
     }
 
     app::run(app::AppArgs {
@@ -75,7 +75,7 @@ fn init_logger(log_file: Option<&Path>) -> anyhow::Result<()> {
                     chrono::Local::now().format("%Y-%m-%d %H:%M:%S"),
                     record.level(),
                     message
-                ))
+                ));
             })
             .chain(fern::log_file(path)?);
         base = base.chain(file_dispatch);

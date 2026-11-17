@@ -19,8 +19,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
         instance
             .username
             .as_deref()
-            .map(|v| style(v).cyan().to_string())
-            .unwrap_or_else(none_label)
+            .map_or_else(none_label, |v| style(v).cyan().to_string())
     );
     eprintln!(
         "  password    : {}",
@@ -59,7 +58,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
             style(DEFAULT_CLOUD_INIT_TEMPLATE).dim()
         ),
         None => eprintln!("  cloud-init  : {}", none_label()),
-    };
+    }
 
     if !instance.vars.is_empty() {
         eprintln!("  vars        : {}", style(format!("{:?}", instance.vars)).cyan());
@@ -83,7 +82,7 @@ pub fn log_config_summary(instance_name: &str, instance: &Instance) {
         "config loaded: instance={instance_name} user={} image={image} override={} cloud-init={}",
         instance.username.as_deref().unwrap_or("(none)"),
         instance.override_instance,
-        cloud_init_label(&instance.cloud_init),
+        cloud_init_label(instance.cloud_init.as_ref()),
     );
 }
 
@@ -94,7 +93,7 @@ fn image_label(image: &ImageSource) -> String {
     }
 }
 
-fn cloud_init_label(cloud_init: &Option<crate::config::CloudInitSource>) -> String {
+fn cloud_init_label(cloud_init: Option<&crate::config::CloudInitSource>) -> String {
     match cloud_init {
         Some(source) => source.to_string(),
         None => "not configured".to_string(),

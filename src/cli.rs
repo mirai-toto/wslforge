@@ -11,6 +11,8 @@ use crate::config;
     about = "Manage WSL instances from a YAML configuration",
     after_help = config::EXAMPLE_CONFIG
 )]
+// These booleans map to independent CLI switches, not domain state.
+#[allow(clippy::struct_excessive_bools)]
 pub struct Args {
     /// Path to YAML configuration file (defaults to config.yaml in current directory)
     #[arg(short, long, value_hint = ValueHint::FilePath)]
